@@ -288,7 +288,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             prevAudioAdjPts_ = accessUnit->pts;
             prevAudioOrigPts_ = tsUnion.timestamp;
         }
-        LOG( "---index=%d, ready=%d, streamType=%d, flvTagSize=%d, oPts=%d,  relTsOffset_=%d, npts=%d\r\n", index_, frameReady, curStreamType_, curFlvTagSize_, tsUnion.timestamp, relTimeStampOffset_, (u32)accessUnit->pts );
+        //LOG( "---index=%d, ready=%d, streamType=%d, flvTagSize=%d, oPts=%d,  relTsOffset_=%d, npts=%d\r\n", index_, frameReady, curStreamType_, curFlvTagSize_, tsUnion.timestamp, relTimeStampOffset_, (u32)accessUnit->pts );
 
         if( frameReady ) {
             delegate_->onFLVFrameParsed( accessUnit, index_ );
