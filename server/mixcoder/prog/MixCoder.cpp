@@ -11,6 +11,7 @@
 #include "AudioSpeexEncoder.h"
 #include "AudioMp3Encoder.h"
 #include "VideoVp8Encoder.h"
+#include "VideoH264Encoder.h"
 #include "AudioMixer.h"
 #include "VideoMixer.h"
 #include "fwk/log.h"
@@ -18,18 +19,25 @@
 
 MixCoder::MixCoder(int vBitrate, int width, int height, 
                    int aBitrate, int frequency) : bUseSpeex_(false),
+                                                  bUseVp8_(false),
                                                   vBitrate_(vBitrate),
                                                   vWidth_(width),
                                                   vHeight_(height),
                                                   aBitrate_(aBitrate),
                                                   aFrequency_(frequency)
 {
-    VideoStreamSetting vOutputSetting = { kVP8VideoPacket, vWidth_, vHeight_ }; 
+    VideoStreamSetting vOutputSetting = { kAVCVideoPacket, vWidth_, vHeight_ }; 
     AudioStreamSetting aOutputSetting = { kMP3, getAudioRate(44100), kSndStereo, kSnd16Bit, 0 };
 
     flvSegParser_ = new FLVSegmentParser( 30, &aOutputSetting ); //end result 30 fps
                                          
-    videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
+    if( bUseVp8_ ) {
+        vOutputSetting.vcid = kVP8VideoPacket;
+        videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
+    } else {
+        //vOutputSetting.vcid = kAVCVideoPacket;
+        videoEncoder_ = new VideoH264Encoder( &vOutputSetting, vBitrate_ );
+    }
     videoMixer_ = new VideoMixer(&vOutputSetting);
 
     if( bUseSpeex_ ) {

@@ -44,6 +44,9 @@ class MixCoder
     //audio uses speex or mp3
     bool bUseSpeex_;
 
+    //video uses vp8 or h264
+    bool bUseVp8_;
+
     //output settings
     int vBitrate_;
     int vWidth_;
