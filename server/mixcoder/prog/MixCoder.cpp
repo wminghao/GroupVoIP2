@@ -10,7 +10,7 @@
 #include "FLVSegmentOutput.h"
 #include "AudioSpeexEncoder.h"
 #include "AudioMp3Encoder.h"
-#include "VideoEncoder.h"
+#include "VideoVp8Encoder.h"
 #include "AudioMixer.h"
 #include "VideoMixer.h"
 #include "fwk/log.h"
@@ -29,7 +29,7 @@ MixCoder::MixCoder(int vBitrate, int width, int height,
 
     flvSegParser_ = new FLVSegmentParser( 30, &aOutputSetting ); //end result 30 fps
                                          
-    videoEncoder_ = new VideoEncoder( &vOutputSetting, vBitrate_ );
+    videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
     videoMixer_ = new VideoMixer(&vOutputSetting);
 
     if( bUseSpeex_ ) {

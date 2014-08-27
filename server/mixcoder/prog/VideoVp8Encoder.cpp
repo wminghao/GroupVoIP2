@@ -1,4 +1,4 @@
-#include "VideoEncoder.h"
+#include "VideoVp8Encoder.h"
 #include "fwk/log.h"
 #include <assert.h>
 
@@ -62,13 +62,11 @@ static void write_ivf_frame_header(FILE *outfile,
 }
 #endif //DEBUG_SAVE_IVF
 
-VideoEncoder::VideoEncoder( VideoStreamSetting* setting, int vBaseLayerBitrate ) : vBaseLayerBitrate_(vBaseLayerBitrate), frameInputCnt_(0), frameOutputCnt_(0), timestampTick_(0)
+VideoVp8Encoder::VideoVp8Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate), frameInputCnt_(0), frameOutputCnt_(0), timestampTick_(0)
 {
     vpx_codec_err_t      res;
 
     //vp8 encoder
-    memcpy(&vSetting_, setting, sizeof(VideoStreamSetting));
-
     if ( !vpx_img_alloc (&raw_, VPX_IMG_FMT_I420, setting->width, setting->height, 32)) {
         LOG( "Failed to allocate frame\n");
         assert(0);
@@ -176,7 +174,7 @@ VideoEncoder::VideoEncoder( VideoStreamSetting* setting, int vBaseLayerBitrate )
 #endif
 }
 
-VideoEncoder::~VideoEncoder()
+VideoVp8Encoder::~VideoVp8Encoder()
 {
     vpx_img_free(&raw_);
     
@@ -195,7 +193,7 @@ VideoEncoder::~VideoEncoder()
 #endif
 }
 
-SmartPtr<SmartBuffer> VideoEncoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
+SmartPtr<SmartBuffer> VideoVp8Encoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
 {
     SmartPtr<SmartBuffer> result;
     if ( input && input->dataLength() > 0 ) {
