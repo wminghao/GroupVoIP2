@@ -94,6 +94,10 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
         payloadSize = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
         if( payloadSize >= 5 && i_nal == 1) {
             assert(nals[0].i_payload == payloadSize);
+            assert(nals[0].p_payload[0]==0);
+            assert(nals[0].p_payload[1]==0);
+            assert(nals[0].p_payload[2]==0);
+            assert(nals[0].p_payload[3]==1);
             //Replace 00 00 00 01 with NAL length in big endian
             nals[0].p_payload[0] = (payloadSize-4) >> 24;
             nals[0].p_payload[1] = ((payloadSize-4) >> 16) & 0xff;
