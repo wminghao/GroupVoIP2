@@ -1,6 +1,7 @@
 #ifndef __CODECINFOCOMMON_H__
 #define __CODECINFOCOMMON_H__
 
+const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
 const u32 MAX_XCODING_INSTANCES = 32;
 
 typedef  enum VideoLayout {

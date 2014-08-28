@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "AudioDecoderFactory.h"
 
-#define OUTPUT_VIDEO_FRAME_RATE 30
 
 ////////////////////////////////////////////////////////////////
 // Audio is always continuous. Video can not be faster than audio.

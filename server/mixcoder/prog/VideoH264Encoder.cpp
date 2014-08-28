@@ -15,10 +15,10 @@ VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerB
     
     x264Param_.i_width = setting->width;
     x264Param_.i_height = setting->height;
-    x264Param_.i_fps_num = 30;
+    x264Param_.i_fps_num = OUTPUT_VIDEO_FRAME_RATE;
     x264Param_.i_fps_den = 1;
-    x264Param_.i_keyint_min = 30;
-    x264Param_.i_keyint_max = 30;
+    x264Param_.i_keyint_min = OUTPUT_VIDEO_FRAME_RATE;
+    x264Param_.i_keyint_max = OUTPUT_VIDEO_FRAME_RATE;
 
     x264Param_.b_repeat_headers = 0;
     x264Param_.rc.i_bitrate = outBitrate; 
@@ -48,8 +48,6 @@ VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerB
     x264Pic_.img.i_stride[1] = setting->width/2;
     x264Pic_.img.i_stride[2] = setting->width/2;
     
-    x264Pic_.i_type = X264_TYPE_AUTO; //Auto select TODO
-
     nSize_ = setting->width*setting->height;
 }
 
@@ -80,12 +78,18 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 {
     SmartPtr<SmartBuffer> result;
     if ( input && input->dataLength() > 0 ) {
-        frameInputCnt_++;
+        if( !(frameInputCnt_ % OUTPUT_VIDEO_FRAME_RATE)) {
+            x264Pic_.i_type = X264_TYPE_IDR;
+        } else {
+            x264Pic_.i_type = X264_TYPE_P;
+        }
 
         x264Pic_.img.plane[0] = input->data();
         x264Pic_.img.plane[1] = x264Pic_.img.plane[0] + nSize_;
         x264Pic_.img.plane[2] = x264Pic_.img.plane[1] + nSize_ / 4;        
-        
+
+        frameInputCnt_++;
+
         x264_picture_t outPic;
         x264_nal_t *nals;
         int i_nal;
@@ -94,17 +98,20 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
         payloadSize = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
         if( payloadSize >= 5 && i_nal == 1) {
             assert(nals[0].i_payload == payloadSize);
-            assert(nals[0].p_payload[0]==0);
-            assert(nals[0].p_payload[1]==0);
-            assert(nals[0].p_payload[2]==0);
-            assert(nals[0].p_payload[3]==1);
+
+            /*
             //Replace 00 00 00 01 with NAL length in big endian
             nals[0].p_payload[0] = (payloadSize-4) >> 24;
             nals[0].p_payload[1] = ((payloadSize-4) >> 16) & 0xff;
             nals[0].p_payload[2] = ((payloadSize-4) >> 8) & 0xff;
             nals[0].p_payload[3] = ((payloadSize-4) >> 0) & 0xff;
+            */
             *bIsKeyFrame = isKeyFrame( nals[0].p_payload, nals[0].i_payload );
             frameOutputCnt_++;
+
+            LOG("===h264 cnt=%d len=%d, isKeyframe=%d!\r\n", frameOutputCnt_, payloadSize, *bIsKeyFrame);
+
+
             result = new SmartBuffer( nals[0].i_payload, nals[0].p_payload );
         } else {
             LOG("===h264 encode error!");
