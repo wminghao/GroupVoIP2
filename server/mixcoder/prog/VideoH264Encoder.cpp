@@ -61,6 +61,21 @@ VideoH264Encoder::~VideoH264Encoder()
     }
 }
 
+
+//assume there is only one slice per frame
+bool isKeyFrame(u8* data, int len)
+{
+    bool bIsKeyFrame = false;
+    if( len >= 5 ) {
+        u8 NALuHeader = data[4];//excluding the 4 bytes len
+        u8 nal_unit_type = (u8)((NALuHeader>>0) & 0x1f);
+        u8 nal_ref_idc =  (u8)((NALuHeader>>5) & 0x03);
+        
+        bIsKeyFrame = ( nal_unit_type == 5 );
+    }
+    return bIsKeyFrame;
+}
+
 SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
 {
     SmartPtr<SmartBuffer> result;
@@ -74,10 +89,17 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
         x264_picture_t outPic;
         x264_nal_t *nals;
         int i_nal;
-        int rv;    
+        int payloadSize;    
 
-        rv = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
-        if( rv > 0 && i_nal == 1) {
+        payloadSize = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
+        if( payloadSize >= 5 && i_nal == 1) {
+            assert(nals[0].i_payload == payloadSize);
+            //Replace 00 00 00 01 with NAL length in big endian
+            nals[0].p_payload[0] = (payloadSize-4) >> 24;
+            nals[0].p_payload[1] = ((payloadSize-4) >> 16) & 0xff;
+            nals[0].p_payload[2] = ((payloadSize-4) >> 8) & 0xff;
+            nals[0].p_payload[3] = ((payloadSize-4) >> 0) & 0xff;
+            *bIsKeyFrame = isKeyFrame( nals[0].p_payload, nals[0].i_payload );
             frameOutputCnt_++;
             result = new SmartBuffer( nals[0].i_payload, nals[0].p_payload );
         } else {
@@ -89,4 +111,3 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 
 //TODO missing
 //spspps header generation, attach to each key frame???
-//how to determine keyframes???
