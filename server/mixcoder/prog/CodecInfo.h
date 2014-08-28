@@ -49,7 +49,7 @@ typedef enum
     kVP6AlphaVideoPacket = 5,
     kScreenV2VideoPacket = 6,
     kAVCVideoPacket = 7,
-    kVP8VideoPacket = 15
+    kVP8VideoPacket = 8
 }VideoCodecId;
 
 typedef enum

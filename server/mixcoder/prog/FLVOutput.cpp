@@ -40,7 +40,6 @@ const u8 flvHeader[] = {
     0x00,0x00,0x09, //ends with 9
     0x00,0x00,0x01,0x2E //previous tag len, len=0x12E
 };
-    
 
 const u8 audioSpeexTagByte = 0xbe; //speex
 const u8 audioMp316kTagByte = 0xfe; //16khzmp3
@@ -62,6 +61,8 @@ SmartPtr<SmartBuffer> FLVOutput::newHeader()
 
 SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, VideoRect* videoRect)
 {
+    //TODO packaging x,y,width,height
+    /*
     int x = 0;
     int y = 0;
     int width = 0;
@@ -73,15 +74,17 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
         width = videoRect->width;
         height = videoRect->height;
     }
+    */
 
     //then build video header
+    u32 additionalHeader = (videoSetting_.vcid == kAVCVideoPacket)?4:0; //vp8 is 0
     u32 videoHeaderLen = 11;
-    u32 videoDataLen = videoPacket->dataLength() + 9;
+    u32 videoDataLen = videoPacket->dataLength() + 1 + additionalHeader;
     SmartPtr<SmartBuffer> videoFrame = new SmartBuffer( videoHeaderLen + videoDataLen + 4 );
     u8* data = videoFrame->data();
 
     //frame tag
-    data[0] = (u8)0x09;
+    data[0] = (u8)kVideoStreamType;
     //frame data length
     data[1] = (u8)((videoDataLen>>16)&0xff);
     data[2] = (u8)((videoDataLen>>8)&0xff);
@@ -98,10 +101,20 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
     data[10] = 0;
 
     if ( bIsKeyFrame) {
-        data[11] = (u8)0x18;
+        data[11] = (u8)(0x10 & videoSetting_.vcid);
     } else {
-        data[11] = (u8)0x28;
+        data[11] = (u8)(0x20 & videoSetting_.vcid);
     }
+
+    if( videoSetting_.vcid == kAVCVideoPacket ) {
+        data[12] = 0x1; //nalu data
+        data[13] = 0x0; //composition time offset
+        data[14] = 0x0;
+        data[15] = 0x0;
+    } 
+
+    /*
+    //8 bytes of data
     //tell the playback side where the stream is located.
     data[12] = (u8)((x>>8)&0xff);  
     data[13] = (u8)(x&0xff);  
@@ -111,9 +124,10 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
     data[17] = (u8)(width&0xff);  
     data[18] = (u8)((height>>8)&0xff);  
     data[19] = (u8)(height&0xff);  
+    */
 
     if ( videoDataLen > 1 ) {
-        memcpy(&data[20], videoPacket->data(), videoPacket->dataLength());
+        memcpy(&data[videoHeaderLen+1+additionalHeader], videoPacket->data(), videoPacket->dataLength());
     }
     //prev tag size
     int tl = 11 + videoDataLen;
@@ -149,7 +163,7 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
 
     //FLV_TAG_TYPE_AUDIO
     //{
-    data[0] = (u8)0x08;
+    data[0] = (u8)kAudioStreamType;
     //frame data size
     data[1] = (u8)((audioDataLen>>16)&0xff); 
     data[2] = (u8)((audioDataLen>>8)&0xff);  

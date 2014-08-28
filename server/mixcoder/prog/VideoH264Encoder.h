@@ -16,6 +16,9 @@ class VideoH264Encoder:public VideoEncoder
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame);
 
  private:
+    SmartPtr<SmartBuffer> genVideoHeader();
+
+ private:
     //x264 parameters
     x264_param_t x264Param_;
     x264_t* x264Ctx_;    

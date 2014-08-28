@@ -75,7 +75,7 @@ int main( int argc, char** argv ) {
   int flvChunkStartPos = 13;
 
   int totalFlvChunks = (file_size-flvChunkStartPos)/FIXED_DATA_SIZE;
-  fprintf(stderr, "total file size=%ld, totalflvChunks=%d\r\n", file_size, totalFlvChunks, flvChunkStartPos);
+  fprintf(stderr, "total file size=%ld, totalflvChunks=%d\r\n", file_size, totalFlvChunks);
 
   if (fseek(fp, flvChunkStartPos , SEEK_SET) != 0) {
     /* Handle Error */
