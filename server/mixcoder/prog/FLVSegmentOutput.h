@@ -28,6 +28,8 @@ class FLVSegmentOutput
     bool packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId, VideoRect* videoRect);
     bool packageAudioFrame(SmartPtr<SmartBuffer> audioPacket, u32 ts, int streamId);
 
+    void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader );
+
  private:
     SmartPtr<SmartBuffer> outputBuffer_[MAX_XCODING_INSTANCES+1];
 

@@ -15,6 +15,13 @@ FLVSegmentOutput::~FLVSegmentOutput() {
     }
 }
 
+void FLVSegmentOutput::saveVideoHeader( SmartPtr<SmartBuffer> videoHeader )
+{
+    for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
+        output_[i]->saveVideoHeader(videoHeader);
+    }
+}
+
 bool FLVSegmentOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId, VideoRect* videoRect)
 {
     outputBuffer_[streamId] = output_[streamId]->packageVideoFrame(videoPacket, ts, bIsKeyFrame, videoRect);

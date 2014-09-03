@@ -141,6 +141,12 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                 SmartPtr<SmartBuffer> rawFrameMixed = videoMixer_->mixStreams(rawVideoData_, totalStreams, videoRect);
                 SmartPtr<SmartBuffer> encodedFrame = videoEncoder_->encodeAFrame(rawFrameMixed, &bIsKeyFrame);
                 if ( encodedFrame ) {
+                    //if there is a video header, save the header first
+                    SmartPtr<SmartBuffer> videoHeader = videoEncoder_->genVideoHeader();
+                    if( videoHeader ) {
+                        flvSegOutput_->saveVideoHeader( videoHeader );
+                    }
+
                     //for each individual mobile stream
                     if ( totalMobileStreams ) { 
                         //for non-mobile stream, there is nothing to mix

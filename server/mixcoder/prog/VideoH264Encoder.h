@@ -14,11 +14,21 @@ class VideoH264Encoder:public VideoEncoder
     VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate );
     virtual ~VideoH264Encoder();
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame);
+    virtual SmartPtr<SmartBuffer> genVideoHeader() {
+        if( !videoHeaderGen_ ) {
+            videoHeaderGen_ = true;
+            return genVideoHeaderPrivate();
+        } else {
+            return NULL;
+        }
+    }
 
  private:
-    SmartPtr<SmartBuffer> genVideoHeader();
-
+    SmartPtr<SmartBuffer> genVideoHeaderPrivate();
  private:
+    //videoHeader
+    bool videoHeaderGen_;
+
     //x264 parameters
     x264_param_t x264Param_;
     x264_t* x264Ctx_;    

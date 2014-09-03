@@ -2,7 +2,7 @@
 #include "fwk/log.h"
 #include <assert.h>
 
-VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate), frameInputCnt_(0), frameOutputCnt_(0)
+VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate), videoHeaderGen_(false), frameInputCnt_(0), frameOutputCnt_(0)
 {  
     int outBitrate = vBaseLayerBitrate * 3;//TODO 3 times the base is the output bitrate
 
@@ -118,7 +118,7 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 }
 
 //TODO spspps header generation, attach to each key frame
-SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeader()
+SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
 {
     SmartPtr<SmartBuffer> header = NULL;
     SmartPtr<SmartBuffer> sps;

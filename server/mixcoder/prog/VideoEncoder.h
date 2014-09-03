@@ -13,6 +13,7 @@ class VideoEncoder
     VideoEncoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):vBaseLayerBitrate_(vBaseLayerBitrate) { memcpy(&vSetting_, setting, sizeof(VideoStreamSetting)); }
     virtual ~VideoEncoder() {}
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame) = 0;
+    virtual SmartPtr<SmartBuffer> genVideoHeader() { return NULL; }
 
  protected:
     //input settings and output setting are the same
