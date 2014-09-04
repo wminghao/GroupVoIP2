@@ -100,6 +100,8 @@
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/IdLookup.java'
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/GroupMixer.java'
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/SegmentParser.java'
+'/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/NativeProcessPipe.java'
+'/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/MixCoderBridge.java'
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/ProcessPipe.java'
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/SegmentParserTest.java'
 '/home/ubuntu/GroupVoIP2/red5-readonly/src/main/java/org/red5/server/mixer/FLVParser.java'
