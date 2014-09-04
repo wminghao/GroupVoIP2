@@ -1,3 +1,4 @@
+
 #include "FLVParser.h"
 #include "CodecInfo.h"
 #include "fwk/BitStreamParser.h"
@@ -136,7 +137,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                             u16 ppsLen = ((u16)ppsLenStr[0]<<8)|ppsLenStr[1];
                             string pps = bsParser.readBytes(ppsLen);                            
                             inputData = naluStarterCode + sps + naluStarterCode + pps;
-                            //LOG( "---spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", spsLen, ppsLen, inputData.size());
+                            LOG( "---spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", spsLen, ppsLen, inputData.size());
                             break;
                         }
                     case kAVCNalu:
@@ -199,7 +200,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                         frameReady = false;
                     }
                 }
-                //LOG( "---video accessUnit, isKey=%d, codecType=%d, specialProperty=%d, naluSize=%ld\r\n", accessUnit->isKey, accessUnit->ct, accessUnit->sp, inputData.size());
+                //LOG( "---video accessUnit, isKey=%d, codecType=%d, specialProperty=%d, naluSize=%ld\r\n", accessUnit->isKey, accessUnit->ctype, accessUnit->sp, inputData.size());
                             
                 break;
             }
@@ -236,7 +237,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                     accessUnit->payload = new SmartBuffer( dataSize, bsParser.readBytes(dataSize).data());
                     frameReady = true;
                 }
-                //LOG( "---audio accessUnit, isKey=%d, codecType=%d, specialProperty=%d\r\n", accessUnit->isKey, accessUnit->ct, accessUnit->sp);
+                //LOG( "---audio accessUnit, isKey=%d, codecType=%d, ts=%d\r\n", accessUnit->isKey, accessUnit->ctype, tsUnion.timestamp);
                 break;
             }
         case kDataStreamType:

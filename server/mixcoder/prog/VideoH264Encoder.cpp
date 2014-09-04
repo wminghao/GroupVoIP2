@@ -108,10 +108,10 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
             *bIsKeyFrame = ((nals[0].p_payload[4] & 0x1f)==5);
             frameOutputCnt_++;
 
-            LOG("===h264 cnt=%d len=%d, isKeyframe=%d!\r\n", frameOutputCnt_, payloadSize, *bIsKeyFrame);
+            //LOG("===h264 cnt=%d len=%d, isKeyframe=%d!\r\n", frameOutputCnt_, payloadSize, *bIsKeyFrame);
             result = new SmartBuffer( nals[0].i_payload, nals[0].p_payload );
         } else {
-            LOG("===h264 encode error!");
+            LOG("!!!h264 encode error!");
         }
     }
     return result;
@@ -128,14 +128,17 @@ SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
     x264_encoder_headers( x264Ctx_, &nals, &nalCnt );
     for( int i = 0; i < nalCnt; i++ ) {
         if( nals[i].i_type == NAL_SPS ) {
-            sps= new SmartBuffer( nals[i].i_payload, nals[i].p_payload );
+            sps= new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
         } else if (nals[i].i_type == NAL_PPS ) {
-            pps= new SmartBuffer( nals[i].i_payload, nals[i].p_payload );
+            pps= new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
         }
     }
     if( sps && pps ) {
+        u32 spsLen = sps->dataLength();
+        u32 ppsLen = pps->dataLength();
+
         //FLV's sps pps header, details in FLV video format doc
-        header = new SmartBuffer( sps->dataLength() + pps->dataLength() + 11);
+        header = new SmartBuffer( spsLen + ppsLen + 11);
         u8* data = header->data();
         //Version
         data[0] = 0x01;
@@ -150,19 +153,17 @@ SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
         data[5] = (u8)0xe1;
 
         //sps_size&data
-        u32 spsLen = sps->dataLength();
         data[6] = (u8)(spsLen >> 8);
         data[7] = (u8)(spsLen & 0xFF);
         memcpy(&data[8], sps->data(), spsLen);
 
         //pps_size&data
-        u32 ppsLen = pps->dataLength();
         data[8+spsLen] = 0x01;
         data[9+spsLen] = (u8)(ppsLen >> 8);
         data[10+spsLen] = (u8)(ppsLen & 0xFF);
         memcpy(&data[11+spsLen], pps->data(), ppsLen);
 
-        LOG("===h264 built spspps, len = %d\r\n", (spsLen+ppsLen+11));
+        LOG("===h264 built spspps, sps1stbyte=0x%x, pps1stbyte=0x%x, spsLen=%d, ppsLen=%d, len = %d\r\n", data[8], data[11+spsLen], spsLen, ppsLen, (spsLen+ppsLen+11));
     }
     return header;
 }
