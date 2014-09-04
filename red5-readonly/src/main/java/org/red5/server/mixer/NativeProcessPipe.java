@@ -16,7 +16,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 
-public class NativeProcessPipe implements SegmentParser.Delegate {
+public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge.Delegate {
 	private boolean bLoadFromDisc = false; //read from a file instead
 	private boolean bSaveToDisc = false; //log input file to a disc
 	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
@@ -35,8 +35,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate {
 	 * flv output segment parser
 	 */
 	private SegmentParser segParser_ = new SegmentParser(this);
-	
 	private SegmentParser.Delegate delegate;
+	private MixCoderBridge mixCoderBridge = new MixCoderBridge(this);
 	
 	public NativeProcessPipe(SegmentParser.Delegate delegate, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
 	{
@@ -87,15 +87,19 @@ public class NativeProcessPipe implements SegmentParser.Delegate {
            			log.info("=====>Disc IO other exception:  {}", ex);
          	    }			
     		} else {
-    			//TODO call native C function send it to an array
+    			//call native C function send it to an array
+    			ByteBuffer seg = inputObject.toByteBuffer();
+    			mixCoderBridge.newInput(seg);
     			//log.info("====>outBuffers_ queue size {}", outBuffers_.size());
     		}
 		}
 	}
 
-	//TODO after data is read
-	//segParser_.readData(inResult, bytesRead); //send to segment parser
-
+	//callback from native C code.
+	public void newOutput(byte[] bytesRead, int len) {
+		segParser_.readData(bytesRead, len); //send to segment parser
+	}
+	
 	class DiscReaderThread implements Runnable {
     	@Override
     	public void run() {
@@ -163,7 +167,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate {
 		}
 
 		if ( !bLoadFromDisc ) {
-			//TODO close native c lib.
+			//close native c lib.
+			mixCoderBridge.close();
 		}
 	}
 }
