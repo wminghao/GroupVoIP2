@@ -242,7 +242,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             }
         case kDataStreamType:
             {
-                //TODO
+                //TODO parse data type streams, ignore now
                 //LOG( "---data accessUnit.\r\n");
             }
         default:

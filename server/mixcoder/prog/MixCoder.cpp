@@ -223,5 +223,5 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
 //at the end. flush the input
 void MixCoder::flush()
 {
-    //TODO
+    //TODO, flush the rest of the stream, not implemented
 }
