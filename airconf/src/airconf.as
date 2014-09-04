@@ -20,7 +20,7 @@ package
 		private var connectionSub:NetConnection;
 		private var mic:Microphone;
 		
-		private var serverIp:String = "54.186.122.59";//"192.168.2.109";//"54.186.122.59";//"192.168.0.61";
+		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.201.108.66";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
 		private var karaokeStream:String = "__mixed__karaoke";
 		private var defaultSong:String = "Default"; //default song means mtv stopped
