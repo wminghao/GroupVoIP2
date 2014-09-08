@@ -6,4 +6,6 @@ typedef struct {
     unsigned int len;
 }InputObject;
 
+typedef void (*WriteCallback)(unsigned char*, unsigned int);
+
 #endif

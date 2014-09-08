@@ -53,6 +53,8 @@ JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_open
 
     //create an input array
     g_inputArray = CLASSFUNC(InputArray, create)();
+
+    //TODO, create a thread for process pipe
 }
 
 /*

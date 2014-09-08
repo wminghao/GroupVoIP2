@@ -1,5 +1,6 @@
 #include "MixerCoderBridgeExport.h"
 #include "InputArray.h"
+#include "EpollManager.h"
 extern "C"
 {
     //input array related functions
@@ -18,5 +19,22 @@ extern "C"
     unsigned char* CLASSFUNC(InputArray, popTail)(void* object, unsigned int* len)
     {
         return ((InputArray*)object)->popTail(len);
+    }
+
+    void* CLASSFUNC(EpollManager, create)(WriteCallback callback, void* input)
+    {
+        return (void*) (new EpollManager(callback, (InputArray*)input));
+    }
+    void CLASSFUNC(EpollManager, destroy)(void* object)
+    {
+        delete((EpollManager*)object);
+    }
+    void CLASSFUNC(EpollManager, start)(void* object)
+    {
+        ((EpollManager*)object)->start();
+    }
+    void CLASSFUNC(EpollManager, stop)(void* object)
+    {
+        ((EpollManager*)object)->stop();
     }
 }

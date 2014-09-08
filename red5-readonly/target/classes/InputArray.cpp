@@ -25,4 +25,3 @@ unsigned char* InputArray::popTail(unsigned int* len){
     inputObjectList_.pop_back();
     return result;
 }
-
