@@ -3,26 +3,32 @@
 
 #include "EpollLooper.h"
 #include "ProcessPipe.h"
+#include "InputArray.h"
+#include <list>
+#include <tr1/unordered_map>
+
+class ProcessObject 
+{
+ public:
+    ProcessObject(){}
+ public:
+    ProcessPipe pipe;
+    InputArray input;
+};
 
 class EpollManager 
 {
  public:
-    EpollManager(WriteCallback callback, InputArray* input):looper_(callback, input) {
-    }
-    ~EpollManager() {}
+    EpollManager(WriteCallback callback);
+    ~EpollManager();
 
-    void start() {
-        looper_.reg(pipe_.getInFd(), pipe_.getOutFd());
-    }
-    
-    void stop() {
-        looper_.unreg(pipe_.getInFd(), pipe_.getOutFd());
-        looper_.close();
-        pipe_.close();
-    }
+    void startProc(int procId);
+    void stopProc(int procId);
+
+    void newInput(int procId, unsigned char* data, unsigned int len);
 
  private:
     EpollLooper looper_;
-    ProcessPipe pipe_;
+    std::tr1::unordered_map< int, ProcessObject*> pipeMap_;
 };
 #endif

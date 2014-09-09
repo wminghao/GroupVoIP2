@@ -23,11 +23,11 @@ typedef struct {
 class EpollLooper
 {
  public:
-    EpollLooper(WriteCallback callback, InputArray* input);
+    EpollLooper(WriteCallback callback);
     ~EpollLooper();
     
     //register process pipe input and output
-    void reg(int fdRead, int fdWrite);
+    void reg(int fdRead, int fdWrite, InputArray* input);
     void unreg(int fdRead, int fdWrite);
 
     void close();

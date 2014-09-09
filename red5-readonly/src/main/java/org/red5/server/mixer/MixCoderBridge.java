@@ -1,30 +1,118 @@
 package org.red5.server.mixer;
 
-import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.BitSet;
 
 public class MixCoderBridge {
+    private static MixCoderBridge instance_;
+    private Map<Integer, DelegateObject> procIdDelegateMap = new HashMap<Integer, DelegateObject>();
+    private Object syncObj = new Object();
+    private volatile BitSet reservedProcIds = new BitSet();
+
+    /////////////////////////
+    // public functions
+    /////////////////////////
     public interface Delegate {
 	public void newOutput(byte[] bytesRead, int len);		
+    }    
+
+    public class DelegateObject{
+	public DelegateObject(MixCoderBridge.Delegate del) {
+	    this.delegate = del;
+	}
+	public MixCoderBridge.Delegate delegate;
+    }
+
+    public static synchronized MixCoderBridge getInstance() {
+        if(instance_ == null) {
+	    instance_ = new MixCoderBridge();
+        }
+        return instance_;
     }
     
-    private Delegate delegate;
-    MixCoderBridge(Delegate del) {
-	this.delegate = del;
+    public MixCoderBridge() {
 	open();//open the connection to process pipe
     }
     
     //callback from native c code
-    public void newOutput(byte[] bytesRead, int len) {
-	this.delegate.newOutput(bytesRead, len);
+    public void newOutput(byte[] bytesRead, int len, int procId) {
+	synchronized(syncObj) {
+	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+	    if ( obj != null ) {     
+		MixCoderBridge.Delegate del = obj.delegate;
+		del.newOutput(bytesRead, len);
+	    }
+	}
     }
     
+    //a new proc
+    public int newProc(MixCoderBridge.Delegate del) {
+	int procId = -1;
+	synchronized(syncObj) {
+	    procId = reserveProcId();
+	    if( procId != -1 ) {
+		DelegateObject obj = new DelegateObject(del);
+		procIdDelegateMap.put( new Integer(procId), obj );
+		startProc( procId );
+	    }
+	}	
+
+	return procId;
+    }
+    public void delProc(int procId) {
+	synchronized(syncObj) {
+	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+	    if ( obj != null ) {     
+		stopProc( procId );
+		unreserveProcId( procId );
+	    }
+	}
+    }
+
+    public void sendInput( byte[] inputBuf, int len, int procId ) {
+	synchronized(syncObj) {
+	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+	    if ( obj != null ) {     
+		newInput( inputBuf, len, procId );
+	    }
+	}
+    }
+
+    /////////////////////////
+    // private functions
+    /////////////////////////
+    //map procId to delegate
+    private int reserveProcId() {
+	int result = -1;
+	for (int i = 0; true; i++) {
+	    if (!reservedProcIds.get(i)) {
+		reservedProcIds.set(i);
+		result = i;
+		break;
+	    }
+	}
+	return result + 1;
+    }
+
+    private void unreserveProcId(int procId) {
+	if (procId > 0) {
+	    reservedProcIds.clear(procId - 1);
+	}
+    }
+
     //open and close thread doing process pipe
     private native void open();
-    public native void close(); 
-    
+
+    //start/stop a new proc
+    private native void startProc(int procId);    
+    private native void stopProc(int prodId);
+
     //calling c code to pass input around
-    public native void newInput( byte[] inputBuf, int len ); 
+    private native void newInput( byte[] inputBuf, int len, int procId ); 
     static { 
 	System.loadLibrary("MixCoderBridge"); 
     } 
+
+    
 }
