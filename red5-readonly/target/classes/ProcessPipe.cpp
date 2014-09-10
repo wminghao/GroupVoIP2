@@ -12,7 +12,13 @@
 #include <vector>
 #include "Output.h"
 
+#define TEST_DUMMY
+
+#ifdef TEST_DUMMY
+const char* MIXER_PROCESS_LOCATION = "/usr/bin/dummy";
+#else
 const char* MIXER_PROCESS_LOCATION = "/usr/bin/mix_coder";
+#endif
 
 void killChild() {
     OUTPUT( "exiting." );

@@ -8,4 +8,7 @@ g++ -fPIC -c EpollLooper.cpp
 g++ -fPIC -c ProcessPipe.cpp
 g++ -fPIC -c Guard.cpp
 gcc -fPIC -shared -o MixCoderBridge.so org_red5_server_mixer_MixCoderBridge.o MixerCoderBridgeExport.o InputArray.o EpollManager.o EpollLooper.o ProcessPipe.o Guard.o
+g++ -o dummy dummy.cpp
+sudo mv dummy /usr/bin/
+rm *.o
 cd ../..
