@@ -1,6 +1,7 @@
 #ifndef __EPOLL_PIPE__
 #define __EPOLL_PIPE__
 
+#include <tr1/unordered_map>
 #include <pthread.h>
 #include "InputObject.h"
 
@@ -8,16 +9,21 @@
 #define MAXLEN 100*1024
 
 class InputArray;
+
 typedef struct {
     int event;
 
-    int fdRead;
-    int fdWrite;
+    int fdRead;  //read from the pipe
+    int fdWrite; //write to the pipe
 
-    //read/write buffer
-    unsigned char buffer[MAXLEN];
-    int length;
-    int offset;
+    int procId; //unique identifier
+    InputArray* input;
+
+    //temp read buffer
+    unsigned char readBuffer[MAXLEN];
+
+    //write buffer offset
+    int writeBufOffset;
 }EpollEvent;
 
 class EpollLooper
@@ -27,36 +33,42 @@ class EpollLooper
     ~EpollLooper();
     
     //register process pipe input and output
-    void reg(int fdRead, int fdWrite, InputArray* input);
-    void unreg(int fdRead, int fdWrite);
+    void reg(int procId, int fdRead, int fdWrite, InputArray* input);
+    void unreg(int procId);
+    
+    //notify new data has arrived
+    void notifyWrite(int procId, int len);
 
-    void close();
- 
  private:
-    //read from inputArray and send to the pipe
-    void write(unsigned char* data, unsigned int len);
-
-    //read from process pipe any output and send it to java
-    void read(unsigned char* data, unsigned int len);
-
     //start a thread
     static void* thisThread(void* looper) {
         return ((EpollLooper*)looper)->thread();
     }
     void* thread();
 
-    //handles IO
-    void handle(EpollEvent* epollEvent);
+    //try to read from proc pipe
+    void tryToRead(EpollEvent* epollEvent);
+
+    //tryToWrite to proc pipe
+    bool tryToWrite(EpollEvent* epollEvent);
+
+    //freeProc
+    void freeProc(EpollEvent* epollEvent);
 
  private:
     WriteCallback writeCallback_;
-    InputArray* inputArray_;
     
     int epollfd_;
 
     //thread
     pthread_t epollThread_;
     bool bRunning_;
+
+    //mapping table of epollEvent and procId
+    std::tr1::unordered_map<int, EpollEvent*> procMapping_;
+
+    //stats
+    unsigned int totalBytesToWrite_;
 };
 
 

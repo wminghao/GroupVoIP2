@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-InputArray::InputArray() {    
+bool InputArray::isEmpty() {    
+    return inputObjectList_.size()>0;
 }
 InputArray::~InputArray(){
     while( !inputObjectList_.empty() ) {
@@ -14,14 +15,17 @@ InputArray::~InputArray(){
 }
 void InputArray::pushFront(unsigned char* data, unsigned int len) {
     InputObject* newObj = (InputObject*)malloc(sizeof(InputObject));
-    newObj->data = data;
+    newObj->data = data; //TODO ptr vs. malloc
     newObj->len = len;
     inputObjectList_.push_front(newObj);
 }
-unsigned char* InputArray::popTail(unsigned int* len){
-    InputObject* newObj = inputObjectList_.back();
-    *len = newObj->len;
-    unsigned char * result = newObj->data;
+void InputArray::popTail() {
+    free(inputObjectList_.back());
     inputObjectList_.pop_back();
+}
+unsigned char* InputArray::getTail(unsigned int* len){
+    InputObject* newObj = inputObjectList_.back();
+    unsigned char * result = newObj->data;
+    *len = newObj->len;
     return result;
 }

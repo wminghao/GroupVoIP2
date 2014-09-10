@@ -4,6 +4,6 @@ gcc -I/usr/lib/jvm/java-6-openjdk-amd64/include/ -g -O -c org_red5_server_mixer_
 g++ -c MixerCoderBridgeExport.cpp
 g++ -c InputArray.cpp
 g++ -c EpollManager.cpp
-#g++ -c EpollLooper.cpp
+g++ -c EpollLooper.cpp
 g++ -c ProcessPipe.cpp
 cd ../..
