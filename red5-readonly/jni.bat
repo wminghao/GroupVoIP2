@@ -6,4 +6,5 @@ g++ -c InputArray.cpp
 g++ -c EpollManager.cpp
 g++ -c EpollLooper.cpp
 g++ -c ProcessPipe.cpp
+g++ -c Guard.cpp
 cd ../..

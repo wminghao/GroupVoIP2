@@ -4,8 +4,8 @@
 #include <iostream>
 #include <list>
 #include "InputObject.h"
+#include "Guard.h"
 
-//TODO mutext protection
 class InputArray
 {
 public:
@@ -17,6 +17,7 @@ public:
     bool isEmpty();
 private:
     std::list<InputObject*> inputObjectList_;
+    GMutex* mutex_;
 };
 #endif
 

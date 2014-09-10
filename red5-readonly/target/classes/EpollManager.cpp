@@ -13,7 +13,6 @@ EpollManager::~EpollManager() {
         itTemp = itBegin;          // Keep a reference to the iter
         ++itBegin;                 // Advance in the map
         ProcessObject* po = itTemp->second;
-        po->pipe.close();
         delete( po );
         pipeMap_.erase(itTemp);    // Erase it !!!
     }

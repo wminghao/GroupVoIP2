@@ -1,22 +1,39 @@
 #include "EpollLooper.h"
+#include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <string.h>
 #include <errno.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <sys/epoll.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <netinet/in.h>
+#include <sys/epoll.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/fcntl.h>
+#include <sys/wait.h>
+#include <sys/prctl.h>
+#include <sys/signal.h>
+#include <sys/types.h>
 #include "Output.h"
 #include "InputArray.h"
 
 #define MAXPIPES 100*2
 #define MAXEVENTS 100
 #define MAX_CLOG_WRITE_BUFFER 5<<20 //5M total it's clogged
+
+void setNonBlocking( int sock )
+{
+    if ( -1 == sock ) return;
+    int a = fcntl( sock, F_GETFL );
+    if ( a < 0 ) { perror("fcntl() failed" ); }
+    a = fcntl( sock, F_SETFL, a | O_NONBLOCK );
+    if ( a < 0 ) { perror("fcntl() failed" ); }
+}
 
 void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, void* data)
 {
@@ -73,6 +90,12 @@ EpollLooper::~EpollLooper()
 //register process pipe output
 void EpollLooper::reg(int procId, int fdRead, int fdWrite, InputArray* input)
 {
+    setNonBlocking(fdRead);
+    //setCloseOnExec(fdRead);
+
+    setNonBlocking(fdWrite);
+    //setCloseOnExec(fdWrite);
+    
     EpollEvent* epollEvent = (EpollEvent*)calloc(1, sizeof(EpollEvent));
     epollEvent->fdRead = fdRead;
     epollEvent->fdWrite = fdWrite;

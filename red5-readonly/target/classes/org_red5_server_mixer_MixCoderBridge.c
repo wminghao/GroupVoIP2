@@ -110,10 +110,8 @@ JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_stopProc
  */
 JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_newInput
 (JNIEnv * env, jobject obj, jbyteArray iByteArray, jint len, jint procId) {
-    
     jboolean isCopy = JNI_FALSE;
-    jbyte* data = (*env)->GetByteArrayElements(env, iByteArray, &isCopy);
-    
+    jbyte* data = (*env)->GetByteArrayElements(env, iByteArray, &isCopy);    
     CLASSFUNC(EpollManager, newInput)((void*)g_epollManager, procId, data, len);
     (*env)->ReleaseByteArrayElements(env, iByteArray, data, 0);
 }
