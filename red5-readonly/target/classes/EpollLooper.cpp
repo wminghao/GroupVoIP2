@@ -34,7 +34,7 @@ void setNonBlocking( int sock )
     a = fcntl( sock, F_SETFL, a | O_NONBLOCK );
     if ( a < 0 ) { perror("fcntl() failed" ); }
 }
-
+//see example from http://byteandbits.blogspot.com/2013/08/tcp-echo-server-using-epoll-example-for.html
 void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, void* data)
 {
     struct epoll_event epoll_event;
@@ -104,7 +104,7 @@ void EpollLooper::reg(int procId, int fdRead, int fdWrite, InputArray* input)
     //add to mapping table
     procMapping_[procId] = epollEvent;
 
-    //always read to read output from pipe
+    //always readt to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->fdRead, EPOLLIN, epollEvent);
 }
 
@@ -155,7 +155,7 @@ void* EpollLooper::thread()
             } else if(EPOLLOUT == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 epollEvent->event = EPOLLOUT;
-                // Delete the write event.
+                //delete the write event.
                 modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
                 //handle write event
                 tryToWrite(epollEvent);
