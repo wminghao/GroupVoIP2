@@ -15,6 +15,10 @@ extern "C"
     void CLASSFUNC(EpollManager, stopProc)(void* object, int procId);
     void CLASSFUNC(EpollManager, newInput)(void* object, int procId, unsigned char* data, unsigned int len);
 
+    //syslog
+    void CLASSFUNC(Logger, init)();
+    void CLASSFUNC(Logger, log)(char* str);
+    
 #ifdef __cplusplus
 }
 #endif

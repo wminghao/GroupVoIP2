@@ -110,9 +110,9 @@ public class MixCoderBridge {
 
     //calling c code to pass input around
     private native void newInput( byte[] inputBuf, int len, int procId ); 
-    static { 
-	System.loadLibrary("MixCoderBridge"); 
+    static {
+	//Use an absolute path
+	System.load("/usr/share/red5-server-1.0.2-RC4/MixCoderBridge.so");
+	//System.loadLibrary("MixCoderBridge"); 
     } 
-
-    
 }

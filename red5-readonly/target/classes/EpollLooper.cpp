@@ -43,26 +43,29 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     epoll_event.data.ptr = data;
 
     if(-1 == epoll_ctl(epollfd, operation, fd, &epoll_event)) {
-        OUTPUT( "Failed to add an event for socket%d Error:%s", fd, strerror(errno));
+        OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
         exit(1);        
+    } else {
+        OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
     }
 }
 
-EpollLooper::EpollLooper(WriteCallback callback):writeCallback_(callback), totalBytesToWrite_(0)
+EpollLooper::EpollLooper(WriteCallback callback):writeCallback_(callback), totalBytesToWrite_(0), bWriteEventAdded_(false)
 {
     //Create epoll context.
     epollfd_ = epoll_create(MAXPIPES);
     if(-1 == epollfd_) {
         OUTPUT( "Failed to create epoll context.%s", strerror(errno));
-        exit(1);
+        //exit(1);
     }
 
     //Start pthread
     bRunning_ = true;
     if(pthread_create(&epollThread_, NULL, &thisThread, (void*)this)) {
         OUTPUT( "Error creating thread\n");
-        exit(1);
+        //exit(1);
     }
+    OUTPUT("EpollLooper created, epollFd=%d", epollfd_);
 }
 
 EpollLooper::~EpollLooper()
@@ -85,6 +88,7 @@ EpollLooper::~EpollLooper()
         freeProc(event);
         procMapping_.erase(itTemp);    // Erase it !!!
     }
+    OUTPUT("EpollLooper destroyed");
 }
     
 //register process pipe output
@@ -106,6 +110,7 @@ void EpollLooper::reg(int procId, int fdRead, int fdWrite, InputArray* input)
 
     //always readt to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->fdRead, EPOLLIN, epollEvent);
+    OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d", fdRead, fdWrite, procId);
 }
 
 void EpollLooper::unreg(int procId)
@@ -115,12 +120,15 @@ void EpollLooper::unreg(int procId)
         EpollEvent* epollEvent = got->second;
         freeProc(epollEvent);
         procMapping_.erase( procId );
+        OUTPUT("EpollLooper unregistered, procId=%d", procId);
     }
 }
 void EpollLooper::freeProc(EpollEvent* epollEvent)
 {
     modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdRead, EPOLLIN, epollEvent);
-    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+    if( bWriteEventAdded_ ) {
+        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+    }
     close(epollEvent->fdRead);
     close(epollEvent->fdWrite);
     free(epollEvent);    
@@ -144,7 +152,7 @@ void* EpollLooper::thread()
              */    
             if(events[i].events & EPOLLHUP || events[i].events & EPOLLERR) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
-                OUTPUT("Pipe broken.%s", strerror(errno));
+                OUTPUT("n=%d Pipe broken. %s", n, strerror(errno));
                 //broken pipe
                 freeProc(epollEvent);
             } else if(EPOLLIN == events[i].events) {
@@ -157,6 +165,7 @@ void* EpollLooper::thread()
                 epollEvent->event = EPOLLOUT;
                 //delete the write event.
                 modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+                bWriteEventAdded_ = false;
                 //handle write event
                 tryToWrite(epollEvent);
             }
@@ -219,6 +228,7 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             if ( netErrorNumber == EAGAIN) {
                 //register to write for the next iteration
                 modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+                bWriteEventAdded_ = true;
             } else {
                 encounteredError = true;
             }

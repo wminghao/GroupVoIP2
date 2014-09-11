@@ -29,7 +29,7 @@ void killChild() {
 ProcessPipe::ProcessPipe()
 {    
     atexit(killChild);    
-    open();
+    childPid_ = open();
 }
 ProcessPipe::~ProcessPipe()
 {
@@ -45,12 +45,12 @@ int ProcessPipe::getOutFd()
     return q_[0];
 }
 
-void ProcessPipe::open()
+pid_t ProcessPipe::open()
 {
     if ( 0 > pipe( p_ ) || 0 > pipe( q_ ) ) {
         OUTPUT("!!!Failed to create process pipe = %s p_[1]=%d q_[0]=%d" , MIXER_PROCESS_LOCATION, p_[1], q_[0]);        
         perror( "pipe" );
-        return;
+        return -1;
     }
 
     pid_t rval = fork();
@@ -85,7 +85,6 @@ void ProcessPipe::open()
             arguments_[i] = strings[i];
         }
         arguments_[ arrayLen - 1 ] = NULL;
-        
         execv( MIXER_PROCESS_LOCATION, arguments_ );
 
         OUTPUT("Fatal error: EXECLP FAILED?!\n");
@@ -95,7 +94,9 @@ void ProcessPipe::open()
         //parent process
         ::close(p_[0]);
         ::close(q_[1]);
+        OUTPUT("----Launching process=%s, pid=%d", MIXER_PROCESS_LOCATION, rval);
     }    
+    return rval;
 }
 
 void ProcessPipe::close()

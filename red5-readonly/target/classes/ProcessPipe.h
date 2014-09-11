@@ -11,7 +11,7 @@ class ProcessPipe
     int getInFd();
     int getOutFd();
  private:
-    void open();
+    pid_t open();
     void close();
 
  private:

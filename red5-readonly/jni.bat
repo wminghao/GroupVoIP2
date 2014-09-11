@@ -7,7 +7,9 @@ g++ -fPIC -c EpollManager.cpp
 g++ -fPIC -c EpollLooper.cpp
 g++ -fPIC -c ProcessPipe.cpp
 g++ -fPIC -c Guard.cpp
-gcc -fPIC -shared -o MixCoderBridge.so org_red5_server_mixer_MixCoderBridge.o MixerCoderBridgeExport.o InputArray.o EpollManager.o EpollLooper.o ProcessPipe.o Guard.o
+g++ -fPIC -c Logger.cpp
+gcc -fPIC -shared -o MixCoderBridge.so org_red5_server_mixer_MixCoderBridge.o MixerCoderBridgeExport.o InputArray.o EpollManager.o EpollLooper.o ProcessPipe.o Guard.o Logger.o
+sudo cp MixCoderBridge.so /usr/share/red5-server-1.0.2-RC4/
 g++ -o dummy dummy.cpp
 sudo mv dummy /usr/bin/
 rm *.o

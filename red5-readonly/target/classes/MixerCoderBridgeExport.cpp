@@ -1,6 +1,7 @@
 #include "MixerCoderBridgeExport.h"
 #include "InputArray.h"
 #include "EpollManager.h"
+#include "Logger.h"
 extern "C"
 {
     void* CLASSFUNC(EpollManager, create)(WriteCallback callback)
@@ -22,5 +23,13 @@ extern "C"
     void CLASSFUNC(EpollManager, newInput)(void* object, int procId, unsigned char* data, unsigned int len)
     {
         ((EpollManager*)object)->newInput(procId, data, len);
+    }
+    void CLASSFUNC(Logger, init)()
+    {
+        Logger::initLog("MixerCoderBridge");
+    }
+    void CLASSFUNC(Logger, log)(char* str)
+    {
+        Logger::log(str);
     }
 }

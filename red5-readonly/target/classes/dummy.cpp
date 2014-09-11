@@ -255,6 +255,7 @@ int main()
                              0x00,0x00,0x00,0x00}; //prev len = 0
     bool bWorking = true;
     bool bIsStarted = false;
+    //TODO logging to syslog
     while( bWorking ) {
         bWorking = doRead( 0, buf, 1024 );
         if ( bWorking ){

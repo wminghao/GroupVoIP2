@@ -1,6 +1,7 @@
 #include "EpollManager.h"
 #include "ProcessPipe.h"
 #include "InputArray.h"
+#include "Output.h"
 
 EpollManager::EpollManager(WriteCallback callback):looper_(callback) {
 }
@@ -19,6 +20,7 @@ EpollManager::~EpollManager() {
 }
 
 void EpollManager::startProc( int procId ) {
+    OUTPUT("--->StartProc, id=%d", procId);
     ProcessObject* po = new ProcessObject(); 
     pipeMap_[ procId ] = po;
     looper_.reg(procId, po->pipe.getInFd(), po->pipe.getOutFd(), &po->input);

@@ -69,6 +69,9 @@ class EpollLooper
 
     //stats
     unsigned int totalBytesToWrite_;
+
+    //flag
+    bool bWriteEventAdded_;    
 };
 
 
