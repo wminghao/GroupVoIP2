@@ -86,7 +86,6 @@ EpollLooper::~EpollLooper()
         ++itBegin;                 // Advance in the map
         EpollEvent* event = itTemp->second;
         freeProc(event);
-        procMapping_.erase(itTemp);    // Erase it !!!
     }
     OUTPUT("EpollLooper destroyed");
 }
@@ -107,10 +106,11 @@ void EpollLooper::reg(int procId, int fdRead, int fdWrite, InputArray* input)
     epollEvent->procId = procId;
     //add to mapping table
     procMapping_[procId] = epollEvent;
+    assert(epollEvent->input);
 
     //always readt to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->fdRead, EPOLLIN, epollEvent);
-    OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d", fdRead, fdWrite, procId);
+    OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", fdRead, fdWrite, procId, epollEvent);
 }
 
 void EpollLooper::unreg(int procId)
@@ -119,19 +119,19 @@ void EpollLooper::unreg(int procId)
     if ( got != procMapping_.end() ) {
         EpollEvent* epollEvent = got->second;
         freeProc(epollEvent);
-        procMapping_.erase( procId );
         OUTPUT("EpollLooper unregistered, procId=%d", procId);
     }
 }
 void EpollLooper::freeProc(EpollEvent* epollEvent)
 {
-    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdRead, EPOLLIN, epollEvent);
+    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdRead, 0, 0);
     if( bWriteEventAdded_ ) {
-        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, 0, 0);
     }
     close(epollEvent->fdRead);
     close(epollEvent->fdWrite);
-    free(epollEvent);    
+    procMapping_.erase( epollEvent->procId );
+    free(epollEvent);
 }
 
 //start a thread
@@ -157,14 +157,12 @@ void* EpollLooper::thread()
                 freeProc(epollEvent);
             } else if(EPOLLIN == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
-                epollEvent->event = EPOLLIN;
                 //handle read event
                 tryToRead(epollEvent);
             } else if(EPOLLOUT == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
-                epollEvent->event = EPOLLOUT;
                 //delete the write event.
-                modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+                modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->fdWrite, 0, 0);
                 bWriteEventAdded_ = false;
                 //handle write event
                 tryToWrite(epollEvent);
@@ -192,17 +190,18 @@ void EpollLooper::tryToRead(EpollEvent* epollEvent)
 }
 
 //notify new data has arrived
-void EpollLooper::notifyWrite(int procId, int len)
+void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
 {
     std::tr1::unordered_map< int, EpollEvent* >::const_iterator got = procMapping_.find( procId );
     if ( got != procMapping_.end() ) {
         EpollEvent* epollEvent = got->second;
         totalBytesToWrite_ += len;
         if( len < MAX_CLOG_WRITE_BUFFER ) {
-            if(!tryToWrite(epollEvent)) {
-                OUTPUT("-----Proc Write failed----\r\n");
-                unreg(procId);
-            }
+            OUTPUT("-----fdRead=%d, fdWrite=%d, procId=%d, ptr=0x%x----\r\n", epollEvent->fdRead, epollEvent->fdWrite, procId, epollEvent);
+            //register to write
+            epollEvent->input->pushFront( data, len ); //push data to the queue
+            modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->fdWrite, EPOLLOUT, epollEvent);
+            bWriteEventAdded_ = true;
         } else {
             OUTPUT("-----Clogged----\r\n");
             unreg(procId);
@@ -215,6 +214,7 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
     bool doneWriting = false;
     bool encounteredError = false;
     InputArray* outgoingBuffers = epollEvent->input;
+    assert( outgoingBuffers );
 
     while (!outgoingBuffers->isEmpty() && !doneWriting) {
         unsigned int len = 0;

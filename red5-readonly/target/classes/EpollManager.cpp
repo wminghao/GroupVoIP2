@@ -26,7 +26,8 @@ void EpollManager::startProc( int procId ) {
     looper_.reg(procId, po->pipe.getInFd(), po->pipe.getOutFd(), &po->input);
 }
     
-void EpollManager::stopProc( int procId ) {
+void EpollManager::stopProc( int procId )  {
+    OUTPUT("--->StopProc, id=%d", procId);
     std::tr1::unordered_map< int, ProcessObject* >::const_iterator got = pipeMap_.find( procId );
     ProcessObject* object = NULL;
     if ( got != pipeMap_.end() ) {
@@ -47,7 +48,6 @@ void EpollManager::newInput(int procId, unsigned char* data, unsigned int len)
         object = got->second;
     }
     if ( object != NULL) {
-        object->input.pushFront( data, len ); //push data to the queue
-        looper_.notifyWrite(procId, len); //tell looper there is data now to write
+        looper_.notifyWrite(procId, data, len); //tell looper there is data now to write
     }
 }

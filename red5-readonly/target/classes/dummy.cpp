@@ -10,6 +10,7 @@
 #include <unistd.h>   /* For open(), creat() */
 #include <string>
 #include <assert.h>
+#include "Output.h"
 
 using namespace std;
 #define MAX_XCODING_INSTANCES 32
@@ -17,7 +18,7 @@ using namespace std;
 
 void handlesig( int signum )
 {
-    fprintf(stderr, "Exiting on signal: %d\r\n", signum );
+    OUTPUT("Exiting on signal: %d\r\n", signum );
     exit( 0 );
 }
 
@@ -149,7 +150,7 @@ bool readData(unsigned char* data, unsigned int len) {
                     assert(curBuf_[1] == 0x0); //ignore the special property
 
                     memcpy(&curStreamLen_, curBuf_.data()+2, 4); //read the len
-                    fprintf(stderr, "---curStreamCnt_=%d, curBuf_[0]=0x%x, curStreamId_=%d curStreamSource=%d, curStreamLen_=%d\r\n", curStreamCnt_, curBuf_[0], curStreamId_, curStreamSource, curStreamLen_);
+                    OUTPUT("---curStreamCnt_=%d, curBuf_[0]=0x%x, curStreamId_=%d curStreamSource=%d, curStreamLen_=%d\r\n", curStreamCnt_, curBuf_[0], curStreamId_, curStreamSource, curStreamLen_);
 
                     curBuf_.clear();
                     curSegTagSize_ = 0;
@@ -216,7 +217,7 @@ void writeData(unsigned char* buf, int len) {
         data[2] = 'O';
         memcpy(data+3, &streamMask, sizeof(streamMask));
         int offset = 7;
-        fprintf(stderr, "------streamId=%d, dataLen=%d\r\n", 0, len);
+        OUTPUT("------streamId=%d, dataLen=%d\r\n", 0, len);
         unsigned char streamIdByte = 0;
         memcpy(data+offset, &streamIdByte, sizeof(unsigned char));
         offset += sizeof(unsigned char);
@@ -255,7 +256,11 @@ int main()
                              0x00,0x00,0x00,0x00}; //prev len = 0
     bool bWorking = true;
     bool bIsStarted = false;
-    //TODO logging to syslog
+
+    Logger::initLog("dummyProc");
+
+    OUTPUT("------dummy started=%d\r\n");
+    
     while( bWorking ) {
         bWorking = doRead( 0, buf, 1024 );
         if ( bWorking ){
@@ -264,8 +269,12 @@ int main()
                 bIsStarted = true;
                 writeData( (unsigned char*)header, 13);
             }
+            OUTPUT("------dummy read data, size=1024\r\n");
             readData((unsigned char*)buf, 1024);
         }
     }
+
+    OUTPUT("------dummy ended=%d\r\n");
+
     return 0;
 }

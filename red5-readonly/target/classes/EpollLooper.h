@@ -11,8 +11,6 @@
 class InputArray;
 
 typedef struct {
-    int event;
-
     int fdRead;  //read from the pipe
     int fdWrite; //write to the pipe
 
@@ -37,7 +35,7 @@ class EpollLooper
     void unreg(int procId);
     
     //notify new data has arrived
-    void notifyWrite(int procId, int len);
+    void notifyWrite(int procId, unsigned char* data, int len);
 
  private:
     //start a thread

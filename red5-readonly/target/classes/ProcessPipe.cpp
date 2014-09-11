@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include <sys/fcntl.h>
 #include <sys/wait.h>
 #include <sys/prctl.h>
@@ -85,9 +86,11 @@ pid_t ProcessPipe::open()
             arguments_[i] = strings[i];
         }
         arguments_[ arrayLen - 1 ] = NULL;
-        execv( MIXER_PROCESS_LOCATION, arguments_ );
 
-        OUTPUT("Fatal error: EXECLP FAILED?!\n");
+        OUTPUT("----Launching child process?!\n");
+        if( -1 == execv( MIXER_PROCESS_LOCATION, arguments_ ) ) {
+            OUTPUT("Fatal error: EXECLP FAILED, error=%d?!\n", errno);
+        }
 
         exit(-1);
     } else {

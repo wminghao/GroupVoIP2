@@ -5,7 +5,7 @@
 
 class GMutex{
  public:
-    GMutex(bool bIsRecursiveLock=false);
+    GMutex();
     ~GMutex();
     void lock();
     void unlock();
@@ -17,8 +17,9 @@ class GMutex{
 
 class Guard{
  public:
-    Guard(GMutex* mutex):mutex_(mutex) { mutex_->lock();}
-    ~Guard() {mutex_->unlock();}
+    //TODO mutex has some problem here
+    Guard(GMutex* mutex):mutex_(mutex) { /* mutex_->lock(); */}
+    ~Guard() { /*mutex_->unlock();*/ }
  private:
     GMutex* mutex_;
 };

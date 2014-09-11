@@ -17,7 +17,7 @@ public:
     bool isEmpty();
 private:
     std::list<InputObject*> inputObjectList_;
-    GMutex* mutex_;
+    GMutex mutex_;
 };
 #endif
 
