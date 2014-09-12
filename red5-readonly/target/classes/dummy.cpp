@@ -29,7 +29,7 @@ bool doRead( int fd, char *buf, size_t len ) {
         size_t bytesToRead = len - bytesRead;
         int t = read( fd, buf + bytesRead, bytesToRead );
         if ( t <= 0 ) {
-            fprintf(stderr,"read() failed: %s\r\n", strerror(errno) );
+            OUTPUT("read() failed: %s\r\n", strerror(errno) );
                         
             return false;
         }
@@ -46,7 +46,7 @@ bool doWrite( int fd, const char *buf, size_t len ) {
         size_t bytesToWrite = len - bytesWrote;
         int t = write( fd, buf + bytesWrote, bytesToWrite );
         if ( t <= 0 ) {
-            fprintf(stderr,"write() failed: %s \r\n", strerror(errno) );
+            OUTPUT("write() failed: %s \r\n", strerror(errno) );
             return false;
         }
         
@@ -170,7 +170,7 @@ bool readData(unsigned char* data, unsigned int len) {
                         data += cpLen;
                     }
                     if ( curBuf_.size() >= curStreamLen_ ) {
-                        fprintf( stderr, "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
+                        OUTPUT( "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
                         //TODO only save the first video
                         if( curStreamCnt_ == numStreams_ ) {
                             writeData( (unsigned char*)curBuf_.data(), curStreamLen_ );

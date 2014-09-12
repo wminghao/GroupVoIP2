@@ -138,7 +138,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			IRTMPEvent msg = rtmpMsg.getBody();
 			// get timestamp
 			int eventTime = msg.getTimestamp();
-			log.debug("Message timestamp: {}", eventTime);
+			//log.debug("Message timestamp: {}", eventTime);
 			if (eventTime < 0) {
 				log.debug("Message has negative timestamp: {}", eventTime);
 				return;
