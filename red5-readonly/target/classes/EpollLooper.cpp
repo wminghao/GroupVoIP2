@@ -107,8 +107,9 @@ void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, Inp
     procMapping_[procId] = epollEvent;
     assert(epollEvent->input);
 
-    //always readt to read output from pipe
+    //always ready to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->outputFromProcess, EPOLLIN, epollEvent);
+    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
     OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", inputToProcess, outputFromProcess, procId, epollEvent);
 }
 
@@ -159,8 +160,6 @@ void* EpollLooper::thread()
                 tryToRead(epollEvent);
             } else if(EPOLLOUT == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
-                //delete the write event.
-                modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->outputFromProcess, 0, 0);
                 //handle write event
                 if( !tryToWrite(epollEvent) ) {
                     freeProc(epollEvent);
@@ -195,11 +194,7 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
     if ( got != procMapping_.end() ) {
         EpollEvent* epollEvent = got->second;
         //push data to the queue, then write to the process
-        if( epollEvent->input->pushFront( data, len ) ) {
-            if(!tryToWrite(epollEvent)) {
-                freeProc(epollEvent);
-            }
-        } else {
+        if( !epollEvent->input->pushFront( data, len ) ) {
             OUTPUT("-----Clogged----\r\n");
             unreg(procId);
         }
@@ -223,9 +218,7 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             doneWriting = true;
             int netErrorNumber = errno;
             if ( netErrorNumber == EAGAIN) {
-                OUTPUT("-----write again----\r\n");
-                //register to write for the next iteration
-                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+                OUTPUT("-----write again later----\r\n");
             } else {
                 OUTPUT("-----error, netErrorNumber=%d----\r\n", netErrorNumber);
                 encounteredError = true;
