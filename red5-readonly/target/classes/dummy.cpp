@@ -13,6 +13,8 @@
 #include "Output.h"
 
 using namespace std;
+
+#define TEST_STREAM_ID  1 // test ID for dummy testingx
 #define MAX_XCODING_INSTANCES 32
 #define MIN(a, b) a<b?a:b
 
@@ -172,7 +174,7 @@ bool readData(unsigned char* data, unsigned int len) {
                     if ( curBuf_.size() >= curStreamLen_ ) {
                         OUTPUT( "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
                         //TODO only save the first video
-                        if( curStreamCnt_ == numStreams_ ) {
+                        if( curStreamId_ == TEST_STREAM_ID ) {
                             writeData( (unsigned char*)curBuf_.data(), curStreamLen_ );
                         }
                         bIsFinished = true;
@@ -200,7 +202,7 @@ bool readData(unsigned char* data, unsigned int len) {
 }
 
 void writeData(unsigned char* buf, int len) {
-    unsigned int streamMask = 2; //TODO only package 1 stream, id = 1, mask = 2 
+    unsigned int streamMask = 1<<TEST_STREAM_ID; 
     int totalStreams = 2; //this stream + all-in-one stream
     if( len > 0 ) {             
         //Headers
@@ -218,7 +220,7 @@ void writeData(unsigned char* buf, int len) {
         memcpy(data+3, &streamMask, sizeof(streamMask));
         int offset = 7;
         OUTPUT("------streamId=%d, dataLen=%d\r\n", 0, len);
-        unsigned char streamIdByte = 1; //TODO id = 1, mask = 2
+        unsigned char streamIdByte = TEST_STREAM_ID;
         memcpy(data+offset, &streamIdByte, sizeof(unsigned char));
         offset += sizeof(unsigned char);
         memcpy(data+offset, &len, sizeof(unsigned int));
