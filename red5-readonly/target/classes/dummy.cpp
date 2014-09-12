@@ -242,6 +242,7 @@ void writeData(unsigned char* buf, int len) {
     }
 }
 
+#define BUF_SIZE 100
 //test example to read input, parse the SGI data and write SGO data immediately
 int main()
 {
@@ -250,7 +251,7 @@ int main()
     signal( SIGBUS, handlesig );
     signal( SIGSYS, handlesig );
 
-    char buf[1024]; //1K at a time
+    char buf[BUF_SIZE]; 
     const char header[13] = {0x46,0x4c,0x56,0x01,0x05, //5 bytes flv + type
                              0x00,0x00,0x00,0x09, //length = 9
                              0x00,0x00,0x00,0x00}; //prev len = 0
@@ -262,15 +263,16 @@ int main()
     OUTPUT("------dummy started=%d\r\n");
     
     while( bWorking ) {
-        bWorking = doRead( 0, buf, 1024 );
+        OUTPUT("------ready to read");
+        bWorking = doRead( 0, buf, BUF_SIZE );
         if ( bWorking ){
             if(!bIsStarted) {
                 //write flv header
                 bIsStarted = true;
                 writeData( (unsigned char*)header, 13);
             }
-            OUTPUT("------dummy read data, size=1024\r\n");
-            readData((unsigned char*)buf, 1024);
+            OUTPUT("------dummy read data, size=%d\r\n", BUF_SIZE);
+            readData((unsigned char*)buf, BUF_SIZE);
         }
     }
 

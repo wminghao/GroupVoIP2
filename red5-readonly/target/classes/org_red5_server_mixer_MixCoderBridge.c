@@ -42,6 +42,8 @@ void callback(unsigned char* data, unsigned int len, int procId) {
         CLASSFUNC(Logger, log)( "GetEnv: version not supported" );
     }
 
+    CLASSFUNC(Logger, log)("MixCoderBridge callback");
+
     (*g_env)->CallVoidMethod(g_env, g_obj, g_mid, data, len, procId);
 
     if ((*g_env)->ExceptionCheck(g_env)) {

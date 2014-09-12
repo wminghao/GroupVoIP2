@@ -8,7 +8,6 @@
 InputArray::InputArray() {
 }
 bool InputArray::isEmpty() {    
-    OUTPUT("--------isEmpty");
     Guard g(&mutex_);
     return inputObjectList_.empty();
 }
@@ -33,20 +32,19 @@ void InputArray::pushFront(unsigned char* data, unsigned int len) {
 void InputArray::popTail() {
     Guard g(&mutex_);
     InputObject* obj = inputObjectList_.back();
+    OUTPUT("-----popTail from Inputarray, len=%d----\r\n", obj->len);
     free(obj->data);
     free(obj);
     inputObjectList_.pop_back();
 }
 unsigned char* InputArray::getTail(unsigned int* len){
     Guard g(&mutex_);
-    OUTPUT("-----0----\r\n");
     InputObject* obj = inputObjectList_.back();
     unsigned char* result = NULL;
     if( obj ) {
-        OUTPUT("-----1----\r\n");
         result = obj->data;
         *len = obj->len;
-        OUTPUT("-----Popped from Inputarray, len=%d----\r\n", *len);
+        OUTPUT("-----getTail from Inputarray, len=%d, list size=%d----\r\n", *len, inputObjectList_.size());
     }
     return result;
 }

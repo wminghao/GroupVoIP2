@@ -11,8 +11,8 @@
 class InputArray;
 
 typedef struct {
-    int fdRead;  //read from the pipe
-    int fdWrite; //write to the pipe
+    int inputToProcess;  //write to the pipe
+    int outputFromProcess; //read from the pipe
 
     int procId; //unique identifier
     InputArray* input;
@@ -31,7 +31,7 @@ class EpollLooper
     ~EpollLooper();
     
     //register process pipe input and output
-    void reg(int procId, int fdRead, int fdWrite, InputArray* input);
+    void reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input);
     void unreg(int procId);
     
     //notify new data has arrived
@@ -67,9 +67,6 @@ class EpollLooper
 
     //stats
     unsigned int totalBytesToWrite_;
-
-    //flag
-    bool bWriteEventAdded_;    
 };
 
 

@@ -84,7 +84,6 @@ pid_t ProcessPipe::open()
             perror( "prctl" );
         }
 
-        OUTPUT("----Launching child process!\n");
         if( -1 == execvp( MIXER_PROCESS_LOCATION, arguments ) ) {
             assert(0);
             OUTPUT("Fatal error: EXECLP FAILED, error=%d?!\n", errno);
