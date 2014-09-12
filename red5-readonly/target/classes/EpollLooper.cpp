@@ -182,7 +182,7 @@ void EpollLooper::tryToRead(EpollEvent* epollEvent)
         OUTPUT("Pipe closed connection, n=%d.\n", n);
         unreg(epollEvent->procId);
     } else {
-        OUTPUT("Read data length:%d", n);
+        //OUTPUT("Read data length:%d", n);
         writeCallback_(epollEvent->readBuffer, n, epollEvent->procId); //send it to Java
     }        
 }
@@ -201,7 +201,8 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
     }
 }
 
-//tryToWrite
+//Right now both read and write to the pipe happens in the epoll loop thread
+//Reaason: calling it entirely from the thread to avoid complicated multithread issues
 bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
     bool doneWriting = false;
     bool encounteredError = false;
@@ -229,6 +230,7 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
         } else {
             sent += t;
             if ( sent == len ) {
+                epollEvent->writeBufOffset = 0;
                 outgoingBuffers->popTail();
             } else {
                 epollEvent->writeBufOffset = sent;
