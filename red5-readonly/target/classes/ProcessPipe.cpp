@@ -10,19 +10,20 @@
 #include <sys/prctl.h>
 #include <sys/signal.h>
 #include <sys/types.h>
+#include <assert.h>
 #include <vector>
 #include "Output.h"
 
 #define TEST_DUMMY
 
 #ifdef TEST_DUMMY
-const char* MIXER_PROCESS_LOCATION = "/usr/bin/dummy";
+const char* MIXER_PROCESS_LOCATION = "dummy";//"/usr/bin/dummy";
 #else
-const char* MIXER_PROCESS_LOCATION = "/usr/bin/mix_coder";
+const char* MIXER_PROCESS_LOCATION = "mix_coder";//"/usr/bin/mix_coder";
 #endif
 
 void killChild() {
-    OUTPUT( "exiting." );
+    OUTPUT( "MixCoderBridge exiting." );
     //kill(childPid_, SIGKILL);
     //wait(0);
 }
@@ -53,7 +54,17 @@ pid_t ProcessPipe::open()
         perror( "pipe" );
         return -1;
     }
-
+    char **arguments;
+    std::vector<char *> strings;
+    strings.push_back( strdup( MIXER_PROCESS_LOCATION ) );
+    //strings.push_back( strdup( more arg ) );
+    size_t arrayLen = strings.size() + 1;
+    arguments = new char *[ arrayLen ];
+    for ( size_t i = 0 ; i < arrayLen - 1 ; ++i ) {
+        arguments[i] = strings[i];
+    }
+    arguments[ arrayLen - 1 ] = NULL;
+    
     pid_t rval = fork();
     
     if( 0 == rval ) {
@@ -72,23 +83,10 @@ pid_t ProcessPipe::open()
         if( 0 > prctl( PR_SET_PDEATHSIG, SIGKILL ) ) {
             perror( "prctl" );
         }
-        
-        if( arguments_ ) {
-            delete [] arguments_;
-        }        
 
-        std::vector<char *> strings;
-        strings.push_back( strdup( MIXER_PROCESS_LOCATION ) );
-        //strings.push_back( strdup( more arg ) );
-        size_t arrayLen = strings.size() + 1;
-        arguments_ = new char *[ arrayLen ];
-        for ( size_t i = 0 ; i < arrayLen - 1 ; ++i ) {
-            arguments_[i] = strings[i];
-        }
-        arguments_[ arrayLen - 1 ] = NULL;
-
-        OUTPUT("----Launching child process?!\n");
-        if( -1 == execv( MIXER_PROCESS_LOCATION, arguments_ ) ) {
+        OUTPUT("----Launching child process!\n");
+        if( -1 == execvp( MIXER_PROCESS_LOCATION, arguments ) ) {
+            assert(0);
             OUTPUT("Fatal error: EXECLP FAILED, error=%d?!\n", errno);
         }
 
@@ -99,14 +97,14 @@ pid_t ProcessPipe::open()
         ::close(q_[1]);
         OUTPUT("----Launching process=%s, pid=%d", MIXER_PROCESS_LOCATION, rval);
     }    
+    delete [] arguments;
+    
     return rval;
 }
 
 void ProcessPipe::close()
 {
-    if( arguments_ ) {
-        delete [] arguments_;
-    }        
+    OUTPUT("----Closing process=%s, pid=%d", MIXER_PROCESS_LOCATION, childPid_);
     if ( childPid_ ) {
         ::kill( childPid_, SIGKILL );
         int status;

@@ -10,6 +10,7 @@ class ProcessPipe
 
     int getInFd();
     int getOutFd();
+
  private:
     pid_t open();
     void close();
@@ -17,7 +18,6 @@ class ProcessPipe
  private:
     int p_[2], q_[2];
     pid_t childPid_;
-    char **arguments_;
 };
 
 #endif
