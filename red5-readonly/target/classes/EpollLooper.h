@@ -64,9 +64,6 @@ class EpollLooper
 
     //mapping table of epollEvent and procId
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
-
-    //stats
-    unsigned int totalBytesToWrite_;
 };
 
 

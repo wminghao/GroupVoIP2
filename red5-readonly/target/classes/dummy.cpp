@@ -200,7 +200,7 @@ bool readData(unsigned char* data, unsigned int len) {
 }
 
 void writeData(unsigned char* buf, int len) {
-    unsigned int streamMask = 1; //TODO only package 1 stream
+    unsigned int streamMask = 2; //TODO only package 1 stream, id = 1, mask = 2 
     int totalStreams = 2; //this stream + all-in-one stream
     if( len > 0 ) {             
         //Headers
@@ -218,7 +218,7 @@ void writeData(unsigned char* buf, int len) {
         memcpy(data+3, &streamMask, sizeof(streamMask));
         int offset = 7;
         OUTPUT("------streamId=%d, dataLen=%d\r\n", 0, len);
-        unsigned char streamIdByte = 0;
+        unsigned char streamIdByte = 1; //TODO id = 1, mask = 2
         memcpy(data+offset, &streamIdByte, sizeof(unsigned char));
         offset += sizeof(unsigned char);
         memcpy(data+offset, &len, sizeof(unsigned int));

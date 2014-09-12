@@ -11,13 +11,16 @@ class InputArray
 public:
     InputArray();
     ~InputArray();
-    void pushFront(unsigned char* data, unsigned int len);
+    bool pushFront(unsigned char* data, unsigned int len);
     unsigned char* getTail(unsigned int* len);
     void popTail();
     bool isEmpty();
 private:
     std::list<InputObject*> inputObjectList_;
     GMutex mutex_;
+
+    //stats
+    unsigned int totalBytesToWrite_;
 };
 #endif
 

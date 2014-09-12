@@ -125,7 +125,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public void onFrameParsed(int mixerId, ByteBuffer frame, int flvFrameLen)
     {
     	int streamId = idLookupTable.lookupStreamId(mixerId);
-    	//log.info("=====>onFrameParsed mixerId {} len {} streamName {}", mixerId, len, streamName );
+    	log.info("=====>onFrameParsed mixerId {} len {} streamName {}", mixerId, flvFrameLen, idLookupTable.lookupStreamName(mixerId) );
     	onFrameGenerated( streamId, frame, flvFrameLen, false );
     }
     
@@ -220,7 +220,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	//TODO close all-in-one RTMPConnections and all its associated assets
     	if( mixerPipe_ != null ) {
-    		mixerPipe_.close();
+	    mixerPipe_.close();
     	}
     }
     

@@ -22,9 +22,9 @@
 #include "Output.h"
 #include "InputArray.h"
 
-#define MAXPIPES 100*2
-#define MAXEVENTS 100
-#define MAX_CLOG_WRITE_BUFFER 5<<20 //5M total it's clogged
+//max instances of 10 mixers per machine
+#define MAXEVENTS 10
+#define MAXPIPES 10*2
 
 void setNonBlocking( int fd )
 {
@@ -49,7 +49,7 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     }
 }
 
-EpollLooper::EpollLooper(WriteCallback callback):writeCallback_(callback), totalBytesToWrite_(0)
+EpollLooper::EpollLooper(WriteCallback callback):writeCallback_(callback)
 {
     //Create epoll context.
     epollfd_ = epoll_create(MAXPIPES);
@@ -180,10 +180,10 @@ void EpollLooper::tryToRead(EpollEvent* epollEvent)
         /*
          * Process Pipe closed 
          */
-        OUTPUT("\nPipe closed connection, n=%d.\n", n);
+        OUTPUT("Pipe closed connection, n=%d.\n", n);
         unreg(epollEvent->procId);
     } else {
-        OUTPUT("\nRead data length:%d", n);
+        OUTPUT("Read data length:%d", n);
         writeCallback_(epollEvent->readBuffer, n, epollEvent->procId); //send it to Java
     }        
 }
@@ -194,10 +194,8 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
     std::tr1::unordered_map< int, EpollEvent* >::const_iterator got = procMapping_.find( procId );
     if ( got != procMapping_.end() ) {
         EpollEvent* epollEvent = got->second;
-        totalBytesToWrite_ += len;
-        if( len < MAX_CLOG_WRITE_BUFFER ) {
-            //register to write
-            epollEvent->input->pushFront( data, len ); //push data to the queue
+        //push data to the queue, then write to the process
+        if( epollEvent->input->pushFront( data, len ) ) {
             if(!tryToWrite(epollEvent)) {
                 freeProc(epollEvent);
             }
@@ -242,7 +240,6 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             } else {
                 epollEvent->writeBufOffset = sent;
             }
-            totalBytesToWrite_ -= t;
         }
     }
 

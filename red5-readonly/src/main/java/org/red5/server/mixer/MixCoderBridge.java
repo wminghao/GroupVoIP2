@@ -46,7 +46,7 @@ public class MixCoderBridge {
 	    if ( obj != null ) {     
 		MixCoderBridge.Delegate del = obj.delegate;
 		del.newOutput(bytesRead, len);
-		log.info("=====>Reading from process pipe={}, procId={}", len, procId);
+		//log.info("=====>Reading from process pipe={}, procId={}", len, procId);
 	    }
 	}
     }

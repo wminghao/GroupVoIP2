@@ -104,6 +104,18 @@ public class IdLookup {
 		}
 		return streamId;
 	}
+	public String lookupStreamName(int mixerId) {
+	    String streamName = null;
+	    synchronized( syncObj) {
+    		for(String key : groupMappingTable.keySet()) {
+		    GroupMappingTableEntry value = groupMappingTable.get(key);
+		    if(value.mixerId == mixerId) {
+			streamName = key;
+		    }
+		}
+	    }
+	    return streamName;
+	}
 	public int lookupStreamId(String streamName) {
 		int streamId = -1;
 		synchronized( syncObj) {

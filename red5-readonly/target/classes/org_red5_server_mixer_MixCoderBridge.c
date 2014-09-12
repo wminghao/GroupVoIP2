@@ -43,7 +43,7 @@ void callback(unsigned char* data, unsigned int len, int procId) {
         CLASSFUNC(Logger, log)( "GetEnv: version not supported" );
     }
 
-    CLASSFUNC(Logger, log)("MixCoderBridge callback");
+    //CLASSFUNC(Logger, log)("MixCoderBridge callback");
 
     //first copy the data to a byte array
     jbyteArray jb=(*env)->NewByteArray(env, len);
