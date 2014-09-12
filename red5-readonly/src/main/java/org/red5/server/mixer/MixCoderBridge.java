@@ -3,12 +3,16 @@ package org.red5.server.mixer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.BitSet;
+import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
+import org.slf4j.Logger;
 
 public class MixCoderBridge {
     private static MixCoderBridge instance_;
     private Map<Integer, DelegateObject> procIdDelegateMap = new HashMap<Integer, DelegateObject>();
     private Object syncObj = new Object();
     private volatile BitSet reservedProcIds = new BitSet();
+    private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
 
     /////////////////////////
     // public functions
@@ -42,6 +46,7 @@ public class MixCoderBridge {
 	    if ( obj != null ) {     
 		MixCoderBridge.Delegate del = obj.delegate;
 		del.newOutput(bytesRead, len);
+		log.info("=====>Reading from process pipe={}, procId={}", len, procId);
 	    }
 	}
     }

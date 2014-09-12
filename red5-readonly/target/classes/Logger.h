@@ -10,7 +10,7 @@
 class Logger
 {
  public:
-    static void initLog( const char* programName);
+    static void initLog( const char* programName, bool bNoShow = false);
     static void log( const char * fmt, ... );
 
  private:

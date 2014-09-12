@@ -258,12 +258,10 @@ int main()
     bool bWorking = true;
     bool bIsStarted = false;
 
-    Logger::initLog("dummyProc");
+    Logger::initLog("dummyProc", true);
 
     OUTPUT("------dummy started=%d\r\n");
-    
     while( bWorking ) {
-        OUTPUT("------ready to read");
         bWorking = doRead( 0, buf, BUF_SIZE );
         if ( bWorking ){
             if(!bIsStarted) {

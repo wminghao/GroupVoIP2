@@ -28,12 +28,13 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved)
 //2nd part, process pipe in a thread. With callback from C code to Java code
 ////////////////////////////////////////////////////////////////////////////
 void callback(unsigned char* data, unsigned int len, int procId) {
-    JNIEnv * g_env;
+    JNIEnv * env;
+
     // double check it's all ok
-    jint getEnvStat =(jint) (*g_vm)->GetEnv(g_vm, (void **)&g_env, JNI_VERSION_1_6);
+    jint getEnvStat =(jint) (*g_vm)->GetEnv(g_vm, (void **)&env, JNI_VERSION_1_6);
     if (getEnvStat == JNI_EDETACHED) {
-        CLASSFUNC(Logger, log)( "GetEnv: not attached" );
-        if ((*g_vm)->AttachCurrentThread(g_vm, (void **) &g_env, NULL) != 0) {
+        //CLASSFUNC(Logger, log)( "GetEnv: not attached" );
+        if ((*g_vm)->AttachCurrentThread(g_vm, (void **) &env, NULL) != 0) {
             CLASSFUNC(Logger, log)( "Failed to attach" );
         }
     } else if (getEnvStat == JNI_OK) {
@@ -44,10 +45,14 @@ void callback(unsigned char* data, unsigned int len, int procId) {
 
     CLASSFUNC(Logger, log)("MixCoderBridge callback");
 
-    (*g_env)->CallVoidMethod(g_env, g_obj, g_mid, data, len, procId);
+    //first copy the data to a byte array
+    jbyteArray jb=(*env)->NewByteArray(env, len);
+    (*env)->SetByteArrayRegion(env, jb, 0, len, (jbyte *)data);
 
-    if ((*g_env)->ExceptionCheck(g_env)) {
-        (*g_env)->ExceptionDescribe(g_env);
+    (*env)->CallVoidMethod(env, g_obj, g_mid, jb, len, procId);
+
+    if ((*env)->ExceptionCheck(env)) {
+        (*env)->ExceptionDescribe(env);
     }
 
     (*g_vm)->DetachCurrentThread(g_vm);
@@ -64,18 +69,24 @@ void callback(unsigned char* data, unsigned int len, int procId) {
  */
 JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_open
 (JNIEnv * env, jobject obj) {
+    int status = (*env)->GetJavaVM(env, &g_vm);
+    if(status != 0) {
+        // Fail!
+        CLASSFUNC(Logger, log)("Failed to find jvm");
+    }
+
     // convert local to global reference 
     // (local will die after this method call)
     g_obj = (jobject)((*env)->NewGlobalRef(env, obj));
 
     // save refs for callback
-    jclass g_clazz = (*env)->GetObjectClass(env, g_obj);
-    if (g_clazz == NULL) {
+    jclass clazz = (*env)->GetObjectClass(env, g_obj);
+    if (clazz == NULL) {
         CLASSFUNC(Logger, log)("Failed to find class");
     }
 
     //Java callback function. newOutput(byte[] bytesRead, int len, int procId)
-    g_mid = (*env)->GetMethodID(env, g_clazz, "newOutput", "([BII)V");
+    g_mid = (*env)->GetMethodID(env, clazz, "newOutput", "([BII)V");
     if (g_mid == NULL) {
         CLASSFUNC(Logger, log)("Unable to get method ref");
     }

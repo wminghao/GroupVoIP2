@@ -237,7 +237,6 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             encounteredError = true;
         } else {
             sent += t;
-            OUTPUT("-----sent=%d----\r\n", sent);
             if ( sent == len ) {
                 outgoingBuffers->popTail();
             } else {

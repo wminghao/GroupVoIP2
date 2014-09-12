@@ -5,17 +5,24 @@
 #include <fstream>
 #include "Logger.h"
 
-void Logger::initLog( const char* syslogName)
+bool g_bNoShow = false;
+
+void Logger::initLog( const char* syslogName, bool bNoShow)
 {
-    openlog( syslogName, LOG_PID, LOG_USER );
+    g_bNoShow = bNoShow;
+    if( !bNoShow ) {
+        openlog( syslogName, LOG_PID, LOG_USER );
+    }
 }
 
 void Logger::log( const char * fmt, ... )
 {
-    va_list args;
-
-    /* initialize valist for num number of arguments */
-    va_start(args, fmt);
-    vsyslog( LOG_DEBUG, fmt, args );
-    va_end(args);
+    if( !g_bNoShow ) {
+        va_list args;
+        
+        /* initialize valist for num number of arguments */
+        va_start(args, fmt);
+        vsyslog( LOG_DEBUG, fmt, args );
+        va_end(args);
+    }
 }
