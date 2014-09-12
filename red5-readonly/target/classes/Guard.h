@@ -17,9 +17,8 @@ class GMutex{
 
 class Guard{
  public:
-    //TODO mutex has some problem here
-    Guard(GMutex* mutex):mutex_(mutex) { /* mutex_->lock(); */}
-    ~Guard() { /*mutex_->unlock();*/ }
+    Guard(GMutex* mutex):mutex_(mutex) { mutex_->lock(); }
+    ~Guard() { mutex_->unlock(); }
  private:
     GMutex* mutex_;
 };
