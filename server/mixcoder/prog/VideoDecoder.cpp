@@ -77,6 +77,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
         v->rawVideoSettings_.vcid = kAVCVideoPacket;
         v->rawVideoSettings_.width = inWidth_;
         v->rawVideoSettings_.height =inHeight_; 
+        bIsValidFrame = true;
 
         LOG("Video decoded sps pps, len=%ld, ts=%d\n", spspps_->dataLength(), au->pts);
     } else if( au->sp == kRawData ) {

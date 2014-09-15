@@ -16,8 +16,7 @@ class AudioTimestampMapper
         if( MAX_INT == startingTimestamp_ ) {
             startingTimestamp_ = ts;
             cnt_ = 0;
-            LOG("-----------Timestamp Init, startingTimestamp_=%.2f", startingTimestamp_);
-
+            LOG("-----------Timestamp Init, startingTimestamp_=%.2f\r\n", startingTimestamp_);
         } else {
             //if timestamp has drifted more than 100ms, reset startingTimestamp_ and cnt
             if( ts > ( curTimestamp_ + 100 ) ) {

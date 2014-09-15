@@ -162,7 +162,7 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
     if( au->st == kVideoStreamType ) {
         SmartPtr<VideoRawData> v = new VideoRawData();
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
-        if( bIsValidFrame || v->sp == kSpsPps ) { //if decoded successfully or it's an sps pps frame
+        if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
             videoQueue_[index].push( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
