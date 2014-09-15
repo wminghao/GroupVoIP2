@@ -258,6 +258,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //assert( curEpocTime > startEpocTime_ );
             //relTimeStampOffset_ = ( curEpocTime - startEpocTime_ ) - tsUnion.timestamp;
             relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
+            LOG( "==========================Initial relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", relTimeStampOffset_, tsUnion.timestamp);
         } else {
             //if the drift is bigger than 100 ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
             //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards

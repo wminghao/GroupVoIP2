@@ -76,11 +76,11 @@ bool MixCoder::newInput( SmartPtr<SmartBuffer> inputBuf )
 SmartPtr<SmartBuffer> MixCoder::getOutput()
 {
     StreamType curStreamType = kUnknownStreamType;
-    u32 audioPts = 0;
+    u32 audioPts = 0; //min audio Pts as the final pts
     bool bIsAudioReady = flvSegParser_->isNextAudioStreamReady( audioPts );
 
-    u32 videoPts = 0;
-    bool bIsVideoReady = bIsAudioReady?flvSegParser_->isNextVideoStreamReady( videoPts, audioPts ):false;
+    u32 videoPts = 0;//min video Pts as the final pts
+    bool bIsVideoReady = bIsAudioReady?flvSegParser_->isNextVideoStreamReady( videoPts ):false;
 
     if( bIsVideoReady && bIsAudioReady) {
         //audio and video are both ready.
@@ -110,15 +110,15 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                 if( bIsStreamStarted ) { 
                     SmartPtr<VideoRawData> v;
                     do {
-                        v = flvSegParser_->getNextVideoFrame(i, videoPts);
+                        v = flvSegParser_->getNextVideoFrame(i);
                         if( v ) {
                             rawVideoData_[i] = v;
                         }
-                    } while (v); //pop a few frames with timestamp smaller than videoPts.
+                    } while (v); //pop a few frames with timestamp smaller than nextVideoTimestamp_[i]
 
                     //if no frame generated, and never has any frames generated before, do nothing, 
                     //else use the cached video frame 
-                    if( flvSegParser_->hasFirstFrameDecoded(i, true, videoPts)) {
+                    if( flvSegParser_->hasFirstFrameDecoded(i, true)) {
                         bIsValidFrame = true; //use the cached frame
                     }
                 }
@@ -174,7 +174,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     } else {
                         //if no frame generated, and never has any frames generated before, do nothing, 
                         //else use the cached audio frame 
-                        if( flvSegParser_->hasFirstFrameDecoded(i, false, a->pts)) {
+                        if( flvSegParser_->hasFirstFrameDecoded(i, false)) {
                             bIsValidFrame = true; //use the cached frame
                         } 
                     }
