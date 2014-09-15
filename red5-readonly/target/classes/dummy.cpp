@@ -152,7 +152,7 @@ bool readData(unsigned char* data, unsigned int len) {
                     assert(curBuf_[1] == 0x0); //ignore the special property
 
                     memcpy(&curStreamLen_, curBuf_.data()+2, 4); //read the len
-                    OUTPUT("---curStreamCnt_=%d, curBuf_[0]=0x%x, curStreamId_=%d curStreamSource=%d, curStreamLen_=%d\r\n", curStreamCnt_, curBuf_[0], curStreamId_, curStreamSource, curStreamLen_);
+                    //OUTPUT("---curStreamCnt_=%d, curBuf_[0]=0x%x, curStreamId_=%d curStreamSource=%d, curStreamLen_=%d\r\n", curStreamCnt_, curBuf_[0], curStreamId_, curStreamSource, curStreamLen_);
 
                     curBuf_.clear();
                     curSegTagSize_ = 0;
@@ -172,7 +172,7 @@ bool readData(unsigned char* data, unsigned int len) {
                         data += cpLen;
                     }
                     if ( curBuf_.size() >= curStreamLen_ ) {
-                        OUTPUT( "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
+                        //OUTPUT( "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
                         //TODO only save the first video
                         if( curStreamId_ == TEST_STREAM_ID ) {
                             writeData( (unsigned char*)curBuf_.data(), curStreamLen_ );
@@ -219,7 +219,7 @@ void writeData(unsigned char* buf, int len) {
         data[2] = 'O';
         memcpy(data+3, &streamMask, sizeof(streamMask));
         int offset = 7;
-        OUTPUT("------streamId=%d, dataLen=%d\r\n", 0, len);
+        OUTPUT("------dummy writeData streamId=%d, dataLen=%d\r\n", TEST_STREAM_ID, len);
         unsigned char streamIdByte = TEST_STREAM_ID;
         memcpy(data+offset, &streamIdByte, sizeof(unsigned char));
         offset += sizeof(unsigned char);
