@@ -50,7 +50,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
                     hasSpsPps = true;
                     //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
                 } else {
-                    if( hasStarted_ ) {
+                    if( hasStarted_[i] ) {
                         //if it's over the limit, don't record
                         if( videoQueue_[i].front()->pts > nextLimitTimestamp ) {
                             recordFrameTimestamp[i] = false;
@@ -66,7 +66,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
             }
 
             //after the first frame. every 33ms, considers it's ready, regardless whether there is a frame or not
-            if( hasStarted_ ) {
+            if( hasStarted_[i] ) {
                 if ( frameTimestamp != 0xffffffff ) {
                     if( frameTimestamp <= (u32)nextBucketTimestamp ) { 
                         if( audioBucketTimestamp >= nextBucketTimestamp) {
@@ -97,7 +97,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
             } else {
                 //first time there is a stream available, always pop out the frame(s)            
                 if ( frameTimestamp != 0xffffffff ) {
-                    hasStarted_ = true;
+                    hasStarted_[i] = true;
                     lastBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = frameTimestamp;
                     minVideoTimestamp = frameTimestamp;

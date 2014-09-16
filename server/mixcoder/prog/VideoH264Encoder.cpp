@@ -4,7 +4,7 @@
 
 VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate), videoHeaderGen_(false), frameInputCnt_(0), frameOutputCnt_(0)
 {  
-    int outBitrate = vBaseLayerBitrate * 3;//TODO 3 times the base is the output bitrate
+    int outBitrate = vBaseLayerBitrate * 2;//TODO 2 times the base is the output bitrate
 
     x264_param_default(&x264Param_);
     x264_param_default_preset(&x264Param_, "medium", "zerolatency");

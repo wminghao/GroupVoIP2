@@ -48,8 +48,7 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
  public:
  FLVSegmentParser(u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): parsingState_(SEARCHING_SEGHEADER),
         curSegTagSize_(0), curStreamId_(0), curStreamLen_(0), curStreamCnt_(0),
-        numStreams_(0), targetVideoFrameRate_(targetVideoFrameRate), 
-        hasStarted_(0), globalAudioTimestamp_(0)
+        numStreams_(0), targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
         {
             memset(audioStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
             memset(videoStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
@@ -64,6 +63,7 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
             memset(nextAudioTimestamp_, 0, sizeof(u32)*MAX_XCODING_INSTANCES);
             memset(nextVideoTimestamp_, 0, sizeof(u32)*MAX_XCODING_INSTANCES);
             memset(lastBucketTimestamp_, 0, sizeof(double)*MAX_XCODING_INSTANCES);
+            memset(hasStarted_, 0, sizeof(u32)* MAX_XCODING_INSTANCES );
         }
     virtual ~FLVSegmentParser() {
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
@@ -132,7 +132,6 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     StreamSource streamSource[MAX_XCODING_INSTANCES];
 
     //video timestamp adjustment. output is always 30fps
-    u32 hasStarted_;       //1st time video stream starts
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     //b/c each video stream runs on its own rate of playback, 
@@ -143,7 +142,8 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     /////////////////////////////////////////////////////////////////////////////////////////////
     u32    nextAudioTimestamp_[ MAX_XCODING_INSTANCES ];      //next audio frame timestamp
     u32    nextVideoTimestamp_[ MAX_XCODING_INSTANCES ];      //next video frame timestamp
-    double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];      //last video frame timestamp
+    double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp
+    u32    hasStarted_[ MAX_XCODING_INSTANCES ];                 //1st time video stream starts
 
 
     u32 globalAudioTimestamp_; //global audio timestamp used for avsync between different video streams

@@ -32,7 +32,7 @@ int main( int argc, char** argv ) {
     signal( SIGBUS, handlesig );
     signal( SIGSYS, handlesig );
     
-    Logger::initLog("MixCoder", kStderr);
+    Logger::initLog("MixCoder", kSyslog);
 
     int videoBitrate = 100; //increase from 40 to 100
     int videoWidth = 640;
