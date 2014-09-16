@@ -137,7 +137,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                             u16 ppsLen = ((u16)ppsLenStr[0]<<8)|ppsLenStr[1];
                             string pps = bsParser.readBytes(ppsLen);                            
                             inputData = naluStarterCode + sps + naluStarterCode + pps;
-                            LOG( "---spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", spsLen, ppsLen, inputData.size());
+                            //LOG( "---spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", spsLen, ppsLen, inputData.size());
                             break;
                         }
                     case kAVCNalu:
@@ -258,13 +258,13 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //assert( curEpocTime > startEpocTime_ );
             //relTimeStampOffset_ = ( curEpocTime - startEpocTime_ ) - tsUnion.timestamp;
             relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
-            LOG( "==========================Initial relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", relTimeStampOffset_, tsUnion.timestamp);
+            LOG( "==========================StreamId=%d Initial relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp);
         } else {
-            //if the drift is bigger than 100 ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
+            //if the drift is bigger than TIMESTAMP_JUMP_THRESHOLD ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
             //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
-            if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + 100 ) {
+            if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
                 relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
-                LOG( "==========================Adjusted relTimestampOffset_=%d===========\r\n", relTimeStampOffset_);
+                LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d===========\r\n", index_, relTimeStampOffset_);
             }
         }
         if ( accessUnit->sp == kSpsPps ) {

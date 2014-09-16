@@ -78,7 +78,8 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
                         } else {
                             //wait for the nextBucketTimestamp, since audio is not ready yet, not advanced to the next level yet
                             //not ready yet
-                            //LOG( "--not ready. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minAudioTimestamp=%d\r\n", audioBucketTimestamp, nextBucketTimestamp, minAudioTimestamp);
+                            recordFrameTimestamp[i] = false;
+                            //LOG( "--not ready. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d\r\n", audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp);
                         }
                     } else { 
                         assert( audioBucketTimestamp >= frameTimestamp );
@@ -95,19 +96,19 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
                     //LOG( "--no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minAudioTimestamp=%d\r\n", audioBucketTimestamp, nextBucketTimestamp, minAudioTimestamp);
                 }
             } else {
-                //first time there is a stream available, always pop out the frame(s)            
-                if ( frameTimestamp != 0xffffffff ) {
-                    hasStarted_[i] = true;
-                    lastBucketTimestamp_[i] = frameTimestamp;
-                    nextVideoTimestamp_[i] = frameTimestamp;
-                    minVideoTimestamp = frameTimestamp;
-                    //LOG( "===first video timstamp=%d\r\n", (u32)lastBucketTimestamp_);
-                } else if( hasSpsPps ) {
+                if( hasSpsPps ) {
                     //if there is no frame ready, only sps/pps pop out it immediately
                     //LOG( "===found sps pps. but no other frames\r\n");
                     lastBucketTimestamp_[i] = audioBucketTimestamp;
                     nextVideoTimestamp_[i] = spsPpsTimestamp;
-                    minVideoTimestamp = spsPpsTimestamp;
+                    minVideoTimestamp = MIN(minVideoTimestamp, spsPpsTimestamp); //strictly follow
+                } else if ( frameTimestamp != 0xffffffff ) {
+                    //first time there is a stream available, always pop out the frame(s)
+                    hasStarted_[i] = true;
+                    lastBucketTimestamp_[i] = frameTimestamp;
+                    nextVideoTimestamp_[i] = frameTimestamp;
+                    minVideoTimestamp = MIN(minVideoTimestamp, frameTimestamp); //strictly follow
+                    //LOG( "===first video timstamp=%d\r\n", (u32)lastBucketTimestamp_);
                 }
             }
         } 
@@ -375,7 +376,7 @@ SmartPtr<VideoRawData> FLVSegmentParser::getNextVideoFrame(u32 index)
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, 0, videoQueue_[index].size());
             }
         } else {
-            LOG("------nopop Next video frame, index=%d queue=%d\r\n", index, videoQueue_[index].size());
+            //LOG("------nopop Next video frame, index=%d queue=%d\r\n", index, videoQueue_[index].size());
             //don't pop anything that has a bigger timestamp
             v = NULL;
         }

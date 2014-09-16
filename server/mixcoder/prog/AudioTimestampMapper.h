@@ -1,6 +1,7 @@
 #ifndef __AUDIOTIMESTAMP_MAPPER__
 #define __AUDIOTIMESTAMP_MAPPER__
 
+#include "CodecInfo.h"
 #include "AudioResampler.h"
 #include "fwk/log.h"
 
@@ -23,7 +24,7 @@ class AudioTimestampMapper
             LOG("-----------Timestamp Init for stream:%d, startingTimestamp_=%.2f\r\n", index_, startingTimestamp_);
         } else {
             //if timestamp has drifted more than 100ms, reset startingTimestamp_ and cnt
-            if( ts > ( curTimestamp_ + 100 ) ) {
+            if( ts > ( curTimestamp_ + TIMESTAMP_JUMP_THRESHOLD ) ) {
                 LOG("-----------Timestamp JUMP for stream:%d, oldStartingTimestamp_=%.2f, newStartingTimestamp_=%d\r\n", index_, startingTimestamp_, ts);
                 startingTimestamp_ = ts;
                 cnt_ = 0;
