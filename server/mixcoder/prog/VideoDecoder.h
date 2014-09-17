@@ -15,7 +15,7 @@ extern "C" {
 class VideoDecoder
 {
  public:
- VideoDecoder(int streamId):codec_(NULL), codecCtx_(NULL), frame_(NULL), inWidth_(0), inHeight_(0), bHasFirstFrameStarted(false), firstFramePts_(0xffffffff), streamId_(streamId)
+ VideoDecoder(int streamId):codec_(NULL), codecCtx_(NULL), frame_(NULL), inWidth_(0), inHeight_(0), bHasFirstFrameStarted_(false), firstFramePts_(0xffffffff), streamId_(streamId)
         {
             //avc decoder
             av_register_all();
@@ -23,7 +23,7 @@ class VideoDecoder
     ~VideoDecoder();
     bool newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData> v);
     bool hasFirstFrameDecoded(u32 pts) { 
-        if( bHasFirstFrameStarted && firstFramePts_ <= pts) {
+        if( bHasFirstFrameStarted_ && firstFramePts_ <= pts) {
             return true;
         }
         return false;
@@ -40,7 +40,7 @@ class VideoDecoder
 
     int inWidth_;
     int inHeight_;
-    bool bHasFirstFrameStarted;
+    bool bHasFirstFrameStarted_;
     u32 firstFramePts_;
     int streamId_;
 

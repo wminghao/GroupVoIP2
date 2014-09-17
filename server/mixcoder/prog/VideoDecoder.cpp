@@ -67,19 +67,25 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
 
     //it can be a sps-pps header or regular nalu    
     if ( au->sp == kSpsPps ) {
-        bHasFirstFrameStarted = false;
-        spspps_ = au->payload;
-        initDecoder( spspps_ );
-        //TODO parse sps/pps to get width and height, now assume it's 640*480
-        inWidth_ = 640;
-        inHeight_ = 480;
+        if( spspps_ 
+            && spspps_->dataLength() == au->payload->dataLength() 
+            && !memcmp( spspps_->data(), au->payload->data(), spspps_->dataLength()) ) {
+            LOG("Same video sps pps, ts=%d\n", au->pts);
+        } else {
+            bHasFirstFrameStarted_ = false;
 
-        v->rawVideoSettings_.vcid = kAVCVideoPacket;
-        v->rawVideoSettings_.width = inWidth_;
-        v->rawVideoSettings_.height =inHeight_; 
-        bIsValidFrame = true;
+            spspps_ = au->payload;
+            initDecoder( spspps_ );
+            //TODO parse sps/pps to get width and height, now assume it's 640*480
+            inWidth_ = 640;
+            inHeight_ = 480;
+            v->rawVideoSettings_.vcid = kAVCVideoPacket;
+            v->rawVideoSettings_.width = inWidth_;
+            v->rawVideoSettings_.height =inHeight_; 
+            bIsValidFrame = true;        
 
-        LOG("Video decoded sps pps, len=%ld, ts=%d\n", spspps_->dataLength(), au->pts);
+            LOG("Video decoded sps pps, len=%ld, ts=%d\n", spspps_->dataLength(), au->pts);
+        }
     } else if( au->sp == kRawData ) {
         assert(inWidth_ && inHeight_);
         if ( spspps_ ) {
@@ -118,8 +124,8 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
                     v->rawVideoSettings_.height =inHeight_; 
 
                     bIsValidFrame = true;
-                    if( !bHasFirstFrameStarted ) {
-                        bHasFirstFrameStarted = true;
+                    if( !bHasFirstFrameStarted_ ) {
+                        bHasFirstFrameStarted_ = true;
                         firstFramePts_ = au->pts;
                     }
                     /*

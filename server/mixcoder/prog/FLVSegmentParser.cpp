@@ -265,9 +265,16 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
                             }
                             //LOG( "---streamMask online  index=%d, numStreams=%d\r\n", index, numStreams_);
                         } else {
+                            //if a stream is changed from online to offline
+                            if( videoStreamStatus_[index] != kStreamOffline ||
+                                audioStreamStatus_[index] != kStreamOffline) {
+                                //recreate the parser
+                                delete( parser_[index] ); 
+                                parser_[index] = new FLVParser(this, index);
+                                LOG( "---streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
+                            }
                             videoStreamStatus_[index] = kStreamOffline;
                             audioStreamStatus_[index] = kStreamOffline;
-                            //LOG( "---streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
                         }
                         streamMask >>= 1; //shift 1 bit
                         index++;
