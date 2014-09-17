@@ -111,12 +111,16 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
         SEARCHING_STREAM_DATA
     }FLVSegmentParsingState;
 
+    //parsing logic
     FLVSegmentParsingState parsingState_;
     string curBuf_;
     u32 curSegTagSize_;
     u32 curStreamId_;
     u32 curStreamLen_;
     u32 curStreamCnt_;
+    FLVParser* parser_[MAX_XCODING_INSTANCES];
+    StreamSource streamSource[MAX_XCODING_INSTANCES];
+    u32 numStreams_;
 
     //stores raw audio and video messages
     queue<SmartPtr<AudioRawData> > audioQueue_[MAX_XCODING_INSTANCES];
@@ -124,13 +128,8 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     queue<SmartPtr<VideoRawData> > videoQueue_[MAX_XCODING_INSTANCES];
     StreamStatus videoStreamStatus_[MAX_XCODING_INSTANCES]; //tells whether a queue has been used or not
 
-    FLVParser* parser_[MAX_XCODING_INSTANCES];
-    u32 numStreams_;
-    u32 targetVideoFrameRate_;
-
-    StreamSource streamSource[MAX_XCODING_INSTANCES];
-
     //video timestamp adjustment. output is always 30fps
+    u32 targetVideoFrameRate_;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     //b/c each video stream runs on its own rate of playback, 
@@ -144,14 +143,13 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp
     u32    hasStarted_[ MAX_XCODING_INSTANCES ];                 //1st time video stream starts
 
-
-    u32 globalAudioTimestamp_; //global audio timestamp used for avsync between different video streams
+    u32 globalAudioTimestamp_; //global audio timestamp used for avsync between different video streams, only useful in the beginning of a stream
 
     //immediately decodes any video/audio messages once we receive any data
     AudioDecoder* audioDecoder_[ MAX_XCODING_INSTANCES ];
     VideoDecoder* videoDecoder_[ MAX_XCODING_INSTANCES ];
 
-    //audio settings for decoder
+    //audio settings for decoder's output
     AudioStreamSetting rawAudioSettings_;
 
     //current audio timestamp, mapping

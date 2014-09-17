@@ -263,7 +263,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //if the drift is bigger than TIMESTAMP_JUMP_THRESHOLD ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
             //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
             if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
-                relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
+                relTimeStampOffset_ += (tsUnion.timestamp - prevAudioOrigPts_);
                 LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d===========\r\n", index_, relTimeStampOffset_);
             }
         }
