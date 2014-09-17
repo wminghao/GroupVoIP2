@@ -33,14 +33,13 @@ using namespace std;
 // 1) input tells it how many streams available.
 // 2) it parses data and put audio/video inside a queue
 // 3) each queue is sorted by timestamp
-//    The top data in the queue,
-//    for audio, there is no frame drop, (continuous) if all encoders are speex 16khz, 2 bytes/sample, mono, frameLen=160samples/frame (timestamp diff is no bigger than 20 ms, 50fps)
-//        In the beginning, if a queue is never used, ignore that queue. sync with the others.
-//        After the 1st time a queue is used, all k audio data are available, always waitif all k top data is available, pop out immediately.
-//    for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
+// 4) for audio, there could be frame drop(a.k.a. timestamp jump), also frames comes in at different speed. 
+//        TODO: After the 1st time a queue is used, all k audio data are available, always wait if all k top data is available, pop out immediately.
+// 5) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
 //        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output)
 //        if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
-// Timestamp must be adjusted to be the same as the 1st stream's timestamp
+// 6) In the beginning, timestamp must be adjusted to be the same as the 1st stream's timestamp
+//    However, since each video stream is independent from each other, it should move its clock on its own.
 ///////////////////////////////////
 
 class FLVSegmentParser:public FLVSegmentParserDelegate
