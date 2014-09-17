@@ -263,8 +263,9 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //if the drift is bigger than TIMESTAMP_JUMP_THRESHOLD ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
             //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
             if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
-                relTimeStampOffset_ += (tsUnion.timestamp - prevAudioOrigPts_);
-                LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d===========\r\n", index_, relTimeStampOffset_);
+                relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
+                //relTimeStampOffset_ += (tsUnion.timestamp - prevAudioOrigPts_);
+                LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d, tsUnion.timestamp=%d, prevAudioOrigPts_=%d, diff=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp, prevAudioOrigPts_, (tsUnion.timestamp - prevAudioOrigPts_));
             }
         }
         if ( accessUnit->sp == kSpsPps ) {
@@ -274,11 +275,21 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             s32 relTimestampOffset = (relTimeStampOffset_ == MAX_S32)?0:relTimeStampOffset_; 
             if( relTimestampOffset >= 0 || (s32)(tsUnion.timestamp + relTimestampOffset) >= 0) {
                 accessUnit->pts = tsUnion.timestamp + relTimestampOffset;
+                //cannot go backward
+                if( accessUnit->st == kVideoStreamType && prevVideoAdjPts_ && prevVideoAdjPts_ > accessUnit->pts ) {
+                    LOG("====StreamId=%d video timestamp going backwards, prevVideoAdjPts_=%d, accessUnit->pts=%d, newPts=%d", index_, prevVideoAdjPts_, accessUnit->pts, (prevVideoAdjPts_ + 1));
+                    accessUnit->pts = prevVideoAdjPts_ + 1;
+                } else if( accessUnit->st == kAudioStreamType && prevAudioAdjPts_ && prevAudioAdjPts_ > accessUnit->pts ){
+                    LOG("====StreamId=%d audio timestamp going backwards, prevAudioAdjPts_=%d, accessUnit->pts=%d, newPts=%d", index_, prevAudioAdjPts_, accessUnit->pts, (prevAudioAdjPts_+1));
+                    accessUnit->pts = prevAudioAdjPts_ + 1;
+                }
             } else {
                 //cannot be negative
                 if( accessUnit->st == kVideoStreamType ) {
+                    LOG("====StreamId=%d video timestamp going negative, prevVideoAdjPts_=%d, newPts=%d", index_, prevVideoAdjPts_, (prevVideoAdjPts_ + 1));
                     accessUnit->pts = prevVideoAdjPts_ + 1;
                 } else {
+                    LOG("====StreamId=%d audio timestamp going negative, prevAudioAdjPts_=%d, newPts=%d", index_, prevAudioAdjPts_, (prevAudioAdjPts_ + 1));
                     accessUnit->pts = prevAudioAdjPts_ + 1;
                 }
             }
@@ -286,6 +297,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
 
         if( accessUnit->st == kVideoStreamType ) {
             prevVideoAdjPts_ = accessUnit->pts;
+            prevVideoOrigPts_ = tsUnion.timestamp;
         } else if( accessUnit->st == kAudioStreamType ) {
             prevAudioAdjPts_ = accessUnit->pts;
             prevAudioOrigPts_ = tsUnion.timestamp;
