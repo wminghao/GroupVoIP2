@@ -251,26 +251,27 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             }
         }
 
-        //if there is NO global timestamp, we use a relative timestamp to re-adjust the clock
-        //based on the very 1st audio frame or very 1st video frame(not sps)
-        if( MAX_S32 == relTimeStampOffset_ && accessUnit->st != kDataStreamType && accessUnit->sp != kSpsPps) {
-            //u64 curEpocTime = getEpocTime();
-            //assert( curEpocTime > startEpocTime_ );
-            //relTimeStampOffset_ = ( curEpocTime - startEpocTime_ ) - tsUnion.timestamp;
-            relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
-            LOG( "==========================StreamId=%d Initial relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp);
-        } else {
-            //if the drift is bigger than TIMESTAMP_JUMP_THRESHOLD ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
-            //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
-            if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
-                relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
-                LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d, tsUnion.timestamp=%d, prevAudioOrigPts_=%d, diff=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp, prevAudioOrigPts_, (tsUnion.timestamp - prevAudioOrigPts_));
-            }
-        }
         if ( accessUnit->sp == kSpsPps ) {
-            //reset the spspps timestamp to be next ts
+            //reset the spspps timestamp to be next ts, the timestamp does not matter
             accessUnit->pts = prevVideoAdjPts_+1;
         } else {
+            //if there is NO global timestamp, we use a relative timestamp to re-adjust the clock
+            //based on the very 1st audio frame or very 1st video frame(not sps)
+            if( MAX_S32 == relTimeStampOffset_ && accessUnit->st != kDataStreamType) {
+                //u64 curEpocTime = getEpocTime();
+                //assert( curEpocTime > startEpocTime_ );
+                //relTimeStampOffset_ = ( curEpocTime - startEpocTime_ ) - tsUnion.timestamp;
+                relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
+                LOG( "==========================StreamId=%d Initial relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp);
+            } else {
+                //if the drift is bigger than TIMESTAMP_JUMP_THRESHOLD ms, that means the current stream is catching up to the current time by re-adjusting its own clock.
+                //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
+                if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
+                    relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
+                    LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d, tsUnion.timestamp=%d, prevAudioOrigPts_=%d, diff=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp, prevAudioOrigPts_, (tsUnion.timestamp - prevAudioOrigPts_));
+                }
+            }
+
             s32 relTimestampOffset = (relTimeStampOffset_ == MAX_S32)?0:relTimeStampOffset_; 
             if( relTimestampOffset >= 0 || (s32)(tsUnion.timestamp + relTimestampOffset) >= 0) {
                 accessUnit->pts = tsUnion.timestamp + relTimestampOffset;

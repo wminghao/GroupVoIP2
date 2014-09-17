@@ -17,6 +17,12 @@ class AudioTimestampMapper
         index_ = index;
     }
 
+    void reset() {
+        startingTimestamp_ = MAX_INT;
+        curTimestamp_ = MAX_INT;
+        cnt_ = 0;
+    }
+
     u32 getNextTimestamp(u32 ts) {
         if( MAX_INT == startingTimestamp_ ) {
             startingTimestamp_ = ts;
