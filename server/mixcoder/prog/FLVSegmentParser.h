@@ -143,7 +143,12 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp
     u32    hasStarted_[ MAX_XCODING_INSTANCES ];                 //1st time video stream starts
 
-    u32 globalAudioTimestamp_; //global audio timestamp used for avsync between different video streams, only useful in the beginning of a stream
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    //However, a video stream can have timestamp jump back and forth. (Mostly jump forward),
+    //  In this case, we need a way to re-sync the timestamp to a relatively global timestamp
+    //  Therefore, a global audio timestamp used for avsync between different video streams
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    u32 globalAudioTimestamp_; 
 
     //immediately decodes any video/audio messages once we receive any data
     AudioDecoder* audioDecoder_[ MAX_XCODING_INSTANCES ];

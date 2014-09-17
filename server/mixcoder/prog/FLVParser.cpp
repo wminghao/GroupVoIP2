@@ -264,7 +264,6 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //that's the case when 2 publishers, a second publisher initially sends a frame with low ts, and jumps to a high ts immediately afterwards
             if( accessUnit->st == kAudioStreamType && tsUnion.timestamp > prevAudioOrigPts_ + TIMESTAMP_JUMP_THRESHOLD ) {
                 relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
-                //relTimeStampOffset_ += (tsUnion.timestamp - prevAudioOrigPts_);
                 LOG( "==========================StreamId=%d Adjusted relTimestampOffset_=%d, tsUnion.timestamp=%d, prevAudioOrigPts_=%d, diff=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp, prevAudioOrigPts_, (tsUnion.timestamp - prevAudioOrigPts_));
             }
         }
