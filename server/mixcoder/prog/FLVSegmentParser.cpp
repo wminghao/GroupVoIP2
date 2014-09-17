@@ -186,7 +186,7 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             if( !AudioDecoderFactory::isSameDecoder(au, audioDecoder_[index]->getAudioInputSetting()) ) {
                 delete(audioDecoder_[index]);
                 audioDecoder_[index] = AudioDecoderFactory::CreateAudioDecoder(au, index);
-                LOG("-----------brand new audio, different setting!!!!!\r\n");
+                //LOG("-----------brand new audio, different setting!!!!!\r\n");
             }
         }
         u32 origPts = au->pts;
@@ -203,7 +203,6 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             audioQueue_[index].push( a );
             globalAudioTimestamp_ = a->pts; //global audio timestamp updated here
         }
-
         audioStreamStatus_[index] = kStreamOnlineStarted;
     } else {
         //do nothing
@@ -257,13 +256,12 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
                     while( index < (int)MAX_XCODING_INSTANCES ) {
                         u32 value = ((streamMask<<31)>>31); //mask off all other bits
                         if( value ) {
-                            if ( videoStreamStatus_[index] == kStreamOffline ) {
+                            if ( videoStreamStatus_[index] == kStreamOffline  ||
+                                 audioStreamStatus_[index] == kStreamOffline) {
                                 videoStreamStatus_[index] = kStreamOnlineNotStarted;
-                            }
-                            if ( audioStreamStatus_[index] == kStreamOffline ) {
                                 audioStreamStatus_[index] = kStreamOnlineNotStarted;
+                                LOG( "------->streamMask online  index=%d, numStreams=%d\r\n", index, numStreams_);
                             }
-                            //LOG( "---streamMask online  index=%d, numStreams=%d\r\n", index, numStreams_);
                         } else {
                             //if a stream is changed from online to offline
                             if( videoStreamStatus_[index] != kStreamOffline ||
@@ -271,7 +269,7 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
                                 //recreate the parser
                                 delete( parser_[index] ); 
                                 parser_[index] = new FLVParser(this, index);
-                                LOG( "---streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
+                                LOG( "------->streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
                             }
                             videoStreamStatus_[index] = kStreamOffline;
                             audioStreamStatus_[index] = kStreamOffline;

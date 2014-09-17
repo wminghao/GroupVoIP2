@@ -70,7 +70,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
         if( spspps_ 
             && spspps_->dataLength() == au->payload->dataLength() 
             && !memcmp( spspps_->data(), au->payload->data(), spspps_->dataLength()) ) {
-            LOG("Same video sps pps, ts=%d\n", au->pts);
+            //LOG("Same video sps pps, ts=%d\n", au->pts);
         } else {
             bHasFirstFrameStarted_ = false;
 
@@ -84,7 +84,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             v->rawVideoSettings_.height =inHeight_; 
             bIsValidFrame = true;        
 
-            LOG("Video decoded sps pps, len=%ld, ts=%d\n", spspps_->dataLength(), au->pts);
+            LOG("StreamId=%d video decoded sps pps, len=%ld, ts=%d\n", streamId_, spspps_->dataLength(), au->pts);
         }
     } else if( au->sp == kRawData ) {
         assert(inWidth_ && inHeight_);

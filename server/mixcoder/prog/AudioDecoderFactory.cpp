@@ -16,7 +16,7 @@ AudioDecoder* AudioDecoderFactory::CreateAudioDecoder(const SmartPtr<AccessUnit>
         AudioSize audioSize = (AudioSize)((firstByte & 0x02)>>1);
         AudioType audioType = (AudioType)(firstByte & 0x01);
  
-        LOG("AudioDecoderFactory::CreateAudioDecoder: firstByte=0x%x, codecType=%d, audioRate=%d, audioSize=%d, audioType=%d\r\n", firstByte, codecType, audioRate, audioSize, audioType);
+        //LOG("AudioDecoderFactory::CreateAudioDecoder: firstByte=0x%x, codecType=%d, audioRate=%d, audioSize=%d, audioType=%d\r\n", firstByte, codecType, audioRate, audioSize, audioType);
        
         if( codecType == kSpeex ) {
             decoder = new AudioSpeexDecoder(streamId, 
