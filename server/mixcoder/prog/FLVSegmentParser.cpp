@@ -192,6 +192,7 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         u32 origPts = au->pts;
         audioDecoder_[index]->newAccessUnit(au, &rawAudioSettings_); //decode here
 
+        bool hasAnyDataPoppedOut = false;
         //read a couple of 1152 samples/frame here
         while(audioDecoder_[index]->isNextRawMp3FrameReady() ) {
             SmartPtr<AudioRawData> a = new AudioRawData();
@@ -202,8 +203,11 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             //LOG("-----------After resampling, pts=%d to %d, isStereo=%d\r\n", au->pts, a->pts, a->bIsStereo);
             audioQueue_[index].push( a );
             globalAudioTimestamp_ = a->pts; //global audio timestamp updated here
+            hasAnyDataPoppedOut = true;
         }
-        audioStreamStatus_[index] = kStreamOnlineStarted;
+        if( hasAnyDataPoppedOut && kStreamOnlineNotStarted == audioStreamStatus_[index] ) {
+            audioStreamStatus_[index] = kStreamOnlineStarted;
+        }
     } else {
         //do nothing
     }
