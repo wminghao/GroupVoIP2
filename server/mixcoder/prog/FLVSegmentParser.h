@@ -31,15 +31,19 @@ using namespace std;
 ///////////////////////////////////
 //FLVSegmentParser does the following:
 // 1) input tells it how many streams available.
-// 2) it parses data and put audio/video inside a queue
-// 3) each queue is sorted by timestamp
-// 4) for audio, there could be frame drop(a.k.a. timestamp jump), also frames comes in at different speed. 
-//        TODO: After the 1st time a queue is used, all k audio data are available, always wait if all k top data is available, pop out immediately.
-// 5) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
-//        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output)
+// 2) it parses data and put audio/video inside a queue sorted by timestamp
+// 3) for audio, there could be 2 cases
+//        a) frame drop(a.k.a. timestamp jump), 
+//        b) frames comes in at different speed. 
+//       After multiple experiments, a simple algorithm to trim the queue when a threshold is reached achieves the best result.
+// 4) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
+//        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output for a single frame)
 //        if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
-// 6) In the beginning, timestamp must be adjusted to be the same as the 1st stream's timestamp
-//    However, since each video stream is independent from each other, it should move its clock on its own.
+// 5) Clocks, there is a global timestamp, recording the unified clock of elapsed streams.
+//        In the beginning, timestamp must be adjusted to be the same as the global timestamp
+//          However, since each video stream is independent from each other, it should move its clock on its own.
+//        Except for the case, where there is a jump in timestamp, which means the client is skipping data(both audio and video), 
+//          When that happens, the stream's timestamp is resynced with the global timestamp.
 ///////////////////////////////////
 
 class FLVSegmentParser:public FLVSegmentParserDelegate
@@ -94,7 +98,6 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     //inherited from delegate functions
     virtual void onFLVFrameParsed( SmartPtr<AccessUnit> au, int index );
     virtual u32 getGlobalAudioTimestamp() { return globalAudioTimestamp_;}
-    
  private:
     typedef enum StreamStatus
     {

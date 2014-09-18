@@ -187,7 +187,7 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
         short valShort[sampleSize*2];
         switch ( totalStreams ) {
             case 1: {
-                if( excludeStreamId != 0xffffffff ) {
+                if( excludeStreamId != MAX_U32 ) {
                     //if nothing is mixed, i.e., one stream only voip, use white noise
                     genWhiteNoise(valShort, sampleSize*2);
                 } else {
@@ -203,7 +203,7 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
                 break;
             }
             case 2: {
-                if( excludeStreamId != 0xffffffff ) {
+                if( excludeStreamId != MAX_U32 ) {
                     int a = 0;
                     for(u32 j=0; j<MAX_XCODING_INSTANCES; j++) {
                         if( rawData[j] && rawData[j]->bIsValid && j != excludeStreamId ) { 
@@ -220,7 +220,7 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
                 break;
             }
             case 3: {
-                if( excludeStreamId != 0xffffffff ) {
+                if( excludeStreamId != MAX_U32 ) {
                     int twoIndex[2];
                     findIndexes(rawData, excludeStreamId, twoIndex);
                     mixTwoStreams(rawData, twoIndex, valShort, sampleSize);
@@ -232,7 +232,7 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
                 break;
             }
             case 4: {
-                if( excludeStreamId != 0xffffffff ) {
+                if( excludeStreamId != MAX_U32 ) {
                     int threeIndex[3];
                     findIndexes(rawData, excludeStreamId, threeIndex);
                     mixThreeStreams(rawData, threeIndex, valShort, sampleSize);

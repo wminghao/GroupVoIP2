@@ -208,7 +208,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     }
                 }
                 //for all in stream
-                SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[MAX_XCODING_INSTANCES]->mixStreams(rawAudioData_, MP3_FRAME_SAMPLE_SIZE, totalStreams, 0xffffffff);
+                SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[MAX_XCODING_INSTANCES]->mixStreams(rawAudioData_, MP3_FRAME_SAMPLE_SIZE, totalStreams, MAX_U32);
                 SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame(rawFrameMixed);
                 if ( encodedFrame ) {
                     flvSegOutput_->packageAudioFrame(encodedFrame, audioPts, MAX_XCODING_INSTANCES);

@@ -163,7 +163,7 @@ SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
         data[10+spsLen] = (u8)(ppsLen & 0xFF);
         memcpy(&data[11+spsLen], pps->data(), ppsLen);
 
-        LOG("===h264 built spspps, sps1stbyte=0x%x, pps1stbyte=0x%x, spsLen=%d, ppsLen=%d, len = %d\r\n", data[8], data[11+spsLen], spsLen, ppsLen, (spsLen+ppsLen+11));
+        //LOG("===h264 built spspps, sps1stbyte=0x%x, pps1stbyte=0x%x, spsLen=%d, ppsLen=%d, len = %d\r\n", data[8], data[11+spsLen], spsLen, ppsLen, (spsLen+ppsLen+11));
     }
     return header;
 }

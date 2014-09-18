@@ -38,10 +38,10 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
             u32 nextLimitTimestamp = MAX( nextBucketTimestamp, audioBucketTimestamp );
 
             //frame timestamp is the max video timestamp before the limit
-            u32 frameTimestamp = 0xffffffff;
+            u32 frameTimestamp = MAX_U32;
 
             //detect if it's an video header
-            u32 spsPpsTimestamp = 0xffffffff;
+            u32 spsPpsTimestamp = MAX_U32;
             bool hasSpsPps = false;
 
             if( videoQueue_[i].size() > 0 ) {
@@ -67,7 +67,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
 
             //after the first frame. every 33ms, considers it's ready, regardless whether there is a frame or not
             if( hasStarted_[i] ) {
-                if ( frameTimestamp != 0xffffffff ) {
+                if ( frameTimestamp != MAX_U32 ) {
                     if( frameTimestamp <= (u32)nextBucketTimestamp ) { 
                         if( audioBucketTimestamp >= nextBucketTimestamp) {
                             //video has accumulated some data and audio has already catch up
@@ -102,7 +102,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
                     lastBucketTimestamp_[i] = audioBucketTimestamp;
                     nextVideoTimestamp_[i] = spsPpsTimestamp;
                     minVideoTimestamp = MIN(minVideoTimestamp, spsPpsTimestamp); //strictly follow
-                } else if ( frameTimestamp != 0xffffffff ) {
+                } else if ( frameTimestamp != MAX_U32 ) {
                     //first time there is a stream available, always pop out the frame(s)
                     hasStarted_[i] = true;
                     lastBucketTimestamp_[i] = frameTimestamp;
@@ -127,19 +127,51 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
     return isReady;
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//The algorithm to catch up for real time mixing
+//   When too many audio frames queued up for a stream happens, 
+//   Trim the queue to match the minimum threshold
+//////////////////////////////////////////////////////////////////////////////
 bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
-    minAudioTimestamp = 0xffffffff;
+    minAudioTimestamp = MAX_U32;
     int totalStreams = 0;
     bool isReady = true; //all streams ready means ready
+
+    u32 maxAudioQueueSize = 0;
+    u32 minAudioQueueSize = MAX_U32;
+    //first calculate maxAudioQueueSize
+    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
+        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
+            maxAudioQueueSize = MAX( maxAudioQueueSize, audioQueue_[i].size());
+            minAudioQueueSize = MIN( minAudioQueueSize, audioQueue_[i].size());
+        }
+    }
+        
+
+    if ( maxAudioQueueSize >= LATE_AUDIO_FRAME_THRESHOLD ) {
+        assert( minAudioQueueSize != MAX_U32);
+        if( maxAudioQueueSize == minAudioQueueSize ) {
+            //if all streams comes in a batch mode, reduce it to be 1 to go through
+            minAudioQueueSize = 1;
+        }
+        for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
+            if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
+                while ( audioQueue_[i].size() > minAudioQueueSize ) {
+                    audioQueue_[i].pop();
+                }
+            }
+        }    
+        LOG("---------------------------------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
+    }
+
     //all audio frame rate is the same
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
             if( audioQueue_[i].size() > 0) {
                 nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
                 minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
-            } else {
+            } else {                
                 nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
-                //TODO adjust the algorithm here to allow skipping
                 isReady = false;
                 //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
                 break;
@@ -282,7 +314,6 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
                                 nextVideoTimestamp_[index] = 0;
                                 lastBucketTimestamp_[index] = 0;
                                 hasStarted_[index] = 0;
-
                                 LOG( "------->streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
                             }
                             videoStreamStatus_[index] = kStreamOffline;

@@ -43,6 +43,8 @@ class AudioResampler
     //return a smartbuffer
     SmartPtr<SmartBuffer> getNextRawMp3Frame(bool& bIsStereo);
 
+    bool isStereo() { return (inputChannels_ == 2); }
+
     //when a timestamp jump happens, discard the previous resampler residual
     //void discardResidual();
 

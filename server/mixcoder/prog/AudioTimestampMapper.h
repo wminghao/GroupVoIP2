@@ -5,12 +5,11 @@
 #include "AudioResampler.h"
 #include "fwk/log.h"
 
-#define MAX_INT 0xffffffff
 //audio timestamp mapper from #ofsamples to ms
 class AudioTimestampMapper
 {
  public:
-    AudioTimestampMapper() : startingTimestamp_(MAX_INT), cnt_(0), curTimestamp_(MAX_INT), index_(0) {}
+    AudioTimestampMapper() : startingTimestamp_(MAX_U32), cnt_(0), curTimestamp_(MAX_U32), index_(0) {}
     ~AudioTimestampMapper() {}
     
     void setIndex(u32 index) {
@@ -18,13 +17,17 @@ class AudioTimestampMapper
     }
 
     void reset() {
-        startingTimestamp_ = MAX_INT;
-        curTimestamp_ = MAX_INT;
+        startingTimestamp_ = MAX_U32;
+        curTimestamp_ = MAX_U32;
         cnt_ = 0;
     }
 
+    u32 getLastOrigTimestamp() {
+        return curTimestamp_;
+    }
+
     u32 getNextTimestamp(u32 ts) {
-        if( MAX_INT == startingTimestamp_ ) {
+        if( MAX_U32 == startingTimestamp_ ) {
             startingTimestamp_ = ts;
             cnt_ = 0;
             LOG("-----------Timestamp Init for stream:%d, startingTimestamp_=%.2f\r\n", index_, startingTimestamp_);
