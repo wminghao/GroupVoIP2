@@ -14,7 +14,7 @@
 #include <vector>
 #include "Output.h"
 
-#define TEST_DUMMY
+//#define TEST_DUMMY
 
 #ifdef TEST_DUMMY
 const char* MIXER_PROCESS_LOCATION = "dummy";//"/usr/bin/dummy";
