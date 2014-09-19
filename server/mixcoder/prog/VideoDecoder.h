@@ -15,11 +15,10 @@ extern "C" {
 class VideoDecoder
 {
  public:
- VideoDecoder(int streamId):codec_(NULL), codecCtx_(NULL), frame_(NULL), inWidth_(0), inHeight_(0), bHasFirstFrameStarted_(false), firstFramePts_(0xffffffff), streamId_(streamId)
-        {
-            //avc decoder
-            av_register_all();
-        }
+ VideoDecoder(int streamId, int codecType):codec_(NULL), codecCtx_(NULL), frame_(NULL), inWidth_(0), inHeight_(0), bHasFirstFrameStarted_(false), firstFramePts_(0xffffffff), streamId_(streamId), codecType_((VideoCodecId)codecType) {
+        //avc decoder
+        av_register_all();
+    }
     ~VideoDecoder();
     bool newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData> v);
     bool hasFirstFrameDecoded(u32 pts) { 
@@ -45,6 +44,8 @@ class VideoDecoder
     int streamId_;
 
     SmartPtr<SmartBuffer> spspps_;
+
+    VideoCodecId codecType_; //can be either h264 or sorenson
 };
 
 

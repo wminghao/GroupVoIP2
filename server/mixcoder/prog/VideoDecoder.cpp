@@ -31,25 +31,38 @@ void VideoDecoder::reset() {
 void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
     reset();
 
+    AVCodecID codecId = CODEC_ID_H264;
+    if( codecType_ == kAVCVideoPacket ) {
+    } else if (codecType_ == kH263VideoPacket) {
+        codecId = CODEC_ID_FLV1; //sorenson spark, details see http://en.wikipedia.org/wiki/Sorenson_Media#Encoding_Technologies
+    } else {
+        assert(0);
+    }
+
+    LOG("===>video decoder created: codecType_=%d\r\n", codecType_);
+
     /* AVCodec/Decode init */
-    codec_ = avcodec_find_decoder( CODEC_ID_H264 );
+    codec_ = avcodec_find_decoder( codecId );
     if( ! codec_ ) {
-        LOG("FAILED to find h264 decoder, FAILING\n");
+        LOG("FAILED to find decoder, FAILING\n");
         exit(-1);
     }
 
     codecCtx_ = avcodec_alloc_context3( codec_ );
     if( ! codecCtx_ ) {
-        LOG("FAILED to init h264 decoder, FAILING2\n" );
+        LOG("FAILED to init decoder, FAILING2\n" );
         exit(-1);
     }
     
     AVDictionary* d = 0;
-    codecCtx_->extradata = (uint8_t*) malloc( spspps->dataLength() + FF_INPUT_BUFFER_PADDING_SIZE );
-    memcpy( codecCtx_->extradata, spspps->data(), spspps->dataLength() );
-    codecCtx_->extradata_size = spspps->dataLength();
+    if( codecId == CODEC_ID_H264 ) {
+        codecCtx_->extradata = (uint8_t*) malloc( spspps->dataLength() + FF_INPUT_BUFFER_PADDING_SIZE );
+        memcpy( codecCtx_->extradata, spspps->data(), spspps->dataLength() );
+        codecCtx_->extradata_size = spspps->dataLength();
+    }
+
     if( avcodec_open2( codecCtx_, codec_, &d ) < 0 ) {
-        LOG("FAILED to open h264 decoder, FAILING3\n" );
+        LOG("FAILED to open decoder, FAILING3\n" );
     }
 
     frame_ = avcodec_alloc_frame();
@@ -59,7 +72,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
 {
     bool bIsValidFrame = false;
     assert( au->st == kVideoStreamType );
-    assert( au->ctype == kAVCVideoPacket );
+    assert( au->ctype == kAVCVideoPacket || au->ctype == kH263VideoPacket);
 
     //save the settings here
     v->sp = au->sp;
@@ -87,12 +100,25 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             LOG("StreamId=%d video decoded sps pps, len=%ld, ts=%d\n", streamId_, spspps_->dataLength(), au->pts);
         }
     } else if( au->sp == kRawData ) {
+        if( codecType_ == kH263VideoPacket ) {
+            if( !codec_ ) {
+                initDecoder(SmartPtr<SmartBuffer>(NULL));
+            }
+            //TODO parse metadata to get width and height
+            inWidth_ = 640;
+            inHeight_ = 480; 
+        }
+
         assert(inWidth_ && inHeight_);
-        if ( spspps_ ) {
+        bool bCanDecode = true;
+        if( codecType_ == kAVCVideoPacket && !spspps_) {
+            bCanDecode = false;
+        }
+        if ( bCanDecode ) {
             SmartPtr<SmartBuffer> buf = au->payload;
             
             //key frame must be combined with sps pps header
-            if( au->isKey ) {
+            if( au->isKey && codecType_ == kAVCVideoPacket ) {
                 SmartPtr<SmartBuffer> totalBuf = new SmartBuffer( buf->dataLength() + spspps_->dataLength() );
                 memcpy( totalBuf->data(), spspps_->data(), spspps_->dataLength() );
                 memcpy( totalBuf->data() + spspps_->dataLength(), buf->data(), buf->dataLength() );
@@ -106,9 +132,21 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
 
             int gotPic = 0;
             int rval;
+
+            /*
+            int stride_align[8];
+            for (int i = 0; i < 8; i++) {
+                stride_align[i] = 8;
+            }
+            avcodec_align_dimensions2(codecCtx_, &inWidth_, &inHeight_, stride_align);
+            */
             if( ( rval = avcodec_decode_video2( codecCtx_, frame_, &gotPic, &pkt ) ) > 0) {
                 if( gotPic ) {
-                    //LOG("Video decoded width=%d, height=%d\n", frame_->width, frame_->height);
+                    LOG( "video decoded pkt size=%d stride0=%d, stride1=%d, stride2=%d, width=%d, height=%d, ts=%d, streamId_=%d, data0=0x%x, data1=0x%x, data2=0x%x\n", pkt.size, 
+                         frame_->linesize[0], frame_->linesize[1], frame_->linesize[2],
+                         frame_->width, frame_->height, au->pts, streamId_, 
+                         frame_->data[0], frame_->data[1], frame_->data[2]);
+
                     assert(inWidth_ == frame_->width);
                     assert(inHeight_ == frame_->height);
 
@@ -119,20 +157,15 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
 
                     memcpy(v->rawVideoStrides_, frame_->linesize, sizeof(int)*3);
 
-                    v->rawVideoSettings_.vcid = kAVCVideoPacket;
+                    v->rawVideoSettings_.vcid = codecType_;
                     v->rawVideoSettings_.width = inWidth_;
-                    v->rawVideoSettings_.height =inHeight_; 
+                    v->rawVideoSettings_.height = inHeight_; 
 
                     bIsValidFrame = true;
                     if( !bHasFirstFrameStarted_ ) {
                         bHasFirstFrameStarted_ = true;
                         firstFramePts_ = au->pts;
                     }
-                    /*
-                    LOG( "video decoded pkt size=%d stride0=%d, stride1=%d, stride2=%d, width=%d, height=%d, ts=%d, streamId_=%d\n", pkt.size, 
-                         frame_->linesize[0], frame_->linesize[1], frame_->linesize[2],
-                         frame_->width, frame_->height, au->pts, streamId_);
-                    */
                 } else {
                     LOG( "DIDNT get video frame\n");
                 }

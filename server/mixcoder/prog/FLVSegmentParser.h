@@ -58,7 +58,7 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
             for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
                 parser_[i] = new FLVParser(this, i);
                 audioDecoder_[i] = NULL; //initialize it later
-                videoDecoder_[i] = new VideoDecoder(i);
+                videoDecoder_[i] = NULL;
                 audioTsMapper_[i].setIndex(i);
             }
             memcpy( &rawAudioSettings_, aRawSetting, sizeof(AudioStreamSetting) );

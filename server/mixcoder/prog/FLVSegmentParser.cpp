@@ -204,6 +204,9 @@ u32 count_bits(u32 n) {
 void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
 {
     if( au->st == kVideoStreamType ) {
+        if( !videoDecoder_[index] )  {
+            videoDecoder_[index] = new VideoDecoder(index, au->ctype);
+        }
         SmartPtr<VideoRawData> v = new VideoRawData();
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
@@ -308,7 +311,7 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
                                 delete( audioDecoder_[index] );
                                 audioDecoder_[index] = NULL; //initialize it later
                                 delete( videoDecoder_[index] );
-                                videoDecoder_[index] = new VideoDecoder(index);
+                                videoDecoder_[index] = NULL; //initialize it later
                                 audioTsMapper_[index].reset();
                                 nextAudioTimestamp_[index] = 0;
                                 nextVideoTimestamp_[index] = 0;

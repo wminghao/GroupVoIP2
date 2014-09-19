@@ -176,8 +176,13 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                             break;
                         }
                     }
+                } else if ( codecId == kH263VideoPacket ){
+                    u32 remainingLen = bsParser.bitsRemainingInStream()/8;
+                    inputData.clear();
+                    inputData = bsParser.readBytes(remainingLen);
+                    accessUnit->sp = kRawData;
                 } else {
-                    assert(0);
+                    LOG("Unsupported codecId=0x%x\r\n", codecId);
                     accessUnit->sp = kRawData;
                 }
                 if ( inputData.size() > 0 ) {
