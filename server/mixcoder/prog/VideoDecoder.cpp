@@ -39,8 +39,6 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
         assert(0);
     }
 
-    LOG("===>video decoder created: codecType_=%d\r\n", codecType_);
-
     /* AVCodec/Decode init */
     codec_ = avcodec_find_decoder( codecId );
     if( ! codec_ ) {
@@ -54,18 +52,37 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
         exit(-1);
     }
     
+    /*
+    codecCtx_->pix_fmt = PIX_FMT_YUV420P;
+    if(codec_->capabilities&CODEC_CAP_TRUNCATED) {
+        LOG("========>Truncated\n" );
+        codecCtx_->flags|= CODEC_FLAG_TRUNCATED; // we do not send complete frames
+    }
+    */
+    
     AVDictionary* d = 0;
     if( codecId == CODEC_ID_H264 ) {
         codecCtx_->extradata = (uint8_t*) malloc( spspps->dataLength() + FF_INPUT_BUFFER_PADDING_SIZE );
         memcpy( codecCtx_->extradata, spspps->data(), spspps->dataLength() );
         codecCtx_->extradata_size = spspps->dataLength();
+    } else {
+        codecCtx_->extradata_size = 0;
+        codecCtx_->extradata = NULL;
     }
 
     if( avcodec_open2( codecCtx_, codec_, &d ) < 0 ) {
         LOG("FAILED to open decoder, FAILING3\n" );
     }
 
+    LOG("===>video decoder created: codecType_=%d, cid1=%d, cid2=%d\r\n", codecType_, codecId, codecCtx_->codec->id);
+    //TODO parse metadata to get width and height
+    inWidth_ = 640;
+    inHeight_ = 480; 
+
     frame_ = avcodec_alloc_frame();
+    frame_->format = AV_PIX_FMT_YUV420P;
+    frame_->width = inWidth_;
+    frame_->height = inHeight_;
 }
 
 bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData> v)
@@ -104,9 +121,6 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             if( !codec_ ) {
                 initDecoder(SmartPtr<SmartBuffer>(NULL));
             }
-            //TODO parse metadata to get width and height
-            inWidth_ = 640;
-            inHeight_ = 480; 
         }
 
         assert(inWidth_ && inHeight_);
@@ -116,15 +130,15 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
         }
         if ( bCanDecode ) {
             SmartPtr<SmartBuffer> buf = au->payload;
-            
+
             //key frame must be combined with sps pps header
-            if( au->isKey && codecType_ == kAVCVideoPacket ) {
+            if( codecType_ == kAVCVideoPacket && au->isKey ) {
                 SmartPtr<SmartBuffer> totalBuf = new SmartBuffer( buf->dataLength() + spspps_->dataLength() );
                 memcpy( totalBuf->data(), spspps_->data(), spspps_->dataLength() );
                 memcpy( totalBuf->data() + spspps_->dataLength(), buf->data(), buf->dataLength() );
                 buf = totalBuf;
-            }
-
+            } 
+            
             AVPacket pkt;
             av_init_packet( &pkt );
             pkt.size = buf->dataLength();
@@ -142,19 +156,22 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             */
             if( ( rval = avcodec_decode_video2( codecCtx_, frame_, &gotPic, &pkt ) ) > 0) {
                 if( gotPic ) {
-                    LOG( "video decoded pkt size=%d stride0=%d, stride1=%d, stride2=%d, width=%d, height=%d, ts=%d, streamId_=%d, data0=0x%x, data1=0x%x, data2=0x%x\n", pkt.size, 
-                         frame_->linesize[0], frame_->linesize[1], frame_->linesize[2],
-                         frame_->width, frame_->height, au->pts, streamId_, 
-                         frame_->data[0], frame_->data[1], frame_->data[2]);
-
                     assert(inWidth_ == frame_->width);
                     assert(inHeight_ == frame_->height);
 
+                    int uvHeight = inHeight_/2; //422 vs. 420
+
                     //copy 3 planes and 3 strides
                     v->rawVideoPlanes_[0] = new SmartBuffer( frame_->linesize[0]*inHeight_, frame_->data[0]);
-                    v->rawVideoPlanes_[1] = new SmartBuffer( frame_->linesize[1]*inHeight_, frame_->data[1]);
-                    v->rawVideoPlanes_[2] = new SmartBuffer( frame_->linesize[2]*inHeight_, frame_->data[2]);
-
+                    v->rawVideoPlanes_[1] = new SmartBuffer( frame_->linesize[1]*uvHeight, frame_->data[1]);
+                    v->rawVideoPlanes_[2] = new SmartBuffer( frame_->linesize[2]*uvHeight, frame_->data[2]);
+                    /*
+                    LOG( "video decoded pkt isKey=%d size=%d decoded=%d stride0=%d, stride1=%d, stride2=%d, width=%d, height=%d, ts=%d, streamId_=%d, data0=0x%x, data1=0x%x, data2=0x%x, data2To=0x%x\n", 
+                         au->isKey, pkt.size, rval,
+                         frame_->linesize[0], frame_->linesize[1], frame_->linesize[2],
+                         frame_->width, frame_->height, au->pts, streamId_, 
+                         frame_->data[0], frame_->data[1], frame_->data[2]);
+                    */
                     memcpy(v->rawVideoStrides_, frame_->linesize, sizeof(int)*3);
 
                     v->rawVideoSettings_.vcid = codecType_;

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+const string stBytesPadding ("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);// FF_INPUT_BUFFER_PADDING_SIZE = 16
+
 //parsing the raw data to get a complete FLV frame
 void FLVParser::readData(SmartPtr<SmartBuffer> input) {
     u8* data = input->data();
@@ -144,8 +146,6 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                         {
                             accessUnit->sp = kRawData;
                             
-                            //avcodec_decode_video2 & avcodec_decode_audio4 documentation requires an extra of FF_INPUT_BUFFER_PADDING_SIZE padding for each video buffer
-                            const string stBytesPadding ("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);// FF_INPUT_BUFFER_PADDING_SIZE = 16
                             inputData.clear();
                             while ( dataSize > 0 ) {
                                 string lenStr = bsParser.readBytes(4);//skip the length
@@ -166,6 +166,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
 
                                 //LOG( "---slice size=%d, first byte=0x%x\r\n", dsUnion.dataSize, slice[0]);
                             }
+                            //avcodec_decode_video2 & avcodec_decode_audio4 documentation requires an extra of FF_INPUT_BUFFER_PADDING_SIZE padding for each video buffer
                             inputData += stBytesPadding;
                             //LOG( "---inputData %x_%x_%x_%x_0x%x__0x%x\r\n", inputData[0], inputData[1], inputData[2], inputData[3], inputData[4], inputData[inputData.size()-1-16]);
                             break;
@@ -177,9 +178,10 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                         }
                     }
                 } else if ( codecId == kH263VideoPacket ){
-                    u32 remainingLen = bsParser.bitsRemainingInStream()/8;
                     inputData.clear();
-                    inputData = bsParser.readBytes(remainingLen);
+                    inputData = bsParser.readBytes(dataSize);
+                    //avcodec_decode_video2 & avcodec_decode_audio4 documentation requires an extra of FF_INPUT_BUFFER_PADDING_SIZE padding for each video buffer
+                    inputData += stBytesPadding;
                     accessUnit->sp = kRawData;
                 } else {
                     LOG("Unsupported codecId=0x%x\r\n", codecId);
