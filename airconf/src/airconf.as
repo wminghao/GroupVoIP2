@@ -1,21 +1,19 @@
 package
 {
-	import flash.display.Sprite;
-	import flash.display.StageAlign;
-	import flash.display.StageScaleMode;
-	import flash.media.*;
-	import flash.net.*;
-	import flash.events.*;
-	import flash.system.*;
-	import flash.utils.*;
-	import flash.text.*;
 	import flash.desktop.NativeApplication;
 	import flash.desktop.SystemIdleMode;
-	import flash.ui.Keyboard;
+	import flash.display.Screen;
+	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageOrientation;
 	import flash.display.StageScaleMode;
-	import flash.display.Screen;
+	import flash.events.*;
+	import flash.media.*;
+	import flash.net.*;
+	import flash.system.*;
+	import flash.text.*;
+	import flash.ui.Keyboard;
+	import flash.utils.*;
 	
 	public class airconf extends Sprite
 	{
@@ -120,7 +118,16 @@ package
 					break;
 			}
 		}
-		
+		public function tryGetFrontCamera():Camera {
+			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
+			for (var i:uint = 0; i < numCameras; i++) {
+				var cam:Camera = Camera.getCamera(String(i));
+				if (cam && cam.position == CameraPosition.FRONT) {
+					return cam;
+				}
+			} 
+			return null;
+		}
 		public function publishNow() : void {
 			//already published, don't do anything.
 			if( publishDest!=null) {
@@ -149,13 +156,13 @@ package
 				//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
 				return;
 			}
-			var camera:Camera = Camera.getCamera();	     
-			mic = Microphone.getMicrophone();
-			camera.addEventListener(StatusEvent.STATUS, onCameraStatus) ;
-			mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+			var camera:Camera = tryGetFrontCamera();	     
 			if (camera == null) {
 				Security.showSettings(SecurityPanel.CAMERA) ;
 			} else{
+				mic = Microphone.getMicrophone();
+				mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
 				camera.setMode(videoWidth, videoHeight, 30); //640*480 30 fps
 				camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
 				
