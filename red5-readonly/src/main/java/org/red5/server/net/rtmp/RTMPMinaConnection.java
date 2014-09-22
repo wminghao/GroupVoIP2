@@ -289,24 +289,24 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
-		if( this == GroupMixer.getInstance().getAllInOneConn() ) {
-			log.debug("***Connected: {}", super.isConnected());
-			return super.isConnected();
-		} else {
-    		log.debug("Connected: {}", (ioSession != null && ioSession.isConnected()));
+	    if( this == GroupMixer.getInstance().getAllInOneConn() ) {
+		//log.debug("***Connected: {}", super.isConnected());
+		return super.isConnected();
+	    } else {
+    		//log.debug("Connected: {}", (ioSession != null && ioSession.isConnected()));
     		// XXX Paul: not sure isClosing is actually working as we expect here
     		return super.isConnected() && (ioSession != null && ioSession.isConnected());
-		}
+	    }
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean isIdle() {
-		if (ioSession != null) {
-			log.debug("Connection idle - read: {} write: {}", ioSession.isReaderIdle(), ioSession.isWriterIdle());
-			return super.isIdle() && ioSession.isBothIdle();
-		}
-		return super.isIdle();
+	    if (ioSession != null) {
+		//log.debug("Connection idle - read: {} write: {}", ioSession.isReaderIdle(), ioSession.isWriterIdle());
+		return super.isIdle() && ioSession.isBothIdle();
+	    }
+	    return super.isIdle();
 	}
 
 	/** {@inheritDoc} */

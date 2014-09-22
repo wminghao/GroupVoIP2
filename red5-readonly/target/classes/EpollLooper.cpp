@@ -151,9 +151,12 @@ void* EpollLooper::thread()
              */    
             if(events[i].events & EPOLLHUP || events[i].events & EPOLLERR) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
-                OUTPUT("n=%d Pipe broken. %s", n, strerror(errno));
-                //broken pipe
-                freeProc(epollEvent);
+                if( epollEvent ) {
+                    OUTPUT("n=%d Pipe broken. %s", n, strerror(errno));
+                    //broken pipe
+                    freeProc(epollEvent);
+                    events[i].data.ptr = NULL;
+                }
             } else if(EPOLLIN == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 //handle read event
@@ -161,8 +164,9 @@ void* EpollLooper::thread()
             } else if(EPOLLOUT == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 //handle write event
-                if( !tryToWrite(epollEvent) ) {
+                if( epollEvent && !tryToWrite(epollEvent) ) {
                     freeProc(epollEvent);
+                    events[i].data.ptr = NULL;
                 }
             }
         }
