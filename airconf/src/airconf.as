@@ -34,8 +34,10 @@ package
 		private var videoWidth:int = 640;
 		private var videoHeight:int = 480;
 		
+		//position of video on the screen
 		private var screenWidth:int;
 		private var screenHeight:int;
+		private var screenX:int;
 		
 		private var dataSet:Array = ["testliveA","testliveB"];
 		
@@ -66,7 +68,7 @@ package
 			// Landscape  
 			screenWidth = Math.min( stage.fullScreenWidth, maxBound );  
 			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
-
+			screenX = (screenWidth*videoHeight - videoWidth * screenHeight) / (2*videoHeight);
 		}
 		
 		private function handleActivate(event:Event):void
@@ -178,7 +180,7 @@ package
 				var video:Video = new Video();
 				video.attachCamera(camera) ;
 				this.addChild(video);
-				video.width = screenWidth/2;
+				video.width = screenWidth/2 - screenX;
 				video.height = screenHeight/2;
 				video.x = screenWidth/2;
 				video.y = screenHeight/2;
@@ -238,9 +240,9 @@ package
 			video.attachNetStream(streamView);
 			this.addChild(video);
 			//video.opaqueBackground = 0x000000;
-			video.width = screenWidth;
+			video.width = (screenWidth - 2*screenX);
 			video.height = screenHeight;
-			video.x = 0;
+			video.x = screenX;
 			video.y = 0;
 			video.visible = true;
 		}
