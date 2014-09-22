@@ -17,9 +17,9 @@
 #include "fwk/log.h"
 #include <assert.h>
 
-MixCoder::MixCoder(int vBitrate, int width, int height, 
+MixCoder::MixCoder(bool bUseVp8, int vBitrate, int width, int height, 
                    int aBitrate, int frequency) : bUseSpeex_(false),
-                                                  bUseVp8_(false),
+                                                  bUseVp8_(bUseVp8),
                                                   vBitrate_(vBitrate),
                                                   vWidth_(width),
                                                   vHeight_(height),

@@ -27,7 +27,7 @@ class VideoMixer;
 class MixCoder
 {
  public:
-    MixCoder(int vBitrate, int width, int height,
+    MixCoder(bool bUseVp8, int vBitrate, int width, int height,
              int aBitrate, int frequency);
     ~MixCoder();
     

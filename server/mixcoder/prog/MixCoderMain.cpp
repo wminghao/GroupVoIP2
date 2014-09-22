@@ -34,14 +34,18 @@ int main( int argc, char** argv ) {
     
     Logger::initLog("MixCoder", kSyslog);
 
-    int videoBitrate = 100; //increase from 40 to 100
+    bool bUseVp8 = false;
+    int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
+    if( !bUseVp8 ) {
+        videoBitrate = 300; //300kbps
+    }
     int videoWidth = 640;
     int videoHeight = 480;
 
     int audioBitrate = 64; //64kbps
     int audioFrequency = 16000;
     
-    MixCoder* mixCoder = new MixCoder(videoBitrate, videoWidth, videoHeight, audioBitrate, audioFrequency);
+    MixCoder* mixCoder = new MixCoder(bUseVp8, videoBitrate, videoWidth, videoHeight, audioBitrate, audioFrequency);
 
     u8 data[MAX_BUF_SIZE];
     SmartPtr<SmartBuffer> output;

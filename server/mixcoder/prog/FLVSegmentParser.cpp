@@ -423,7 +423,7 @@ SmartPtr<VideoRawData> FLVSegmentParser::getNextVideoFrame(u32 index)
         v = videoQueue_[index].front();
         if ( v && v->pts <= timestamp ) {
             videoQueue_[index].pop();
-            if( videoQueue_[index].back() ) {
+            if( videoQueue_[index].size() > 0 ) {
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, videoQueue_[index].back()->pts, videoQueue_[index].size());
             } else {
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, 0, videoQueue_[index].size());
@@ -445,7 +445,7 @@ SmartPtr<AudioRawData> FLVSegmentParser::getNextAudioFrame(u32 index)
         if ( a ) {
             audioQueue_[index].pop();
             
-            if( audioQueue_[index].back() ) {
+            if( audioQueue_[index].size() > 0 ) {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, audioQueue_[index].back()->pts, audioQueue_[index].size());
             } else {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, 0, audioQueue_[index].size());
