@@ -124,13 +124,21 @@ void EpollLooper::unreg(int procId)
 }
 void EpollLooper::freeProc(EpollEvent* epollEvent)
 {
-    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, 0, 0);
-    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->outputFromProcess, 0, 0);
-    
-    close(epollEvent->inputToProcess);
-    close(epollEvent->outputFromProcess);
+    closeFd(epollEvent);
+
     procMapping_.erase( epollEvent->procId );
     free(epollEvent);
+}
+
+void EpollLooper::closeFd(EpollEvent* epollEvent)
+{
+    closeFd(epollEvent->inputToProcess);
+    closeFd(epollEvent->outputFromProcess);
+}
+void EpollLooper::closeFd(int fd) {
+    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, fd, 0, 0);
+    close(fd);
+    OUTPUT("EpollLooper fd=%d closed", fd);
 }
 
 //start a thread
@@ -152,9 +160,9 @@ void* EpollLooper::thread()
             if(events[i].events & EPOLLHUP || events[i].events & EPOLLERR) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 if( epollEvent ) {
-                    OUTPUT("n=%d Pipe broken. %s", n, strerror(errno));
+                    OUTPUT("i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
                     //broken pipe
-                    freeProc(epollEvent);
+                    closeFd( epollEvent );
                     events[i].data.ptr = NULL;
                 }
             } else if(EPOLLIN == events[i].events) {
@@ -165,7 +173,9 @@ void* EpollLooper::thread()
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 //handle write event
                 if( epollEvent && !tryToWrite(epollEvent) ) {
-                    freeProc(epollEvent);
+                    OUTPUT("i=%d n=%d Write failed. %s", i, n, strerror(errno));
+                    //broken pipe
+                    closeFd( epollEvent );
                     events[i].data.ptr = NULL;
                 }
             }

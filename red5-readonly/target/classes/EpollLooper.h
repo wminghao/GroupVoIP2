@@ -52,7 +52,8 @@ class EpollLooper
 
     //freeProc
     void freeProc(EpollEvent* epollEvent);
-
+    void closeFd(EpollEvent* epollEvent);
+    void closeFd(int fd);
  private:
     WriteCallback writeCallback_;
     
