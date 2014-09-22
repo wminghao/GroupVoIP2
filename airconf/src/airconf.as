@@ -1,36 +1,41 @@
 package
 {
+	import flash.desktop.NativeApplication;
+	import flash.desktop.SystemIdleMode;
+	import flash.display.Screen;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
+	import flash.display.StageOrientation;
 	import flash.display.StageScaleMode;
+	import flash.events.*;
 	import flash.media.*;
 	import flash.net.*;
-	import flash.events.*;
 	import flash.system.*;
-	import flash.utils.*;
 	import flash.text.*;
+	import flash.ui.Keyboard;
+	import flash.utils.*;
 	
 	public class airconf extends Sprite
 	{
 		private var streamPub:NetStream; //must declare outside, otherwise, gc will recycle it.
-		private var streamViewA:NetStream; //must declare outside
-		private var streamViewB:NetStream; //must declare outside
+		private var streamView:NetStream; //must declare outside
 		
-		private var connectionPub:NetConnection;			
-		private var connectionSub:NetConnection;
+		private var netConn:NetConnection;	
 		private var mic:Microphone;
 		
-		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.201.108.66";//"192.168.0.61";
+		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
-		private var karaokeStream:String = "__mixed__karaoke";
+		private var mixedStream:String = mixedStreamPrefix+"allinone";
 		private var defaultSong:String = "Default"; //default song means mtv stopped
 		
 		private var publishDest:String = null;
 		private var publishedStreamArray:Vector.<String> = new Vector.<String>();
 		
-		private var videoWidth:int = 320;
-		private var videoHeight:int = 240;
-		private var positionArray:Array = [ [0, 0], [0, videoHeight]];
+		private var videoWidth:int = 640;
+		private var videoHeight:int = 480;
+		
+		private var screenWidth:int;
+		private var screenHeight:int;
 		
 		private var dataSet:Array = ["testliveA","testliveB"];
 		
@@ -44,14 +49,48 @@ package
 			
 			var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
 			// setup connection code
-			connectionPub = new NetConnection();
-			connectionPub.connect(videoPath);
-			connectionPub.addEventListener(NetStatusEvent.NET_STATUS, onConnectionANetStatus);
-			connectionPub.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
-			connectionPub.client = this;	
+			netConn = new NetConnection();
+			netConn.connect(videoPath);
+			netConn.addEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
+			netConn.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
+			netConn.client = this;
+			
+			//register for back and home events
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
+			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
+			
+			var minBound : Number = Math.min( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
+			var maxBound : Number = Math.max( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
+			
+			// Landscape  
+			screenWidth = Math.min( stage.fullScreenWidth, maxBound );  
+			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
+
 		}
 		
-		public function onConnectionANetStatus(event:NetStatusEvent) : void {
+		private function handleActivate(event:Event):void
+		{
+			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
+		}
+		
+		private function handleDeactivate(event:Event):void
+		{
+			logDebug("=>handleDeactivate.");	
+			if(!debug) {
+				NativeApplication.nativeApplication.exit();
+			}
+		}
+		
+		private function handleKeys(event:KeyboardEvent):void
+		{
+			if(event.keyCode == Keyboard.BACK) {
+				NativeApplication.nativeApplication.exit();
+				logDebug("=>handleKeys.");
+			}
+		}
+		
+		public function onConnectionNetStatus(event:NetStatusEvent) : void {
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
@@ -79,7 +118,16 @@ package
 					break;
 			}
 		}
-		
+		public function tryGetFrontCamera():Camera {
+			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
+			for (var i:uint = 0; i < numCameras; i++) {
+				var cam:Camera = Camera.getCamera(String(i));
+				if (cam && cam.position == CameraPosition.FRONT) {
+					return cam;
+				}
+			} 
+			return null;
+		}
 		public function publishNow() : void {
 			//already published, don't do anything.
 			if( publishDest!=null) {
@@ -102,23 +150,23 @@ package
 				}
 			}
 			
+			openViewStream();
+			
 			if( publishDest == null ) {
 				//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
-				karaokeStream += "_delayed"; //listen to the delayed stream
-				subscribeStreams(); //only showing streams
 				return;
 			}
-			var camera:Camera = Camera.getCamera();	     
-			mic = Microphone.getMicrophone();
-			camera.addEventListener(StatusEvent.STATUS, onCameraStatus) ;
-			mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+			var camera:Camera = tryGetFrontCamera();	     
 			if (camera == null) {
 				Security.showSettings(SecurityPanel.CAMERA) ;
 			} else{
-				camera.setMode(videoWidth*2, videoHeight*2, 30); //640*480 30 fps
+				mic = Microphone.getMicrophone();
+				mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
+				camera.setMode(videoWidth, videoHeight, 30); //640*480 30 fps
 				camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
 				
-				streamPub = new NetStream(connectionPub);
+				streamPub = new NetStream(netConn);
 				var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
 				h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
 				streamPub.videoStreamSettings = h264settings; 
@@ -130,9 +178,10 @@ package
 				var video:Video = new Video();
 				video.attachCamera(camera) ;
 				this.addChild(video);
-				video.width = videoWidth;
-				video.height = videoHeight;
-				video.x = video.y = 0;
+				video.width = screenWidth/2;
+				video.height = screenHeight/2;
+				video.x = screenWidth/2;
+				video.y = screenHeight/2;
 				video.visible = true;
 				
 				mic.setSilenceLevel(0,200);
@@ -155,10 +204,6 @@ package
 				case "NetStream.Play.StreamNotFound":
 					logDebug("Unable to locate video: " + publishDest);
 					break;
-				case "NetStream.Publish.Start":
-					//Alert.show("Publisher starts here");
-					subscribeStreams();
-					break;
 				case "NetStream.Play.Start":
 				case "NetStream.Play.Reset":
 				case "Netstream.Play.PublishNotify":
@@ -178,79 +223,25 @@ package
 		private function asyncErrorHandler(event:AsyncErrorEvent):void {
 			// ignore AsyncErrorEvent events.
 		}
-		public function subscribeStreams():void {
-			var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
-			// setup connection code
-			connectionSub = new NetConnection();
-			connectionSub.connect(videoPath);  //subscribe to live video
-			//connection.connect("rtmp://localhost/vod/"); existing flv file/mp4 files
-			connectionSub.addEventListener(NetStatusEvent.NET_STATUS, onConnectionBNetStatus);
-			connectionSub.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
-			connectionSub.client = this;
-		}
-		public function onConnectionBNetStatus(event:NetStatusEvent) : void {
-			// did we successfully connect
-			if(event.info.code == "NetConnection.Connect.Success") {
-				//Alert.show("onConnectionBNetStatus: " + event, "Information");
-				connectStreams();
-			} else {
-				logDebug("Unsuccessful Connection");
-				disconnectStreams();
-			}
-		}
 		
 		private function disconnectStreams():void {
 			//TODO
-		}	
-		
-		private function connectStreams():void {
-			/* don't subscribe to anything else.
-			var posIndex:int = 1;
-			if( publishDest == null) {
-				streamViewA = new NetStream(connectionSub);
-				var itemA:String = dataSet.getItemAt(posIndex-1);
-				connectStream(streamViewA, itemA, positionArray[posIndex-1][0], positionArray[posIndex-1][1], videoWidth, videoHeight);
-				posIndex++;
-				streamViewB = new NetStream(connectionSub);
-				var itemB:String = dataSet.getItemAt(posIndex-1);
-				connectStream(streamViewB, itemB, positionArray[posIndex-1][0], positionArray[posIndex-1][1], videoWidth, videoHeight);
-				posIndex++;
-			} else {
-				for each(var item:String in dataSet){
-					if( item != publishDest ) {
-						var streamView:NetStream = new NetStream(connectionSub);
-						connectStream(streamView, item, positionArray[posIndex][0], positionArray[posIndex][1], videoWidth, videoHeight);
-						posIndex++;
-					}
-				}
-			}
-			*/
-			// next is karaoke
-			var streamKara:NetStream = new NetStream(connectionSub);
-			connectStream(streamKara, karaokeStream, videoWidth, 0, videoWidth*2, videoHeight*2 );
-			
-			/*
-			for (var i:int = 0; i < container.numChildren; i++)
-			{
-			var obj:Video = container.getChildAt(i) as Video;
-			Alert.show(obj.x + " "+ obj.y + " "+obj.width + " "+obj.height + " "+ publishDest);
-			}
-			*/
 		}
 		
-		private function connectStream(stream:NetStream, url:String, x:int, y:int, width:int, height:int):void {
-			stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-			stream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-			stream.play(url);
+		private function openViewStream():void {
+			streamView = new NetStream(netConn);
+			streamView.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+			streamView.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+			streamView.play(mixedStream);
 			
 			var video:Video = new Video();
-			video.attachNetStream(stream);
+			video.attachNetStream(streamView);
 			this.addChild(video);
 			//video.opaqueBackground = 0x000000;
-			video.width = width;
-			video.height = height;
-			video.x = x;
-			video.y = y;
+			video.width = screenWidth;
+			video.height = screenHeight;
+			video.x = 0;
+			video.y = 0;
 			video.visible = true;
 		}
 		//server call to client
@@ -297,23 +288,11 @@ package
 		}
 		
 		/*
-		private function onLoopBack(evt:MouseEvent):void {
-			detectLoopback();
-		}
-		private function detectLoopback():void {
-			if(CheckBox(loopback).selected) {
-			mic.setLoopBack(true);
-			mic.setUseEchoSuppression(true);
-			} else {
-			mic.setLoopBack(false);
-			mic.setUseEchoSuppression(false);
-			}
-		}
 		private function songList_changeHandler(event:IndexChangeEvent):void	
 		{
 			if( publishDest != null && songList.selectedIndex != 0) {
 				status.text = "Song selected="+songList.selectedItem.value;
-				connectionPub.call("song.selectSong", null, songList.selectedItem.value);	
+				netConn.call("song.selectSong", null, songList.selectedItem.value);	
 				songList.selectedIndex = 0;
 			}
 		}
@@ -345,7 +324,7 @@ package
 		protected function stopMusic_clickHandler(event:MouseEvent):void
 		{
 			if( publishDest != null) {
-				connectionPub.call("song.selectSong", null, defaultSong);	
+				netConn.call("song.selectSong", null, defaultSong);	
 				songList.selectedIndex = 0;
 			}
 		}
