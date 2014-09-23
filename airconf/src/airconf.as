@@ -39,7 +39,7 @@ package
 		private var screenHeight:int;
 		private var screenX:int;
 		
-		private var dataSet:Array = ["testliveA","testliveB"];
+		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
 		
 		public function airconf()
 		{
@@ -86,7 +86,8 @@ package
 		
 		private function handleKeys(event:KeyboardEvent):void
 		{
-			if(event.keyCode == Keyboard.BACK) {
+			if( event.keyCode == Keyboard.BACK ||
+				event.keyCode == Keyboard.HOME ) {
 				NativeApplication.nativeApplication.exit();
 				logDebug("=>handleKeys.");
 			}
