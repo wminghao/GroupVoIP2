@@ -175,7 +175,8 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
             //if all streams comes in a batch mode, reduce it to be 1 to go through
             minAudioQueueSize = 1;
         }
-        LOG("---------------------------------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
+
+        LOG("---------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
         printQueueSize();
 
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
@@ -210,7 +211,7 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
                     audioQueue_[i].push( a );
 
-                    LOG("-----------Stream:%d push an prev audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
+                    LOG("---------->Stream:%d push an prev audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
                     printQueueSize();
 
                     nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;

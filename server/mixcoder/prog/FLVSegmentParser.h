@@ -35,7 +35,9 @@ using namespace std;
 // 3) for audio, there could be 2 cases
 //        a) frame drop(a.k.a. timestamp jump), 
 //        b) frames comes in at different speed. 
-//       After multiple experiments, a simple algorithm to trim the queue when a threshold is reached achieves the best result.
+//       After multiple experiments, 2 simple algorithms achieves the best result.
+//        a) trim the queue when a max threshold is reached, meaning data comes in a batch mode.
+//        b) fill with prev frame if a stream is missing a frame and other streams' queue size reaches a min threshold
 // 4) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
 //        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output for a single frame)
 //        if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
