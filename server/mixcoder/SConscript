@@ -21,7 +21,7 @@ videoMixerObj = env.Object('prog/VideoMixer.cpp', CCFLAGS=mixCoderCflags )
 
 flvOutputObj = env.Object('prog/FLVOutput.cpp', CCFLAGS=mixCoderCflags )
 flvParserObj = env.Object('prog/FLVParser.cpp', CCFLAGS=mixCoderCflags )
-flvSegmentParserObj = env.Object('prog/FLVSegmentParser.cpp', CCFLAGS=mixCoderCflags )
+flvSegmentInputObj = env.Object('prog/FLVSegmentInput.cpp', CCFLAGS=mixCoderCflags )
 flvSegmentOutputObj = env.Object('prog/FLVSegmentOutput.cpp', CCFLAGS=mixCoderCflags )
 
 mainObj = env.Object('prog/MixCoderMain.cpp', CCFLAGS=mixCoderCflags )
@@ -46,7 +46,7 @@ env.Program( mixCoderProg,
 	       videoMixerObj,
 	       flvOutputObj,
 	       flvParserObj,
-	       flvSegmentParserObj,
+	       flvSegmentInputObj,
 	       flvSegmentOutputObj,	
 	       mainObj],	
 	       LIBS=['pthread', 'mp3lame', 'avformat', 'avcodec', 'avutil', 'swscale', 'samplerate', 'speex', 'vpx', 'x264'], CCFLAGS=mixCoderCflags)

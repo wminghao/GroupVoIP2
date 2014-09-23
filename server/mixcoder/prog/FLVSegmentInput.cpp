@@ -1,4 +1,4 @@
-#include "FLVSegmentParser.h"
+#include "FLVSegmentInput.h"
 #include "fwk/log.h"
 #include <assert.h>
 #include <stdio.h>
@@ -16,7 +16,7 @@ const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 // 3) audioBucketTimestamp, in abnormal case, bucket can advance by multiple of 33ms (audio jumps timestamp ahead)
 //                         in case there is no video frame within the nextBucket, it's used.
 ////////////////////////////////////////////////////////////////
-bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
+bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
 {
     minVideoTimestamp = 0xffffffff;
     bool recordFrameTimestamp[MAX_XCODING_INSTANCES];
@@ -127,7 +127,7 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
     return isReady;
 }
 
-void FLVSegmentParser::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSize)
+void FLVSegmentInput::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSize)
 {
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
@@ -136,7 +136,7 @@ void FLVSegmentParser::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSi
         }
     }    
 }
-void FLVSegmentParser::printQueueSize()
+void FLVSegmentInput::printQueueSize()
 {
 #if 1
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
@@ -157,7 +157,7 @@ void FLVSegmentParser::printQueueSize()
 //Case 1) we trim the queue to match the minimum threshold
 //Case 2) we just catch up by mixing with prev frame for that stream
 //////////////////////////////////////////////////////////////////////////////
-bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
+bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
     minAudioTimestamp = MAX_U32;
     int totalStreams = 0;
     bool isReady = true; //all streams ready means ready
@@ -230,7 +230,7 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
     return totalStreams?isReady:false;
 }
 
-bool FLVSegmentParser::isStreamOnlineStarted(StreamType streamType, int index)
+bool FLVSegmentInput::isStreamOnlineStarted(StreamType streamType, int index)
 {
     if( streamType == kVideoStreamType ) {
         return ( videoStreamStatus_[index] == kStreamOnlineStarted );
@@ -249,7 +249,7 @@ u32 count_bits(u32 n) {
     return c;
 }
 
-void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
+void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
 {
     if( au->st == kVideoStreamType ) {
         if( !videoDecoder_[index] )  {
@@ -296,7 +296,7 @@ void FLVSegmentParser::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
     }
 }
 
-bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
+bool FLVSegmentInput::readData(SmartPtr<SmartBuffer> input)
 {
     u8* data = input->data();
     u32 len = input->dataLength();
@@ -449,7 +449,7 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
     return true;
 }
 
-bool FLVSegmentParser::isNextVideoFrameSpsPps(u32 index, u32& timestamp)
+bool FLVSegmentInput::isNextVideoFrameSpsPps(u32 index, u32& timestamp)
 {
     bool bIsSpsPps = false;
     if ( videoQueue_[index].size() > 0 ) {
@@ -463,7 +463,7 @@ bool FLVSegmentParser::isNextVideoFrameSpsPps(u32 index, u32& timestamp)
 }
 
 //can return more than 1 frome
-SmartPtr<VideoRawData> FLVSegmentParser::getNextVideoFrame(u32 index)
+SmartPtr<VideoRawData> FLVSegmentInput::getNextVideoFrame(u32 index)
 {
     SmartPtr<VideoRawData> v;
     if ( videoQueue_[index].size() > 0 ) {
@@ -485,7 +485,7 @@ SmartPtr<VideoRawData> FLVSegmentParser::getNextVideoFrame(u32 index)
     return v;
 }
 
-SmartPtr<AudioRawData> FLVSegmentParser::getNextAudioFrame(u32 index)
+SmartPtr<AudioRawData> FLVSegmentInput::getNextAudioFrame(u32 index)
 {
     SmartPtr<AudioRawData> a;
     if ( audioQueue_[index].size() > 0 ) {

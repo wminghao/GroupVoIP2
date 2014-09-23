@@ -1,5 +1,5 @@
- #ifndef __FLVSEGMENTPARSER_H
-#define __FLVSEGMENTPARSER_H
+ #ifndef __FLVSEGMENTINPUT_H
+#define __FLVSEGMENTINPUT_H
 
 #include "fwk/SmartBuffer.h"
 #include "fwk/Time.h"
@@ -29,7 +29,7 @@ using namespace std;
 ///////////////////////////////////
 
 ///////////////////////////////////
-//FLVSegmentParser does the following:
+//FLVSegmentInput does the following:
 // 1) input tells it how many streams available.
 // 2) it parses data and put audio/video inside a queue sorted by timestamp
 // 3) for audio, there could be 2 cases
@@ -48,10 +48,10 @@ using namespace std;
 //          When that happens, the stream's timestamp is resynced with the global timestamp.
 ///////////////////////////////////
 
-class FLVSegmentParser:public FLVSegmentParserDelegate
+class FLVSegmentInput:public FLVSegmentParserDelegate
 {
  public:
- FLVSegmentParser(u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): parsingState_(SEARCHING_SEGHEADER),
+ FLVSegmentInput(u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): parsingState_(SEARCHING_SEGHEADER),
         curSegTagSize_(0), curStreamId_(0), curStreamLen_(0), curStreamCnt_(0),
         numStreams_(0), targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
         {
@@ -70,7 +70,7 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
             memset(lastBucketTimestamp_, 0, sizeof(double)*MAX_XCODING_INSTANCES);
             memset(hasStarted_, 0, sizeof(u32)* MAX_XCODING_INSTANCES );
         }
-    virtual ~FLVSegmentParser() {
+    virtual ~FLVSegmentInput() {
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
             delete parser_[i];
             delete audioDecoder_[i];

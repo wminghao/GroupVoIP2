@@ -15,7 +15,7 @@
 
 using namespace std;
 
-class FLVSegmentParser;
+class FLVSegmentInput;
 class FLVSegmentOutput;
 class AudioEncoder;
 class VideoEncoder;
@@ -56,7 +56,7 @@ class MixCoder
     int aFrequency_;
 
     //input
-    FLVSegmentParser* flvSegParser_;
+    FLVSegmentInput* flvSegInput_;
     //output
     FLVSegmentOutput* flvSegOutput_;
     
