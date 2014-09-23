@@ -55,6 +55,8 @@ void callback(unsigned char* data, unsigned int len, int procId) {
         (*env)->ExceptionDescribe(env);
     }
 
+    (*env)->DeleteLocalRef(env, jb);
+
     (*g_vm)->DetachCurrentThread(g_vm);
 }
 
