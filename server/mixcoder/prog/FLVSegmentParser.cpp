@@ -184,11 +184,13 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     audioQueue_[i].pop();
                 }
             }
-        }    
+        }
+    
+        //then calculate maxAudioQueueSize again
+        maxAudioQueueSize = 0;
+        minAudioQueueSize = MAX_U32;
+        calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
     }
-
-    //then calculate maxAudioQueueSize again
-    calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
 
     //all audio frame rate is the same
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
