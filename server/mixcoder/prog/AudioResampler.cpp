@@ -101,6 +101,12 @@ SmartPtr<SmartBuffer> AudioResampler::getNextRawMp3Frame(bool& bIsStereo)
         bIsStereo = (inputChannels_ == 2);
         res = mp3FrameList_.back();
         mp3FrameList_.pop_back();
+        prevBuf_ = res;
     }
     return res;
+}
+SmartPtr<SmartBuffer> AudioResampler::getPrevRawMp3Frame(bool& bIsStereo)
+{
+    bIsStereo = (inputChannels_ == 2);
+    return prevBuf_;
 }

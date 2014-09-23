@@ -127,10 +127,35 @@ bool FLVSegmentParser::isNextVideoStreamReady(u32& minVideoTimestamp)
     return isReady;
 }
 
+void FLVSegmentParser::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSize)
+{
+    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
+        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
+            maxAudioQueueSize = MAX( maxAudioQueueSize, audioQueue_[i].size());
+            minAudioQueueSize = MIN( minAudioQueueSize, audioQueue_[i].size());
+        }
+    }    
+}
+void FLVSegmentParser::printQueueSize()
+{
+#if 1
+    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
+        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
+            LOG("----Queue %d size=%d", i, audioQueue_[i].size());
+        }
+    }
+#endif
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //The algorithm to catch up for real time mixing
-//   When too many audio frames queued up for a stream happens, 
-//   Trim the queue to match the minimum threshold
+//  When too many audio frames queued up for a stream happens, 
+//Below is the algorithm to throw away frames if the queue is too large.
+//2 cases, 
+//  1) frames from different streams come in different speed, comes in batch mode
+//  2) timestamp jumped, (frames thrown away from the source)
+//Case 1) we trim the queue to match the minimum threshold
+//Case 2) we just catch up by mixing with prev frame for that stream
 //////////////////////////////////////////////////////////////////////////////
 bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
     minAudioTimestamp = MAX_U32;
@@ -139,21 +164,20 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
 
     u32 maxAudioQueueSize = 0;
     u32 minAudioQueueSize = MAX_U32;
-    //first calculate maxAudioQueueSize
-    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
-        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
-            maxAudioQueueSize = MAX( maxAudioQueueSize, audioQueue_[i].size());
-            minAudioQueueSize = MIN( minAudioQueueSize, audioQueue_[i].size());
-        }
-    }
-        
 
-    if ( maxAudioQueueSize >= LATE_AUDIO_FRAME_THRESHOLD ) {
+    //first calculate maxAudioQueueSize
+    calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
+        
+    //For case 1), we handle it by trimming its queue when a stream has frames comes in batch mode.
+    if ( maxAudioQueueSize >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
         assert( minAudioQueueSize != MAX_U32);
         if( maxAudioQueueSize == minAudioQueueSize ) {
             //if all streams comes in a batch mode, reduce it to be 1 to go through
             minAudioQueueSize = 1;
         }
+        LOG("---------------------------------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
+        printQueueSize();
+
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
             if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
                 while ( audioQueue_[i].size() > minAudioQueueSize ) {
@@ -161,8 +185,10 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 }
             }
         }    
-        LOG("---------------------------------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
     }
+
+    //then calculate maxAudioQueueSize again
+    calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
 
     //all audio frame rate is the same
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
@@ -170,10 +196,29 @@ bool FLVSegmentParser::isNextAudioStreamReady(u32& minAudioTimestamp) {
             if( audioQueue_[i].size() > 0) {
                 nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
                 minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
-            } else {                
-                nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
-                isReady = false;
-                //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
+            } else {
+                if ( maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
+                    //case 1, a frame arrives too late and will come in batch mode afterwards
+                    //case 2, a timestamp jump, meaning there are missing frames.
+                    SmartPtr<AudioRawData> a = new AudioRawData();
+                    bool bIsStereo = false;
+                    u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
+                    a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                    a->bIsStereo = bIsStereo;
+                    a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
+                    audioQueue_[i].push( a );
+
+                    LOG("-----------Stream:%d push an prev audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
+                    printQueueSize();
+
+                    nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
+                    minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
+                } else {
+                    nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
+                    isReady = false;
+                    //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
+                }
+
                 break;
             }   
             totalStreams++;

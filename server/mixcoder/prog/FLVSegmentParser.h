@@ -92,6 +92,10 @@ class FLVSegmentParser:public FLVSegmentParserDelegate
     SmartPtr<AudioRawData> getNextAudioFrame(u32 index); //return at most 1 frame
     SmartPtr<VideoRawData> getNextVideoFrame(u32 index); // can return more than 1 frames
 
+    //helper function
+    void calcQueueSize(u32& maxQueueSize, u32&minQueueSize);
+    void printQueueSize();
+
  private:
     bool isNextVideoFrameSpsPps(u32 index, u32& timestamp);
 

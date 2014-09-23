@@ -42,8 +42,9 @@ class AudioResampler
     bool isNextRawMp3FrameReady();
     //return a smartbuffer
     SmartPtr<SmartBuffer> getNextRawMp3Frame(bool& bIsStereo);
+    SmartPtr<SmartBuffer> getPrevRawMp3Frame(bool& bIsStereo);
 
-    bool isStereo() { return (inputChannels_ == 2); }
+    //bool isStereo() { return (inputChannels_ == 2); }
 
     //when a timestamp jump happens, discard the previous resampler residual
     //void discardResidual();
@@ -84,5 +85,8 @@ class AudioResampler
 
     //mp3 frame size
     u32 frameSize_;
+
+    //prev buffer 
+    SmartPtr<SmartBuffer> prevBuf_;
 };
 #endif //

@@ -50,7 +50,24 @@ class AudioDecoder
         }
         return result;
     }
-
+    //return previous raw mp3 frame
+    SmartPtr<SmartBuffer> getPrevRawMp3Frame(bool& bIsStereo) {
+        SmartPtr<SmartBuffer> result;
+        if( resampler_ ) {
+            result = resampler_->getPrevRawMp3Frame(bIsStereo);
+        }
+        return result;
+    }
+    //indicate if it's stereo or not
+    /*
+    bool isStereo() {
+        bool isStereo = false;
+        if( resampler_ ) {
+            isStereo = resampler_->isStereo();
+        }
+        return isStereo;
+    }
+    */
     /*
     void discardResamplerResidual() {
         if( resampler_ ) {
