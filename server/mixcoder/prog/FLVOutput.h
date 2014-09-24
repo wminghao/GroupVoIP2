@@ -15,8 +15,9 @@ class FLVOutput
         }
 
     //streamId and totalStream tells the flv format where is the video located inside the video output
-    SmartPtr<SmartBuffer> packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, VideoRect* videoRect);
+    SmartPtr<SmartBuffer> packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame);
     SmartPtr<SmartBuffer> packageAudioFrame(SmartPtr<SmartBuffer> audioPacket, u32 ts);
+    SmartPtr<SmartBuffer> packageCuePoint( VideoRect* videoRect, u32 ts );
 
     //save video header
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader ) { videoHeader_ = videoHeader; }

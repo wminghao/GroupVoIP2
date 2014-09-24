@@ -4,7 +4,7 @@
 #include "SmartPtr.h"
 #include "SmartPtrInterface.h"
 #include <string.h>
-
+#include <string>
 
 class SmartBuffer;
 typedef SmartPtr<SmartBuffer> SmartBufferPtr;
@@ -21,6 +21,12 @@ class SmartBuffer : public SmartPtrInterface<SmartBuffer>
      : dataLength_(dataLength), more_( false ) {
         data_ = new u8[dataLength];
         memcpy( data_, data, dataLength );
+    }
+    
+ SmartBuffer( const std::string& str)
+     : dataLength_(str.length()), more_( false ) {
+        data_ = new u8[dataLength_];
+        memcpy( data_, str.c_str(), dataLength_ );
     }
     
  SmartBuffer( size_t dataLength ) 

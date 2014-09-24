@@ -73,6 +73,9 @@ class MixCoder
 
     //raw audio frame in case data is late to arrive
     SmartPtr<AudioRawData> rawAudioData_[MAX_XCODING_INSTANCES];
+
+    //video rectangles indicates the position of the current video inside the mixed video
+    VideoRect videoRect_[MAX_XCODING_INSTANCES+1];
 };
 
 #endif

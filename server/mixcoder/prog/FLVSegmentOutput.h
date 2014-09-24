@@ -25,8 +25,9 @@ class FLVSegmentOutput
 
     SmartPtr<SmartBuffer> getOneFrameForAllStreams();
 
-    bool packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId, VideoRect* videoRect);
+    bool packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId);
     bool packageAudioFrame(SmartPtr<SmartBuffer> audioPacket, u32 ts, int streamId);
+    bool packageCuePoint( int streamId, VideoRect* videoRect, u32 ts );
 
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader );
 

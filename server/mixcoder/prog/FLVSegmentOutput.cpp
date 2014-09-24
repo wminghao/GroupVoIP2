@@ -22,16 +22,38 @@ void FLVSegmentOutput::saveVideoHeader( SmartPtr<SmartBuffer> videoHeader )
     }
 }
 
-bool FLVSegmentOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId, VideoRect* videoRect)
+bool FLVSegmentOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId )
 {
-    outputBuffer_[streamId] = output_[streamId]->packageVideoFrame(videoPacket, ts, bIsKeyFrame, videoRect);
+    SmartPtr<SmartBuffer> result = output_[streamId]->packageVideoFrame(videoPacket, ts, bIsKeyFrame);
+
+    if( outputBuffer_[streamId] ) {
+        //if cuepoint data is there
+        u32 len1 = outputBuffer_[streamId]->dataLength();
+        u32 len2 = result->dataLength();
+        u32 totalLen = len1+len2;
+        SmartPtr<SmartBuffer> newBuf = new SmartBuffer(totalLen);
+        u8* data = newBuf->data();
+        memcpy( data, outputBuffer_[streamId]->data(), len1);
+        memcpy( data+len1, result->data(), len2);
+        outputBuffer_[streamId] = newBuf;
+    } else {
+        outputBuffer_[streamId] = result;
+    }
     return true;
 }
+
 bool FLVSegmentOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPacket, u32 ts, int streamId)
 {
     outputBuffer_[streamId] = output_[streamId]->packageAudioFrame(audioPacket, ts);
     return true;
 }
+
+bool FLVSegmentOutput::packageCuePoint( int streamId, VideoRect* videoRect, u32 pts )
+{
+    outputBuffer_[streamId] = output_[streamId]->packageCuePoint(videoRect, pts);
+    return true;
+}
+
 SmartPtr<SmartBuffer> FLVSegmentOutput::getOneFrameForAllStreams()
 {
     u32 streamMask = 0;

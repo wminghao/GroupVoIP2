@@ -1,6 +1,7 @@
 #include "FLVOutput.h"
 #include <stdio.h>
 #include "fwk/log.h"
+#include "FLVScript.h"
 
 //5th byte 0x01 video, 0x04 audio, 0x05 video+audio
 const u8 flvHeader[] = {
@@ -115,23 +116,66 @@ SmartPtr<SmartBuffer> FLVOutput::newVideoHeader(u32 ts)
     return NULL;
 }
 
-SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, VideoRect* videoRect)
+SmartPtr<SmartBuffer> FLVOutput::packageCuePoint( VideoRect* videoRect, u32 ts )
 {
-    //TODO packaging x,y,width,height
-    /*
+    // packaging x,y,width,height
     int x = 0;
     int y = 0;
     int width = 0;
     int height = 0;
-
     if( videoRect ) {
         x = videoRect->x;
         y = videoRect->y;
         width = videoRect->width;
         height = videoRect->height;
     }
-    */
+    
+    //convert to ecma cuepoint array
+    FLVScript onCuePoint;
+    onCuePoint.newNameValuePair("x", x);
+    onCuePoint.newNameValuePair("y", y);
+    onCuePoint.newNameValuePair("width", width);
+    onCuePoint.newNameValuePair("height", height);
+    
+    SmartPtr<SmartBuffer> dataPacket = onCuePoint.toBuf("onCuePoint");
 
+    u32 dataPacketLen = dataPacket->dataLength();
+    SmartPtr<SmartBuffer> dataFrame = new SmartBuffer( fixedFlvHeaderLen + dataPacketLen + 4 );
+    u8* data = dataFrame->data();
+
+    //frame tag
+    data[0] = (u8)kDataStreamType;
+    //frame data length
+    data[1] = (u8)((dataPacketLen>>16)&0xff);
+    data[2] = (u8)((dataPacketLen>>8)&0xff);
+    data[3] = (u8)(dataPacketLen&0xff);
+    //frame time stamp
+    data[4] = (u8)((ts>>16)&0xff);
+    data[5] = (u8)((ts>>8)&0xff);
+    data[6] = (u8)(ts&0xff);
+    //frame time stamp extend
+    data[7] = (u8)((ts>>24)&0xff);
+    //frame reserved
+    data[8] = 0;
+    data[9] = 0;
+    data[10] = 0;
+
+    if ( dataPacketLen > 0 ) {
+        memcpy(&data[fixedFlvHeaderLen], dataPacket->data(), dataPacketLen);
+    }
+
+    //prev tag size
+    int tl = fixedFlvHeaderLen + dataPacketLen;
+    data[tl] = (u8)((tl>>24)&0xff);
+    data[tl+1] = (u8)((tl>>16)&0xff);
+    data[tl+2] = (u8)((tl>>8)&0xff);
+    data[tl+3] = (u8)(tl&0xff);
+
+    return dataFrame;
+}
+
+SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame)
+{
     //then build video header
     u32 additionalHeader = (videoSetting_.vcid == kAVCVideoPacket)?4:0; //vp8 is 0
     u32 videoPacketLen = videoPacket->dataLength();
@@ -168,19 +212,6 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
         data[14] = 0x0;
         data[15] = 0x0;
     } 
-
-    /*
-    //8 bytes of data
-    //tell the playback side where the stream is located.
-    data[12] = (u8)((x>>8)&0xff);  
-    data[13] = (u8)(x&0xff);  
-    data[14] = (u8)((y>>8)&0xff);  
-    data[15] = (u8)(y&0xff);  
-    data[16] = (u8)((width>>8)&0xff);  
-    data[17] = (u8)(width&0xff);  
-    data[18] = (u8)((height>>8)&0xff);  
-    data[19] = (u8)(height&0xff);  
-    */
 
     if ( videoPacketLen > 0 ) {
         memcpy(&data[fixedFlvHeaderLen+1+additionalHeader], videoPacket->data(), videoPacketLen);
