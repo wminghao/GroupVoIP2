@@ -53,8 +53,6 @@ MixCoder::MixCoder(bool bUseVp8, int vBitrate, int width, int height,
         audioMixer_[i] = new AudioMixer();
     }
     flvSegOutput_ = new FLVSegmentOutput( &vOutputSetting, &aOutputSetting );
-
-    memset(videoRect_, 0, sizeof(VideoRect)*(MAX_XCODING_INSTANCES+1));
 }
 
 MixCoder::~MixCoder() {
@@ -154,9 +152,9 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                         //for non-mobile stream, there is nothing to mix
                         for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
                             if( rawVideoData_[i] &&  rawVideoData_[i]->rawVideoSettings_.bIsValid && kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss) {
-                                if( !isVideoRectSame( &videoRect_[i], &videoRect[i] ) ) {
-                                    videoRect_[i] = videoRect[i];
-                                    flvSegOutput_->packageCuePoint(i, &videoRect_[i], videoPts);
+                                if( bIsKeyFrame ) {
+                                    //every key frame insert a cuepoint
+                                    flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
                                 }
                                 //LOG("------totalVideoStreams = %d, totalMobileStreams=%d\n", totalStreams, totalMobileStreams );
                                 flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
@@ -164,13 +162,6 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                         }
                     }
                     //for the all-in stream
-                    if( !videoRect_[MAX_XCODING_INSTANCES].width ) {
-                        videoRect_[MAX_XCODING_INSTANCES].x = 0;
-                        videoRect_[MAX_XCODING_INSTANCES].y = 0;
-                        videoRect_[MAX_XCODING_INSTANCES].width = 640;
-                        videoRect_[MAX_XCODING_INSTANCES].height = 480;
-                        flvSegOutput_->packageCuePoint(MAX_XCODING_INSTANCES, &videoRect_[MAX_XCODING_INSTANCES], videoPts);
-                    }
                     flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, MAX_XCODING_INSTANCES);
                     resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams();
                 }
