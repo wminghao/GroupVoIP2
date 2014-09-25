@@ -39,7 +39,8 @@ package
 		//position of video on the screen
 		private var screenWidth:int;
 		private var screenHeight:int;
-		private var screenX:int;
+		private var screenX:int = 0;
+		private var screenY:int = 0;
 		
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
 		
@@ -183,8 +184,12 @@ package
 				
 				videoSelf = new Video();
 				videoSelf.attachCamera(camera) ;
-				this.addChild(videoSelf);
-				videoSelf.visible = false;
+				this.addChildAt(videoSelf, getChildIndex(videoOthers));
+				videoSelf.x = screenX;
+				videoSelf.y = screenY;
+				videoSelf.width = screenWidth-2*screenX;
+				videoSelf.height = screenHeight;
+				videoSelf.visible = true;
 				
 				mic.setSilenceLevel(0,200);
 				//Speex settings
@@ -247,8 +252,8 @@ package
 			videoOthers.width = (screenWidth - 2*screenX);
 			videoOthers.height = screenHeight;
 			videoOthers.x = screenX;
-			videoOthers.y = 0;
-			videoOthers.visible = false;
+			videoOthers.y = screenY;
+			videoOthers.visible = true;
 		}
 		private function onCuePoint(info:Object):void {
 			var x:int = 0;
@@ -258,30 +263,18 @@ package
 			for (var propName:String in info) {
 				if (propName != "parameters") {
 					logDebug(propName + " = " + info[propName]);
-				} else {
-					if (info.parameters != undefined){
-						for (var paramName:String in info.parameters){
-							logDebug('  "'+paramName+'" = "'+info.parameters[paramName]+'"');
-							if( paramName == "x" ) {
-								x = info.parameters[paramName];
-							} else if( paramName == "y" ) {
-								y = info.parameters[paramName];
-							} else if( paramName == "width" ) {
-								width = info.parameters[paramName];
-							} else if( paramName == "height" ) {
-								height = info.parameters[paramName];
-							}
-						}
-					} else {
-						logDebug("undefined");
+					if( propName == "x" ) {
+						x = info[propName];
+					} else if( propName == "y" ) {
+						y = info[propName];
+					} else if( propName == "width" ) {
+						width = info[propName];
+					} else if( propName == "height" ) {
+						height = info[propName];
 					}
 				}
 			}
-			
-			logDebug("x = " + x);
-			logDebug("y = " + y);
-			logDebug("width = " + width);			
-			logDebug("height = " + height);
+
 			videoSelf.x = (x*(screenWidth-2*screenX))/videoWidth + screenX;
 			videoSelf.y = (y*screenHeight)/videoHeight;
 			videoSelf.width = (width*(screenWidth-2*screenX))/videoWidth;
@@ -291,8 +284,9 @@ package
 			logDebug("videoSelf.y = " + videoSelf.y);
 			logDebug("videoSelf.width = " + videoSelf.width);			
 			logDebug("videoSelf.height = " + videoSelf.height);
-			videoSelf.visible = true;
-			videoOthers.visible = true;
+			
+			this.addChild(videoOthers);
+			this.addChildAt(videoSelf, getChildIndex(videoOthers));
 		};
 		//server call to client
 		private function newStream(publishedStream:String):void {
