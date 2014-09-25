@@ -25,7 +25,6 @@ package
 		
 		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
-		private var mixedStream:String = mixedStreamPrefix+"allinone";
 		private var defaultSong:String = "Default"; //default song means mtv stopped
 		
 		private var publishDest:String = null;
@@ -162,6 +161,7 @@ package
 				//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
 				return;
 			}
+			
 			var camera:Camera = tryGetFrontCamera();	     
 			if (camera == null) {
 				Security.showSettings(SecurityPanel.CAMERA) ;
@@ -184,10 +184,6 @@ package
 				videoSelf = new Video();
 				videoSelf.attachCamera(camera) ;
 				this.addChild(videoSelf);
-				videoSelf.width = screenWidth/2 - screenX;
-				videoSelf.height = screenHeight/2;
-				videoSelf.x = screenWidth/2;
-				videoSelf.y = screenHeight/2;
 				videoSelf.visible = false;
 				
 				mic.setSilenceLevel(0,200);
@@ -241,9 +237,8 @@ package
 			
 			var cliente:Object = new Object();
 			cliente.onCuePoint = this.onCuePoint;
-			cliente.onMetaData = this.onCuePoint;
 			streamView.client = cliente;
-			streamView.play(mixedStream);
+			streamView.play(mixedStreamPrefix + publishDest);
 			
 			videoOthers = new Video();
 			videoOthers.attachNetStream(streamView);
@@ -282,10 +277,20 @@ package
 					}
 				}
 			}
-			videoSelf.x = (x*screenWidth)/videoWidth + screenX;
-			videoSelf.y = (x*screenHeight)/videoHeight;
-			videoSelf.width = (width*screenWidth)/videoWidth;
+			
+			logDebug("x = " + x);
+			logDebug("y = " + y);
+			logDebug("width = " + width);			
+			logDebug("height = " + height);
+			videoSelf.x = (x*(screenWidth-2*screenX))/videoWidth + screenX;
+			videoSelf.y = (y*screenHeight)/videoHeight;
+			videoSelf.width = (width*(screenWidth-2*screenX))/videoWidth;
 			videoSelf.height = (height*screenHeight)/videoHeight;
+			
+			logDebug("videoSelf.x = " + videoSelf.x);
+			logDebug("videoSelf.y = " + videoSelf.y);
+			logDebug("videoSelf.width = " + videoSelf.width);			
+			logDebug("videoSelf.height = " + videoSelf.height);
 			videoSelf.visible = true;
 			videoOthers.visible = true;
 		};
