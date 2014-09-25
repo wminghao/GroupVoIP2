@@ -165,6 +165,8 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     }
                     //for the all-in stream
                     if( !videoRect_[MAX_XCODING_INSTANCES].width ) {
+                        videoRect_[MAX_XCODING_INSTANCES].x = 0;
+                        videoRect_[MAX_XCODING_INSTANCES].y = 0;
                         videoRect_[MAX_XCODING_INSTANCES].width = 640;
                         videoRect_[MAX_XCODING_INSTANCES].height = 480;
                         flvSegOutput_->packageCuePoint(MAX_XCODING_INSTANCES, &videoRect_[MAX_XCODING_INSTANCES], videoPts);

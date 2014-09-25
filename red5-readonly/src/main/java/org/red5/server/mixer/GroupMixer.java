@@ -205,7 +205,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             			msgEvent.setHeader(msgHeader);
             			msgEvent.setTimestamp(msgTimestamp);
             			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-            			
             			Packet msg = new Packet(msgHeader, msgEvent);
             			conn.handleMessageReceived(msg);
             			break;

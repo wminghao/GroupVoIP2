@@ -61,6 +61,16 @@ class SmartBuffer : public SmartPtrInterface<SmartBuffer>
     bool more() const { return more_; }
     void more( bool t ) { more_ = t; }
 };
+
+inline SmartPtr<SmartBuffer> combine2SmartBuffers(SmartPtr<SmartBuffer> one, SmartPtr<SmartBuffer> two ) {
+    int totalLen = one->dataLength() + two->dataLength();
+
+    SmartPtr<SmartBuffer> result = new SmartBuffer(totalLen);
+    u8* data = result->data();
+    memcpy(data, one->data(), one->dataLength());
+    memcpy(data + one->dataLength(), two->data(), two->dataLength());
+    return result;
+}
 #endif
 
 

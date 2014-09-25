@@ -57,7 +57,7 @@ public class InputObject {
         		flvSegment.put((byte)0); //even layout
         		flvSegment.putInt(result[0]); //calc mask here
         		
-    			flvSegment.put((byte)((mixerId<<3) | kDesktopStreamSource));// TODO assume all desktop channels
+    			flvSegment.put((byte)((mixerId<<3) | kMobileStreamSource));// TODO assume all mobile channels
     			flvSegment.put((byte)0); //ignore for now
     			flvSegment.putInt(flvFrameLen);
     

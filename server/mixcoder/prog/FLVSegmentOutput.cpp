@@ -1,6 +1,7 @@
 #include "FLVSegmentOutput.h"
 #include "FLVOutput.h"
 #include <stdio.h>
+#include "fwk/log.h"
 
 FLVSegmentOutput::FLVSegmentOutput(VideoStreamSetting* videoSetting, AudioStreamSetting* audioSetting) {
     for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
@@ -28,14 +29,7 @@ bool FLVSegmentOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 
 
     if( outputBuffer_[streamId] ) {
         //if cuepoint data is there
-        u32 len1 = outputBuffer_[streamId]->dataLength();
-        u32 len2 = result->dataLength();
-        u32 totalLen = len1+len2;
-        SmartPtr<SmartBuffer> newBuf = new SmartBuffer(totalLen);
-        u8* data = newBuf->data();
-        memcpy( data, outputBuffer_[streamId]->data(), len1);
-        memcpy( data+len1, result->data(), len2);
-        outputBuffer_[streamId] = newBuf;
+        outputBuffer_[streamId] = combine2SmartBuffers(outputBuffer_[streamId], result);
     } else {
         outputBuffer_[streamId] = result;
     }

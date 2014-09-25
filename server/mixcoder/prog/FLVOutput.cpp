@@ -171,7 +171,12 @@ SmartPtr<SmartBuffer> FLVOutput::packageCuePoint( VideoRect* videoRect, u32 ts )
     data[tl+2] = (u8)((tl>>8)&0xff);
     data[tl+3] = (u8)(tl&0xff);
 
-    return dataFrame;
+    if( !flvHeaderSent_ ) {
+        flvHeaderSent_  = true;
+        return combine2SmartBuffers(newFlvHeader(), dataFrame);
+    } else {
+        return dataFrame;
+    }
 }
 
 SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame)
@@ -249,28 +254,15 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
         } else {
             SmartPtr<SmartBuffer> h264Header = newVideoHeader( ts );
             if( h264Header ) {
-                u32 totalLen = h264Header->dataLength() + videoFrame->dataLength();
-                SmartPtr<SmartBuffer> result = new SmartBuffer(totalLen);
-                u8* data = result->data();
-                memcpy(data, h264Header->data(), h264Header->dataLength());
-                memcpy(data + h264Header->dataLength(), videoFrame->data(), videoFrame->dataLength());
-                return result;
+                return combine2SmartBuffers(h264Header, videoFrame);
             } else {
                 return videoFrame;
             }
         }
     } else {         
         if( !flvHeaderSent_ ) {
-            SmartPtr<SmartBuffer> flvHeader = newFlvHeader();
-            int totalLen = flvHeader->dataLength() + videoFrame->dataLength();
-            
-            SmartPtr<SmartBuffer> result = new SmartBuffer(totalLen);
-            u8* data = result->data();
-            memcpy(data, flvHeader->data(), flvHeader->dataLength());
-            memcpy(data + flvHeader->dataLength(), videoFrame->data(), videoFrame->dataLength());
-            
             flvHeaderSent_  = true;
-            return result;
+            return combine2SmartBuffers(newFlvHeader(), videoFrame);
         } else {
             return videoFrame;
         }
@@ -325,16 +317,8 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
 
     //LOG("====>audio frame len=%d, audioDataLen=%d ts=%d\n", tl, audioDataLen, ts);
     if( !flvHeaderSent_ ) {
-        SmartPtr<SmartBuffer> header = newFlvHeader();
-        int totalLen = header->dataLength() + audioFrame->dataLength();
-        
-        SmartPtr<SmartBuffer> result = new SmartBuffer(totalLen);
-        u8* data = result->data();
-        memcpy(data, header->data(), header->dataLength());
-        memcpy(data + header->dataLength(), audioFrame->data(), audioFrame->dataLength());
-
         flvHeaderSent_  = true;
-        return result;
+        return combine2SmartBuffers(newFlvHeader(), audioFrame);
     } else {
         return audioFrame;
     }
