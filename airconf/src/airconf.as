@@ -34,6 +34,9 @@ package
 		private var videoWidth:int = 640;
 		private var videoHeight:int = 480;
 		
+		private var videoSelf:Video;
+		private var videoOthers:Video;
+		
 		//position of video on the screen
 		private var screenWidth:int;
 		private var screenHeight:int;
@@ -178,14 +181,14 @@ package
 				streamPub.attachCamera(camera);
 				streamPub.publish(publishDest, "live");
 				
-				var video:Video = new Video();
-				video.attachCamera(camera) ;
-				this.addChild(video);
-				video.width = screenWidth/2 - screenX;
-				video.height = screenHeight/2;
-				video.x = screenWidth/2;
-				video.y = screenHeight/2;
-				video.visible = true;
+				videoSelf = new Video();
+				videoSelf.attachCamera(camera) ;
+				this.addChild(videoSelf);
+				videoSelf.width = screenWidth/2 - screenX;
+				videoSelf.height = screenHeight/2;
+				videoSelf.x = screenWidth/2;
+				videoSelf.y = screenHeight/2;
+				videoSelf.visible = false;
 				
 				mic.setSilenceLevel(0,200);
 				//Speex settings
@@ -235,18 +238,57 @@ package
 			streamView = new NetStream(netConn);
 			streamView.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
 			streamView.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+			
+			var cliente:Object = new Object();
+			cliente.onCuePoint = this.onCuePoint;
+			cliente.onMetaData = this.onCuePoint;
+			streamView.client = cliente;
 			streamView.play(mixedStream);
 			
-			var video:Video = new Video();
-			video.attachNetStream(streamView);
-			this.addChild(video);
+			videoOthers = new Video();
+			videoOthers.attachNetStream(streamView);
+			this.addChild(videoOthers);
 			//video.opaqueBackground = 0x000000;
-			video.width = (screenWidth - 2*screenX);
-			video.height = screenHeight;
-			video.x = screenX;
-			video.y = 0;
-			video.visible = true;
+			videoOthers.width = (screenWidth - 2*screenX);
+			videoOthers.height = screenHeight;
+			videoOthers.x = screenX;
+			videoOthers.y = 0;
+			videoOthers.visible = false;
 		}
+		private function onCuePoint(info:Object):void {
+			var x:int = 0;
+			var y:int = 0;
+			var width:int = 0;
+			var height:int = 0;
+			for (var propName:String in info) {
+				if (propName != "parameters") {
+					logDebug(propName + " = " + info[propName]);
+				} else {
+					if (info.parameters != undefined){
+						for (var paramName:String in info.parameters){
+							logDebug('  "'+paramName+'" = "'+info.parameters[paramName]+'"');
+							if( paramName == "x" ) {
+								x = info.parameters[paramName];
+							} else if( paramName == "y" ) {
+								y = info.parameters[paramName];
+							} else if( paramName == "width" ) {
+								width = info.parameters[paramName];
+							} else if( paramName == "height" ) {
+								height = info.parameters[paramName];
+							}
+						}
+					} else {
+						logDebug("undefined");
+					}
+				}
+			}
+			videoSelf.x = (x*screenWidth)/videoWidth + screenX;
+			videoSelf.y = (x*screenHeight)/videoHeight;
+			videoSelf.width = (width*screenWidth)/videoWidth;
+			videoSelf.height = (height*screenHeight)/videoHeight;
+			videoSelf.visible = true;
+			videoOthers.visible = true;
+		};
 		//server call to client
 		private function newStream(publishedStream:String):void {
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
