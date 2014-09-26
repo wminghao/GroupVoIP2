@@ -3,9 +3,9 @@ package org.red5.server.mixer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-//import org.red5.logging.Red5LoggerFactory;
-//import org.red5.server.api.Red5;
-//import org.slf4j.Logger;
+import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
+import org.slf4j.Logger;
 
 class SegmentParser
 {
@@ -13,14 +13,14 @@ class SegmentParser
         public void onFrameParsed(int mixerId, ByteBuffer frame, int len);
     }
     
-	public SegmentParser(Delegate delegate) {
-		this.delegate = delegate;
+    public SegmentParser(Delegate delegate) {
+	this.delegate = delegate;
 
-		 // to use little endian
-		curBuf_.order(ByteOrder.LITTLE_ENDIAN);
-	}
-	private Delegate delegate;
-	//private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
+	// to use little endian
+	curBuf_.order(ByteOrder.LITTLE_ENDIAN);
+    }
+    private Delegate delegate;
+    private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
 	
     private int count_bits(int n) {
     	int c; // c accumulates the total bits set in v
@@ -145,7 +145,7 @@ class SegmentParser
                     	//System.out.println("---curStreamId_="+curStreamId_+" curStreamLen_="+curStreamLen_);
                         //read the actual buffer
                         if( curStreamLen_ > 0 ) {
-                        	curBuf_.flip();
+			    curBuf_.flip();
                             delegate.onFrameParsed(curStreamId_, curBuf_, curStreamLen_); 
                         }
                         curBuf_.clear();

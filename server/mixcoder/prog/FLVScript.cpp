@@ -4,7 +4,7 @@
 bool FLVScript::newNameValuePair(const string& name, int value)
 {
     args_.push_back( ECMAArrayDoubleElement( name, (double)value ) );
-    LOG("-----Pushed name-value pair, name=%s, value=%d", name.data(), value);
+    //LOG("-----Pushed name-value pair, name=%s, value=%d", name.data(), value);
     return true;
 }
 SmartPtr<SmartBuffer> FLVScript::toBuf(const string& method)
@@ -18,7 +18,7 @@ SmartPtr<SmartBuffer> FLVScript::toBuf(const string& method)
         args_[i].write( &buf );
     }
     toAMF0AppendTypelessU24( &buf, 9 ); // ECMA Array end
-    LOG("-----Wrote name-value pair, method=%s", method.data());
+    //LOG("-----Wrote name-value pair, method=%s", method.data());
 
     return new SmartBuffer(buf);
 }

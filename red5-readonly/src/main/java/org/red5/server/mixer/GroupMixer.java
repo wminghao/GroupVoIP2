@@ -106,19 +106,19 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	int streamId = idLookupTable.deleteEntry(streamName);
     	if ( streamId != -1 ) {        	
-        	RTMPMinaConnection conn = getAllInOneConn();
-        	handleDeleteEvent(conn, streamId);
+	    RTMPMinaConnection conn = getAllInOneConn();
+	    handleDeleteEvent(conn, streamId);
     	}
     }
     
     public void pushInputMessage(String streamName, int msgType, IoBuffer buf, int eventTime)
     {	
     	if( buf.limit() > 0 && mixerPipe_ != null ) {
-    		mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
+	    mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
     	}
     	if( karaokeGen_!= null ) {
-    		//start the karaoke thread
-    		karaokeGen_.tryToStart();
+	    //start the karaoke thread
+	    karaokeGen_.tryToStart();
     	}
     }
 
@@ -131,87 +131,86 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private void onFrameGenerated( int streamId, ByteBuffer frame, int flvFrameLen, boolean isDelayedKaraoke) {	
     	if ( streamId != -1 ) {
-    		byte[] flvFrame = frame.array();
-    		int curIndex = 0;
-        	if(flvFrame[0] =='F' && flvFrame[1]=='L' && flvFrame[2] == 'V') {
-        		curIndex+=13;
-        	}        		
-    		while( curIndex < flvFrameLen ) {
-        		int msgType = flvFrame[curIndex];
+	    byte[] flvFrame = frame.array();
+	    int curIndex = 0;
+	    if(flvFrame[0] =='F' && flvFrame[1]=='L' && flvFrame[2] == 'V') {
+		curIndex+=13;
+	    }        		
+	    while( curIndex < flvFrameLen ) {
+		int msgType = flvFrame[curIndex];
             	int msgSize = ((((int)flvFrame[curIndex+1])&0xff)<<16) | ((((int)flvFrame[curIndex+2])&0xff)<<8) | ((int)(flvFrame[curIndex+3])&0xff);
             	int msgTimestamp = ((((int)flvFrame[curIndex+4])&0xff)<<16) | ((((int)flvFrame[curIndex+5])&0xff)<<8) | ((int)(flvFrame[curIndex+6])&0xff) | ((((int)flvFrame[curIndex+7])&0xff)<<24);
-        		//log.info("=====>out message from {} 1stByte {} msgType {} msgSize {} ts {} on thread: {}", streamId, flvFrame[curIndex+11], msgType, msgSize, msgTimestamp, Thread.currentThread().getName());
-            	
-        		curIndex += 11;
-        		
-        		//RTMP Chunk Header
-        		Header msgHeader = new Header();
-        		msgHeader.setDataType((byte)msgType);//invoke is command, val=20
-        		msgHeader.setChannelId(3); //channel TODO does it really matter since we consume it internally.
-        		// see RTMPProtocolDecoder::decodePacket() 
-        		// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-        		msgHeader.setSize(msgSize);   //Chunk Data Length, a big enough buffersize
-        		msgHeader.setStreamId(streamId);  //streamid
-        		msgHeader.setTimerBase(0); //base+delta=timestamp
-        		msgHeader.setTimerDelta(msgTimestamp);
-        		msgHeader.setExtendedTimestamp(0); //extended timestamp
+		//log.info("=====>out message from {} 1stByte {} msgType {} msgSize {} ts {} on thread: {}", streamId, flvFrame[curIndex+11], msgType, msgSize, msgTimestamp, Thread.currentThread().getName());
+		curIndex += 11;
+        	
+		//RTMP Chunk Header
+		Header msgHeader = new Header();
+		msgHeader.setDataType((byte)msgType);//invoke is command, val=20
+		msgHeader.setChannelId(3); //channel TODO does it really matter since we consume it internally.
+		// see RTMPProtocolDecoder::decodePacket() 
+		// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+		msgHeader.setSize(msgSize);   //Chunk Data Length, a big enough buffersize
+		msgHeader.setStreamId(streamId);  //streamid
+		msgHeader.setTimerBase(0); //base+delta=timestamp
+		msgHeader.setTimerDelta(msgTimestamp);
+		msgHeader.setExtendedTimestamp(0); //extended timestamp
         		
             	RTMPMinaConnection conn = getAllInOneConn();
             	switch(msgType) {
-            		case Constants.TYPE_AUDIO_DATA:
-            		{
-            			AudioData msgEvent = new AudioData();
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);       			
-            			
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			
-            			//send delayedKaraoke to mixer
-            			if( isDelayedKaraoke ) {
-                			IoBuffer buf = null;
-        					if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
-        						pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
-        					}
-            			}            			
-            			break;
-            		}
-            		case Constants.TYPE_VIDEO_DATA:
-            		{
-            			VideoData msgEvent = new VideoData();
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
-            			
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			
-            			//send delayedKaraoke to mixer
-            			if( isDelayedKaraoke ) {
-                			IoBuffer buf = null;
-        					if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
-        						pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
-        					}
-            			} 
-            			break;
-            		}
-        
-            		case Constants.TYPE_STREAM_METADATA:
-            		{
-            			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			break;
-            		}
+		case Constants.TYPE_AUDIO_DATA:
+		    {
+			AudioData msgEvent = new AudioData();
+			msgEvent.setHeader(msgHeader);
+			msgEvent.setTimestamp(msgTimestamp);
+			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
+			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);       			
+            		
+			Packet msg = new Packet(msgHeader, msgEvent);
+			conn.handleMessageReceived(msg);
+            		
+			//send delayedKaraoke to mixer
+			if( isDelayedKaraoke ) {
+			    IoBuffer buf = null;
+			    if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
+				pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
+			    }
+			}            			
+			break;
+		    }
+		case Constants.TYPE_VIDEO_DATA:
+		    {
+			VideoData msgEvent = new VideoData();
+			msgEvent.setHeader(msgHeader);
+			msgEvent.setTimestamp(msgTimestamp);
+			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
+			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
+            		
+			Packet msg = new Packet(msgHeader, msgEvent);
+			conn.handleMessageReceived(msg);
+            		
+			//send delayedKaraoke to mixer
+			if( isDelayedKaraoke ) {
+			    IoBuffer buf = null;
+			    if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
+				pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
+			    }
+			} 
+			break;
+		    }
+		    
+		case Constants.TYPE_STREAM_METADATA:
+		    {
+			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
+			msgEvent.setHeader(msgHeader);
+			msgEvent.setTimestamp(msgTimestamp);
+			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
+			Packet msg = new Packet(msgHeader, msgEvent);
+			conn.handleMessageReceived(msg);
+			break;
+		    }
             	}
             	curIndex += (msgSize+4); //4 bytes unused
-    		}
+	    }
     	}
     }
     
@@ -230,50 +229,50 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private void handleConnectEvent(RTMPMinaConnection conn)
     {
-		///////////////////////////////////
-		//handle StreamAction.CONNECT event
-		//RTMP Chunk Header
-		Header connectMsgHeader = new Header();
-		connectMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
-		connectMsgHeader.setChannelId(3); //3 means invoke command
-		// see RTMPProtocolDecoder::decodePacket() 
-		// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-		connectMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
-		connectMsgHeader.setStreamId(0);  //0 means netconnection
-		connectMsgHeader.setTimerBase(0); //base+delta=timestamp
-		connectMsgHeader.setTimerDelta(0);
-		connectMsgHeader.setExtendedTimestamp(0); //extended timestamp
-		
-		//No need for PendingServiceCall only for callbacks with _result or _error
-		/*
-		if (call instanceof IPendingServiceCall) {
-			registerPendingCall(connectMsgEvent.getTransactionId(), (IPendingServiceCall) connectMsgEvent);
-		}
-		*/   
-		PendingCall connectCall = new PendingCall( "connect");
-		Invoke connectMsgEvent = new Invoke(connectCall);
-		connectMsgEvent.setHeader(connectMsgHeader);
-		connectMsgEvent.setTimestamp(0);
-		connectMsgEvent.setTransactionId(1);
-		connectMsgEvent.setCall(connectCall);
-		
-		Map<String, Object> connectParams = new HashMap<String, Object>();
-		connectParams.put("app", AppName);
-		connectParams.put("flashVer", "FMSc/1.0");
-		connectParams.put("swfUrl", "a.swf");
-		connectParams.put("tcUrl", "rtmp://"+ipAddr+":1935/"+AppName); //server ip address
-		connectParams.put("fpad", false);
-		connectParams.put("audioCodecs", 0x0fff); //All codecs
-		connectParams.put("videoCodecs", 0x0ff); //All codecs
-		connectParams.put("videoFunction", 1); //SUPPORT_VID_CLIENT_SEEK
-		connectParams.put("pageUrl", "a.html");
-		connectParams.put("objectEncoding", 0); //AMF0
-		connectMsgEvent.setConnectionParams(connectParams);
-		
-		Packet connectMsg = new Packet(connectMsgHeader, connectMsgEvent);
-		conn.handleMessageReceived(connectMsg);    	
-
-		log.info("A new connection event sent on thread: {}", Thread.currentThread().getName());
+	///////////////////////////////////
+	//handle StreamAction.CONNECT event
+	//RTMP Chunk Header
+	Header connectMsgHeader = new Header();
+	connectMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
+	connectMsgHeader.setChannelId(3); //3 means invoke command
+	// see RTMPProtocolDecoder::decodePacket() 
+	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+	connectMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
+	connectMsgHeader.setStreamId(0);  //0 means netconnection
+	connectMsgHeader.setTimerBase(0); //base+delta=timestamp
+	connectMsgHeader.setTimerDelta(0);
+	connectMsgHeader.setExtendedTimestamp(0); //extended timestamp
+	
+	//No need for PendingServiceCall only for callbacks with _result or _error
+	/*
+	  if (call instanceof IPendingServiceCall) {
+	  registerPendingCall(connectMsgEvent.getTransactionId(), (IPendingServiceCall) connectMsgEvent);
+	  }
+	*/   
+	PendingCall connectCall = new PendingCall( "connect");
+	Invoke connectMsgEvent = new Invoke(connectCall);
+	connectMsgEvent.setHeader(connectMsgHeader);
+	connectMsgEvent.setTimestamp(0);
+	connectMsgEvent.setTransactionId(1);
+	connectMsgEvent.setCall(connectCall);
+	
+	Map<String, Object> connectParams = new HashMap<String, Object>();
+	connectParams.put("app", AppName);
+	connectParams.put("flashVer", "FMSc/1.0");
+	connectParams.put("swfUrl", "a.swf");
+	connectParams.put("tcUrl", "rtmp://"+ipAddr+":1935/"+AppName); //server ip address
+	connectParams.put("fpad", false);
+	connectParams.put("audioCodecs", 0x0fff); //All codecs
+	connectParams.put("videoCodecs", 0x0ff); //All codecs
+	connectParams.put("videoFunction", 1); //SUPPORT_VID_CLIENT_SEEK
+	connectParams.put("pageUrl", "a.html");
+	connectParams.put("objectEncoding", 0); //AMF0
+	connectMsgEvent.setConnectionParams(connectParams);
+	
+	Packet connectMsg = new Packet(connectMsgHeader, connectMsgEvent);
+	conn.handleMessageReceived(connectMsg);    	
+	
+	log.info("A new connection event sent on thread: {}", Thread.currentThread().getName());
     }
     
     private void handleCreatePublishEvents(RTMPMinaConnection conn, String streamName, int streamId)
