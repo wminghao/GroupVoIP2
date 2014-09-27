@@ -6,14 +6,14 @@
 #include "fwk/Time.h"
 #include "fwk/Units.h"
 #include "CodecInfo.h"
-#include "FLVSegmentParserDelegate.h"
+#include "FLVParserDelegate.h"
 #include <string>
 
 using namespace std;
 class FLVParser
 {
  public:
- FLVParser(FLVSegmentParserDelegate* delegate, int index):delegate_(delegate), index_(index), scanState_ (SCAN_HEADER_TYPE_LEN), curFlvTagSize_(0), curStreamType_(kUnknownStreamType), relTimeStampOffset_(MAX_S32), prevVideoAdjPts_(0), prevAudioAdjPts_(0), prevVideoOrigPts_(0), prevAudioOrigPts_(0)
+ FLVParser(FLVParserDelegate* delegate, int index):delegate_(delegate), index_(index), scanState_ (SCAN_HEADER_TYPE_LEN), curFlvTagSize_(0), curStreamType_(kUnknownStreamType), relTimeStampOffset_(MAX_S32), prevVideoAdjPts_(0), prevAudioAdjPts_(0), prevVideoOrigPts_(0), prevAudioOrigPts_(0)
     {
         startEpocTime_ = getEpocTime();
     }
@@ -27,7 +27,7 @@ class FLVParser
         SCAN_HEADER_TYPE_LEN,
         SCAN_REMAINING_TAG,
     };
-    FLVSegmentParserDelegate* delegate_;
+    FLVParserDelegate* delegate_;
     int index_;
     SCAN_STATE scanState_;
     string curBuf_;

@@ -1,11 +1,11 @@
-#ifndef __FLVSEGMENTPARSERDELEGATE_H__
-#define __FLVSEGMENTPARSERDELEGATE_H__
+#ifndef __FLVPARSERDELEGATE_H__
+#define __FLVPARSERDELEGATE_H__
 
 #include "fwk/SmartBuffer.h"
 #include "CodecInfo.h"
 #include "AccessUnit.h"
 
-class FLVSegmentParserDelegate
+class FLVParserDelegate
 {
  public:
     virtual u32 getGlobalAudioTimestamp() = 0;

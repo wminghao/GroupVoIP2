@@ -365,6 +365,7 @@ bool FLVSegmentInput::readData(SmartPtr<SmartBuffer> input)
                                 nextVideoTimestamp_[index] = 0;
                                 lastBucketTimestamp_[index] = 0;
                                 hasStarted_[index] = 0;
+                                delegate_->onStreamEnded(index);
                                 LOG( "------->streamMask offline index=%d, numStreams=%d\r\n", index, numStreams_);
                             }
                             videoStreamStatus_[index] = kStreamOffline;

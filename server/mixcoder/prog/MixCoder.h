@@ -12,6 +12,7 @@
 #include "fwk/SmartBuffer.h"
 #include "CodecInfo.h"
 #include "RawData.h"
+#include "FLVSegmentInputDelegate.h"
 
 using namespace std;
 
@@ -24,12 +25,12 @@ class VideoDecoder;
 class AudioMixer;
 class VideoMixer;
 
-class MixCoder
+class MixCoder: public FLVSegmentInputDelegate
 {
  public:
     MixCoder(bool bUseVp8, int vBitrate, int width, int height,
              int aBitrate, int frequency);
-    ~MixCoder();
+    virtual ~MixCoder();
     
     /* returns false if we hit some badness, true if OK */
     bool newInput( SmartPtr<SmartBuffer> );
@@ -39,6 +40,9 @@ class MixCoder
     
     //at the end. flush the input
     void flush();
+
+    //delegate for flvSegmentInput
+    virtual void onStreamEnded(int streamId);
 
  private:
     //audio uses speex or mp3

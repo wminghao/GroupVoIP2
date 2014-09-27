@@ -195,6 +195,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 				pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
 			    }
 			} 
+			log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
 			break;
 		    }
 		    
@@ -206,6 +207,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
 			Packet msg = new Packet(msgHeader, msgEvent);
 			conn.handleMessageReceived(msg);
+			log.info("----------------onCuePoint, streamId = {}, size={}", streamId, msgSize);
 			break;
 		    }
             	}

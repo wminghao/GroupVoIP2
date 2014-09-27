@@ -31,11 +31,13 @@ class FLVSegmentOutput
 
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader );
 
+    void onStreamEnded(int streamId);
+
  private:
     SmartPtr<SmartBuffer> outputBuffer_[MAX_XCODING_INSTANCES+1];
 
     FLVOutput* output_[MAX_XCODING_INSTANCES+1];
-    u32 numStreams_;
+    //u32 numStreams_;
 };
 
 #endif

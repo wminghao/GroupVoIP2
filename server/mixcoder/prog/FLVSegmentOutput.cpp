@@ -112,3 +112,9 @@ SmartPtr<SmartBuffer> FLVSegmentOutput::getOneFrameForAllStreams()
     }
     return result;
 }
+
+void FLVSegmentOutput::onStreamEnded(int streamId)
+{
+    output_[streamId]->onStreamEnded();
+    outputBuffer_[streamId] = NULL;
+}

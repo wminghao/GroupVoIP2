@@ -21,6 +21,9 @@ class FLVOutput
 
     //save video header
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader ) { videoHeader_ = videoHeader; }
+
+    //onStreamEnded
+    void onStreamEnded() { flvHeaderSent_ = false; videoHeaderSent_ = false; }
  private:
     SmartPtr<SmartBuffer> newFlvHeader();
     SmartPtr<SmartBuffer> newVideoHeader(u32 ts);

@@ -29,7 +29,7 @@ MixCoder::MixCoder(bool bUseVp8, int vBitrate, int width, int height,
     VideoStreamSetting vOutputSetting = { kAVCVideoPacket, vWidth_, vHeight_ }; 
     AudioStreamSetting aOutputSetting = { kMP3, getAudioRate(44100), kSndStereo, kSnd16Bit, 0 };
 
-    flvSegInput_ = new FLVSegmentInput( 30, &aOutputSetting ); //end result 30 fps
+    flvSegInput_ = new FLVSegmentInput( this, 30, &aOutputSetting ); //end result 30 fps
                                          
     if( bUseVp8_ ) {
         vOutputSetting.vcid = kVP8VideoPacket;
@@ -222,6 +222,11 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
         }
     }
     return resultFlvPacket;
+}
+
+void MixCoder::onStreamEnded(int streamId)
+{
+    flvSegOutput_->onStreamEnded(streamId);
 }
 
 //at the end. flush the input

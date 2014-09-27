@@ -5,11 +5,12 @@
 #include "fwk/Time.h"
 #include "FLVParser.h"
 #include "CodecInfo.h"
-#include "FLVSegmentParserDelegate.h"
+#include "FLVParserDelegate.h"
 #include "RawData.h"
 #include "VideoDecoder.h"
 #include "AudioDecoder.h"
 #include "AudioTimestampMapper.h"
+#include "FLVSegmentInputDelegate.h"
 #include <queue>
 
 using namespace std;
@@ -48,10 +49,10 @@ using namespace std;
 //          When that happens, the stream's timestamp is resynced with the global timestamp.
 ///////////////////////////////////
 
-class FLVSegmentInput:public FLVSegmentParserDelegate
+class FLVSegmentInput:public FLVParserDelegate
 {
  public:
- FLVSegmentInput(u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): parsingState_(SEARCHING_SEGHEADER),
+ FLVSegmentInput(FLVSegmentInputDelegate* dele, u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): delegate_(dele), parsingState_(SEARCHING_SEGHEADER),
         curSegTagSize_(0), curStreamId_(0), curStreamLen_(0), curStreamCnt_(0),
         numStreams_(0), targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
         {
@@ -105,6 +106,9 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     virtual void onFLVFrameParsed( SmartPtr<AccessUnit> au, int index );
     virtual u32 getGlobalAudioTimestamp() { return globalAudioTimestamp_;}
  private:
+    //delegate for new output
+    FLVSegmentInputDelegate* delegate_;
+
     typedef enum StreamStatus
     {
         kStreamOffline,
