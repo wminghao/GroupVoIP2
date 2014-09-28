@@ -13,7 +13,7 @@ public class IdLookup {
 	//both original karaoke stream and allinone stream should not be mixed, the karaoke delayed stream should be mixed instead
 	private static final int KARAOKE_STREAM_MIXER_ID = 100;
 	private static final int ALL_IN_ONE_STREAM_MIXER_ID = MAX_STREAM_COUNT;
-	private static final int TOTAL_EXCLUDE_COUNT = 2; //orig karaoke stream + all-in-one stream
+	private static final int TOTAL_EXCLUDE_COUNT = 1; //exclude all-in-one stream
 	//mapping from original to streamId to newly generated stream
 	public class GroupMappingTableEntry {
 		public int 	  mixerId; //streamId used in MixCoder
