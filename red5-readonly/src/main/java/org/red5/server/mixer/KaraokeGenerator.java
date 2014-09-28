@@ -25,7 +25,6 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
 	private FLVParser flvParser_ = null;
 	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     private LinkedList<FLVFrameObject> flvFrameQueue_ = new LinkedList<FLVFrameObject>();
-    private LinkedList<DelayObject> delayObjectQueue_ = new LinkedList<DelayObject>();
     private final static long DELAY_INTERVAL = 100; //delay for 100 milliseconds.
     private int firstPTS_ = 0xffffffff;
     private int lastTimestamp_ = 0;
@@ -35,17 +34,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     Map<String,String> songMappingTable_ = new HashMap<String, String>();
     String curSongFile_ = "";
     String curSongName_ = "";
-    private AtomicBoolean bCancelCurrentSong = new AtomicBoolean(false);;
-    
-    private class DelayObject 
-    {
-    	public FLVFrameObject flvFrameObj_;
-    	public long enqueTime_;
-    	public DelayObject(FLVFrameObject flvFrame) {
-    		this.flvFrameObj_ = flvFrame;
-    		this.enqueTime_ = System.currentTimeMillis();
-    	}    	
-    }
+    private AtomicBoolean bCancelCurrentSong = new AtomicBoolean(false);
     
     private class FLVFrameObject
     {
@@ -62,7 +51,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
 	
     public interface Delegate {
-        public void onKaraokeFrameParsed(ByteBuffer frame, int len, boolean bIsDelayed);
+        public void onKaraokeFrameParsed(ByteBuffer frame, int len);
         public void onSongPlaying(String songName);
     }
 
@@ -104,15 +93,13 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
         	        	while ( true ) {
             	        	FLVFrameObject curFrame = flvFrameQueue_.peek();
         	        		if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
-        	        			checkForDelaySend();
         	        			Thread.sleep( 1 );
         	        		} else {
         	        			break;
         	        		}
         	        	}
     	        		FLVFrameObject curFrame = flvFrameQueue_.remove();
-	        			delegate_.onKaraokeFrameParsed(curFrame.frame, curFrame.frame.capacity(), false);
-	        			delayObjectQueue_.add(new DelayObject(curFrame)); //add to the delayed object queue
+	        			delegate_.onKaraokeFrameParsed(curFrame.frame, curFrame.frame.capacity());
 	            		//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
 	        		}
 
@@ -126,7 +113,6 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	        	} else {
             	        Thread.sleep(10);
     	        	}
-        			checkForDelaySend();
     	        }
     	    } catch (InterruptedException ex) {
           		log.info("InterruptedException:  {}", ex);
@@ -145,16 +131,13 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
 	        			Thread.sleep( 1 );
 	        		} else {
 	            		FLVFrameObject frame = flvFrameQueue_.remove();
-	        			delegate_.onKaraokeFrameParsed(frame.frame, frame.frame.capacity(), false);
-	        			delayObjectQueue_.add(new DelayObject(frame)); //add to the delayed object queue
+	        			delegate_.onKaraokeFrameParsed(frame.frame, frame.frame.capacity());
 	            		//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
 	        		}
-        			checkForDelaySend();
 	        	}
         	}
         	
-        	long duration = emptyDelayObjectQueue();
-            lastTimestamp_ += duration; //advance a little bit
+            lastTimestamp_ += 20; //advance a little bit
 			bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
         }
         catch (FileNotFoundException ex) {
@@ -184,8 +167,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
 		if( firstPTS_ == 0xffffffff ) {
 			//send the first frame immediately
 			firstPTS_ = timestamp;
-			delegate_.onKaraokeFrameParsed(frame, len, false);
-			delayObjectQueue_.add(new DelayObject(new FLVFrameObject(frame, len, timestamp)));
+			delegate_.onKaraokeFrameParsed(frame, len);
     		//log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
 		} else {
 			//for the rest, put into the queue first
@@ -205,32 +187,6 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
         	}
         }
         return bytesToRead;
-	}
-	
-	private void checkForDelaySend() {
-        long curTime = System.currentTimeMillis();
-		while ( !delayObjectQueue_.isEmpty() ) {
-        	DelayObject delayObj = delayObjectQueue_.peek();
-    		if( (curTime - delayObj.enqueTime_) >= DELAY_INTERVAL ) {
-    			delegate_.onKaraokeFrameParsed(delayObj.flvFrameObj_.frame, delayObj.flvFrameObj_.length, true); //send it to the delayed queue
-    			delayObjectQueue_.remove();
-    		} else {
-    			break;
-    		}
-    	}
-	}
-	//try to empty delayObjectQueue, needs at least 100ms
-	private long emptyDelayObjectQueue() {
-        long startTime = System.currentTimeMillis();
-		try{
-    		while(!delayObjectQueue_.isEmpty()) {
-    			checkForDelaySend();
-    			Thread.sleep( 10 );
-    		}
-		} catch (Exception ex) {
-      		log.info("General exception:  {}", ex);
-	    } 
-		return (System.currentTimeMillis()-startTime);
 	}
 	
 	private void readSongMappingTable() {

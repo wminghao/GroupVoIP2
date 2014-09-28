@@ -57,8 +57,8 @@ public class InputObject {
 		    flvSegment.put((byte)0); //even layout
 		    flvSegment.putInt(result[0]); //calc mask here
 		    byte idtype = (byte)((mixerId<<3) | kMobileStreamSource); // TODO assume all mobile
-		    if( streamName.equalsIgnoreCase(GroupMixer.KARAOKE_DELAYED_STREAM_NAME) ){
-			idtype = (byte)((mixerId<<3) | kDesktopStreamSource); // except for delayed_karaoke stream
+		    if( streamName.equalsIgnoreCase(GroupMixer.SPECIAL_STREAM_NAME) ){
+		    	idtype = (byte)((mixerId<<3) | kDesktopStreamSource); // except for delayed_karaoke stream
 		    }		    
 		    flvSegment.put((byte)idtype);
 		    flvSegment.put((byte)0); //ignore for now
@@ -86,10 +86,7 @@ public class InputObject {
 		    for (int i = 0; i < IdLookup.MAX_STREAM_COUNT; i++) {
 			int iMaskedVal = 1<<i;
 			if (i != mixerId && ( (result[0] & iMaskedVal) == iMaskedVal )) {
-			    idtype = (byte)((i<<3) | kMobileStreamSource); // TODO assume all mobile, except for delayed_karaoke stream
-			    if( streamName.equalsIgnoreCase(GroupMixer.KARAOKE_DELAYED_STREAM_NAME) ){
-				idtype = (byte)((i<<3) | kDesktopStreamSource); // except for delayed_karaoke stream
-			    }
+			    idtype = (byte)((i<<3) | kMobileStreamSource); // DOES NOT MATTER WHAT TYPE IT IS, ignored from the mixer
 			    flvSegment.put(idtype);
 			    flvSegment.put((byte)0); //ignore for now
 			    flvSegment.putInt(0); //no data for this stream

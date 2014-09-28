@@ -279,12 +279,12 @@ package
 			videoSelf.y = (y*screenHeight)/videoHeight;
 			videoSelf.width = (width*(screenWidth-2*screenX))/videoWidth;
 			videoSelf.height = (height*screenHeight)/videoHeight;
-			/*
+			
 			logDebug("videoSelf.x = " + videoSelf.x);
 			logDebug("videoSelf.y = " + videoSelf.y);
 			logDebug("videoSelf.width = " + videoSelf.width);			
 			logDebug("videoSelf.height = " + videoSelf.height);
-			*/
+			
 			this.addChild(videoOthers);
 			this.addChildAt(videoSelf, getChildIndex(videoOthers));
 		};

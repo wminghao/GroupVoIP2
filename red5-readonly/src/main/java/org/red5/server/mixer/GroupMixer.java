@@ -28,8 +28,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 
     public static final String MIXED_STREAM_PREFIX = "__mixed__";
     public static final String ALL_IN_ONE_STREAM_NAME = "allinone";
-    public static final String KARAOKE_ORIG_STREAM_NAME = "karaoke"; //test name
-    public static final String KARAOKE_DELAYED_STREAM_NAME = "karaoke_delayed"; //test name
+    public static final String SPECIAL_STREAM_NAME = "karaoke"; //test name
     private static final String AppName = "myRed5App";//TODO appName change to a room or something
     private static final String ipAddr = "localhost"; //TODO change to something else in the future
     private static GroupMixer instance_;
@@ -62,7 +61,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	if( allInOneSessionId_ == null ) {
 	    //starts process pipe
 	    if( bShouldMix ) {
-		mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
+	    	mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
 	    }
 	    // create a connection
 	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
@@ -86,9 +85,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    
 	    //kick off karaoke 
 	    if( bGenKaraoke ) {
-		karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
-            	createMixedStream(KARAOKE_ORIG_STREAM_NAME);
-            	createMixedStream(KARAOKE_DELAYED_STREAM_NAME);
+	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
+	    	createMixedStream(SPECIAL_STREAM_NAME);
 	    }
 	    
 	    log.info("Created all In One connection with sessionId {} on thread: {}", allInOneSessionId_, Thread.currentThread().getName());
@@ -129,7 +127,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	onFrameGenerated( streamId, frame, flvFrameLen, false );
     }
     
-    private void onFrameGenerated( int streamId, ByteBuffer frame, int flvFrameLen, boolean isDelayedKaraoke) {	
+    private void onFrameGenerated( int streamId, ByteBuffer frame, int flvFrameLen, boolean isKaraoke) {	
     	if ( streamId != -1 ) {
 	    byte[] flvFrame = frame.array();
 	    int curIndex = 0;
@@ -168,11 +166,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 			Packet msg = new Packet(msgHeader, msgEvent);
 			conn.handleMessageReceived(msg);
             		
-			//send delayedKaraoke to mixer
-			if( isDelayedKaraoke ) {
+			//send karaoke to mixer directly
+			if( isKaraoke ) {
 			    IoBuffer buf = null;
 			    if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
-				pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
+			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
 			    }
 			}            			
 			break;
@@ -188,11 +186,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 			Packet msg = new Packet(msgHeader, msgEvent);
 			conn.handleMessageReceived(msg);
             		
-			//send delayedKaraoke to mixer
-			if( isDelayedKaraoke ) {
+			//send Karaoke to mixer directly
+			if( isKaraoke ) {
 			    IoBuffer buf = null;
 			    if (msgEvent instanceof IStreamData && (buf = ((IStreamData<?>) msgEvent).getData()) != null) {
-				pushInputMessage(KARAOKE_DELAYED_STREAM_NAME, msgType, buf, msgTimestamp );
+				pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
 			    }
 			} 
 			log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
@@ -390,10 +388,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
 
 	@Override
-	public void onKaraokeFrameParsed(ByteBuffer frame, int len, boolean bIsDelayed) {
+	public void onKaraokeFrameParsed(ByteBuffer frame, int len) {
 		//either send it to the original stream or delayed stream.
-		int streamId = idLookupTable.lookupStreamId(bIsDelayed?KARAOKE_DELAYED_STREAM_NAME:KARAOKE_ORIG_STREAM_NAME);
-		onFrameGenerated(streamId, frame, len, bIsDelayed);
+		int streamId = idLookupTable.lookupStreamId(SPECIAL_STREAM_NAME);
+		onFrameGenerated(streamId, frame, len, true);
 	}
 
 	@Override

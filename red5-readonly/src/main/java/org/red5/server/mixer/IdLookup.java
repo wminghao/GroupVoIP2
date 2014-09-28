@@ -58,7 +58,7 @@ public class IdLookup {
 	int result = -1;
 	if(streamName.equalsIgnoreCase(GroupMixer.ALL_IN_ONE_STREAM_NAME)) {
 	    result = ALL_IN_ONE_STREAM_MIXER_ID; //should not be mixed
-	} else if(streamName.equalsIgnoreCase(GroupMixer.KARAOKE_ORIG_STREAM_NAME)) {
+	} else if(streamName.equalsIgnoreCase(GroupMixer.SPECIAL_STREAM_NAME)) {
 	    result = KARAOKE_STREAM_MIXER_ID; //should not be mixed
 	} else {
 	    for (int i = 0; true; i++) {
