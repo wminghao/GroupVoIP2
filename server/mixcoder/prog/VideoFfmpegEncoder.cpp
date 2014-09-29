@@ -10,14 +10,14 @@ VideoFfmpegEncoder::VideoFfmpegEncoder( VideoStreamSetting* setting, int vBaseLa
     av_register_all();
 
     /* find the vp6 video encoder */
-    AVCodecID codecType = AV_CODEC_ID_VP6;
+    AVCodecID codecType = AV_CODEC_ID_VP6F;
     if( codecId == kH263VideoPacket) {
         codecType = AV_CODEC_ID_FLV1;
     }
 
     codec_ = avcodec_find_encoder(codecType);
     if ( !codec_ ) {
-        LOG( "ffmpeg codec not found\n");
+        LOG( "ffmpeg codec not found, codecType=%d\n", codecType);
         exit(1);
     }
     context_ = avcodec_alloc_context3(codec_);
@@ -69,6 +69,7 @@ SmartPtr<SmartBuffer> VideoFfmpegEncoder::encodeAFrame(SmartPtr<SmartBuffer> inp
         int gotPkt;
         int ret = avcodec_encode_video2(context_, &pkt, picture_, &gotPkt);
         if( ret >= 0 && gotPkt ) {
+            *bIsKeyFrame = !(totalFrames_%30);
             totalFrames_++;
             //LOG("encoding frame %3d (size=%5d)\n", totalFrames_, pkt.size);
             result = new SmartBuffer( pkt.size, pkt.data );
