@@ -35,7 +35,7 @@ int main( int argc, char** argv ) {
     
     Logger::initLog("MixCoder", kSyslog);
     
-    VideoCodecId codecOutputId = kH263VideoPacket;//kVP6VideoPacket;//
+    VideoCodecId codecOutputId = kAVCVideoPacket;//kVP6VideoPacket;//
 
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( codecOutputId != kVP8VideoPacket ) {
