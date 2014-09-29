@@ -12,6 +12,7 @@
 #include <execinfo.h>
 #include <sys/types.h>
 #include "fwk/log.h"
+#include "CodecInfo.h"
 
 void handlesig( int signum )
 {    
@@ -33,10 +34,11 @@ int main( int argc, char** argv ) {
     signal( SIGSYS, handlesig );
     
     Logger::initLog("MixCoder", kSyslog);
+    
+    VideoCodecId codecOutputId = kH263VideoPacket;//kVP6VideoPacket;
 
-    bool bUseVp8 = false;
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
-    if( !bUseVp8 ) {
+    if( codecOutputId != kVP8VideoPacket ) {
         videoBitrate = 300; //300kbps
     }
     int videoWidth = 640;
@@ -45,7 +47,7 @@ int main( int argc, char** argv ) {
     int audioBitrate = 64; //64kbps
     int audioFrequency = 16000;
     
-    MixCoder* mixCoder = new MixCoder(bUseVp8, videoBitrate, videoWidth, videoHeight, audioBitrate, audioFrequency);
+    MixCoder* mixCoder = new MixCoder(codecOutputId, videoBitrate, videoWidth, videoHeight, audioBitrate, audioFrequency);
 
     u8 data[MAX_BUF_SIZE];
     SmartPtr<SmartBuffer> output;

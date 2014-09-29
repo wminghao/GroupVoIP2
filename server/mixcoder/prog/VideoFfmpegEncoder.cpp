@@ -1,24 +1,33 @@
-#include "VideoVp6Encoder.h"
+#include "VideoFfmpegEncoder.h"
 #include "fwk/log.h"
+#include "CodecInfo.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-VideoVp6Encoder::VideoVp6Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate)
+VideoFfmpegEncoder::VideoFfmpegEncoder( VideoStreamSetting* setting, int vBaseLayerBitrate, VideoCodecId codecId ):VideoEncoder(setting, vBaseLayerBitrate)
 {
+    /* register all the codecs */
+    av_register_all();
+
     /* find the vp6 video encoder */
-    codec_ = avcodec_find_encoder(CODEC_ID_VP6);
-    if (!codec_) {
-        LOG( "VP6 codec not found\n");
+    AVCodecID codecType = AV_CODEC_ID_VP6;
+    if( codecId == kH263VideoPacket) {
+        codecType = AV_CODEC_ID_FLV1;
+    }
+
+    codec_ = avcodec_find_encoder(codecType);
+    if ( !codec_ ) {
+        LOG( "ffmpeg codec not found\n");
         exit(1);
     }
     context_ = avcodec_alloc_context3(codec_);
     picture_ = avcodec_alloc_frame();
     
     /* put sample parameters */
-    context_->bit_rate = vBaseLayerBitrate*3*1024; //300kbps
+    context_->bit_rate = vBaseLayerBitrate*1024; //kbps
     /* resolution must be a multiple of two */
-    context_->width = 640;
-    context_->height = 480;
+    context_->width = setting->width;
+    context_->height = setting->height;
     /* frames per second */
     context_->time_base= (AVRational){1,30};
     context_->gop_size = 30; /* emit one intra frame every ten frames */
@@ -28,19 +37,19 @@ VideoVp6Encoder::VideoVp6Encoder( VideoStreamSetting* setting, int vBaseLayerBit
 
     /* open it */
     if ( avcodec_open2(context_, codec_, NULL) < 0 ) {
-        LOG("could not open VP6 codec\n");
+        LOG("could not open ffmpeg codec\n");
         exit(1);
     }    
 }
 
-VideoVp6Encoder::~VideoVp6Encoder()
+VideoFfmpegEncoder::~VideoFfmpegEncoder()
 {
     avcodec_close(context_);
     av_free(context_);
     av_free(picture_);
 }
 
-SmartPtr<SmartBuffer> VideoVp6Encoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
+SmartPtr<SmartBuffer> VideoFfmpegEncoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
 {
     SmartPtr<SmartBuffer> result;
     if ( input && input->dataLength() > 0 ) {
@@ -52,16 +61,20 @@ SmartPtr<SmartBuffer> VideoVp6Encoder::encodeAFrame(SmartPtr<SmartBuffer> input,
         picture_->linesize[2] = context_->width / 2;
         
         /* encode the image */
-
         AVPacket pkt;
         av_init_packet(&pkt);
+        pkt.data = NULL;    // packet data will be allocated by the encoder
+        pkt.size = 0;
+
         int gotPkt;
-        int out_size = avcodec_encode_video2(context_, &pkt, picture_, &gotPkt);
-        if( out_size > 0 && gotPkt ) {
+        int ret = avcodec_encode_video2(context_, &pkt, picture_, &gotPkt);
+        if( ret >= 0 && gotPkt ) {
             totalFrames_++;
-            LOG("encoding frame %3d (size=%5d)\n", totalFrames_, out_size);
+            //LOG("encoding frame %3d (size=%5d)\n", totalFrames_, pkt.size);
             result = new SmartBuffer( pkt.size, pkt.data );
             av_free_packet(&pkt);
+        } else {
+            LOG("----------failed to decode, out_size=%d, input->dataLength()=%d, gotPkt=%d", ret, input->dataLength(), gotPkt);
         }
     }
     return result;
