@@ -69,7 +69,8 @@ SmartPtr<SmartBuffer> VideoFfmpegEncoder::encodeAFrame(SmartPtr<SmartBuffer> inp
         int gotPkt;
         int ret = avcodec_encode_video2(context_, &pkt, picture_, &gotPkt);
         if( ret >= 0 && gotPkt ) {
-            *bIsKeyFrame = !(totalFrames_%30);
+            *bIsKeyFrame = context_->coded_frame->key_frame;
+
             totalFrames_++;
             //LOG("encoding frame %3d (size=%5d)\n", totalFrames_, pkt.size);
             result = new SmartBuffer( pkt.size, pkt.data );
