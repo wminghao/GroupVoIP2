@@ -28,7 +28,7 @@ class VideoMixer;
 class MixCoder: public FLVSegmentInputDelegate
 {
  public:
-    MixCoder(bool bUseVp8, int vBitrate, int width, int height,
+    MixCoder(VideoCodecId codecId, int vBitrate, int width, int height,
              int aBitrate, int frequency);
     virtual ~MixCoder();
     
@@ -47,9 +47,6 @@ class MixCoder: public FLVSegmentInputDelegate
  private:
     //audio uses speex or mp3
     bool bUseSpeex_;
-
-    //video uses vp8 or h264
-    bool bUseVp8_;
 
     //output settings
     int vBitrate_;

@@ -10,6 +10,7 @@
 #include "FLVSegmentOutput.h"
 #include "AudioSpeexEncoder.h"
 #include "AudioMp3Encoder.h"
+#include "VideoFfmpegEncoder.h"
 #include "VideoVp8Encoder.h"
 #include "VideoH264Encoder.h"
 #include "AudioMixer.h"
@@ -17,9 +18,8 @@
 #include "fwk/log.h"
 #include <assert.h>
 
-MixCoder::MixCoder(bool bUseVp8, int vBitrate, int width, int height, 
+MixCoder::MixCoder(VideoCodecId codecId, int vBitrate, int width, int height, 
                    int aBitrate, int frequency) : bUseSpeex_(false),
-                                                  bUseVp8_(bUseVp8),
                                                   vBitrate_(vBitrate),
                                                   vWidth_(width),
                                                   vHeight_(height),
@@ -31,13 +31,27 @@ MixCoder::MixCoder(bool bUseVp8, int vBitrate, int width, int height,
 
     flvSegInput_ = new FLVSegmentInput( this, 30, &aOutputSetting ); //end result 30 fps
                                          
-    if( bUseVp8_ ) {
-        vOutputSetting.vcid = kVP8VideoPacket;
-        videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
-    } else {
-        //vOutputSetting.vcid = kAVCVideoPacket;
-        videoEncoder_ = new VideoH264Encoder( &vOutputSetting, vBitrate_ );
+    switch( codecId ) {
+       case kH263VideoPacket: 
+       case kVP6VideoPacket: {
+           vOutputSetting.vcid = codecId;
+           videoEncoder_ = new VideoFfmpegEncoder( &vOutputSetting, vBitrate_, codecId );
+           break;
+       }
+       case kVP8VideoPacket: {
+           vOutputSetting.vcid = kVP8VideoPacket;
+           videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
+           break;
+       }
+       case kAVCVideoPacket: 
+       default: {
+           //vOutputSetting.vcid = kAVCVideoPacket;
+           videoEncoder_ = new VideoH264Encoder( &vOutputSetting, vBitrate_ );
+           break;
+       }
     }
+
+
     videoMixer_ = new VideoMixer(&vOutputSetting);
 
     if( bUseSpeex_ ) {
