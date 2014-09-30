@@ -171,17 +171,15 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
     //For case 1), we handle it by trimming its queue when a stream has frames comes in batch mode.
     if ( maxAudioQueueSize >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
         assert( minAudioQueueSize != MAX_U32);
-        if( maxAudioQueueSize == minAudioQueueSize ) {
-            //if all streams comes in a batch mode, reduce it to be 1 to go through
-            minAudioQueueSize = 1;
-        }
 
-        LOG("---------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", maxAudioQueueSize, minAudioQueueSize);
+        //reduce it by half to go through
+        u32 threshold = maxAudioQueueSize/2;
+        LOG("---------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d, threshold=%d!\n", maxAudioQueueSize, minAudioQueueSize, threshold);
         printQueueSize();
 
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
             if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
-                while ( audioQueue_[i].size() > minAudioQueueSize ) {
+                while ( audioQueue_[i].size() > threshold ) {
                     audioQueue_[i].pop();
                 }
             }
