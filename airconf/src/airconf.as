@@ -243,6 +243,9 @@ package
 			var cliente:Object = new Object();
 			cliente.onCuePoint = this.onCuePoint;
 			streamView.client = cliente;
+			streamView.bufferTime = 0;
+			streamView.bufferTimeMax = 0;
+			streamView.useJitterBuffer = true; //audio is mp3, so set buffer to be 0 
 			streamView.play(mixedStreamPrefix + publishDest);
 			
 			videoOthers = new Video();
