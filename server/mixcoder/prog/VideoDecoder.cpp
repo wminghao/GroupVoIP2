@@ -123,12 +123,13 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             }
         }
 
-        assert(inWidth_ && inHeight_);
         bool bCanDecode = true;
         if( codecType_ == kAVCVideoPacket && !spspps_) {
             bCanDecode = false;
         }
         if ( bCanDecode ) {
+            assert(inWidth_ && inHeight_);
+
             SmartPtr<SmartBuffer> buf = au->payload;
 
             //key frame must be combined with sps pps header

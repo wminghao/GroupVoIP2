@@ -23,7 +23,7 @@ void handlesig( int signum )
 }
 
 //big enough buffer
-const int MAX_BUF_SIZE = 4096;
+const int MAX_BUF_SIZE = 512;//4096;
 
 int main( int argc, char** argv ) {
 
@@ -35,7 +35,7 @@ int main( int argc, char** argv ) {
     
     Logger::initLog("MixCoder", kSyslog);
     
-    VideoCodecId codecOutputId = kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
+    VideoCodecId codecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
 
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( codecOutputId != kVP8VideoPacket ) {
