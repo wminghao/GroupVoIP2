@@ -16,7 +16,7 @@
 #include "AudioMixer.h"
 #include "VideoMixer.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 
 MixCoder::MixCoder(VideoCodecId codecId, int vBitrate, int width, int height, 
                    int aBitrate, int frequency) : bUseSpeex_(false),
@@ -109,7 +109,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
     } else if( bIsVideoReady ) {
         //for video ready, audio not ready case, do not pursue, since audio is always continuous.
         //curStreamType = kVideoStreamType;
-        assert(0);
+        ASSERT(0);
     }
 
     SmartPtr<SmartBuffer> resultFlvPacket = NULL;

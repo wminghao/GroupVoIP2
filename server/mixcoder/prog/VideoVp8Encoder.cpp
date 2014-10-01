@@ -1,6 +1,6 @@
 #include "VideoVp8Encoder.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 
 #define interface (vpx_codec_vp8_cx())
 
@@ -69,7 +69,7 @@ VideoVp8Encoder::VideoVp8Encoder( VideoStreamSetting* setting, int vBaseLayerBit
     //vp8 encoder
     if ( !vpx_img_alloc (&raw_, VPX_IMG_FMT_I420, setting->width, setting->height, 32)) {
         LOG( "Failed to allocate frame\n");
-        assert(0);
+        ASSERT(0);
         return;
     }
     /* Populate encoder configuration */
@@ -146,7 +146,7 @@ VideoVp8Encoder::VideoVp8Encoder( VideoStreamSetting* setting, int vBaseLayerBit
     /* Initialize codec */
     if (vpx_codec_enc_init (&codec_, interface, &cfg_, 0)) {
         LOG( "Failed to initialize encoder");
-        assert(0);
+        ASSERT(0);
     }
 
     /* Cap CPU & first I-frame size */

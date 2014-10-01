@@ -1,6 +1,6 @@
 #include "VideoMixer.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 
 int mappingToScalingWidth(int totalStream) {
     if(totalStream == 1) {
@@ -54,10 +54,10 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                 sws_scale( swsCtx_[i], inputPlanes, rawData[i]->rawVideoStrides_, 0, rawData[i]->rawVideoSettings_.height,
                            scaledPlanes, scaledVideoStrides[i]);
                 validStreamId[validStreamIdIndex++] = i;
-                assert(validStreamIdIndex <= totalStreams);
+                ASSERT(validStreamIdIndex <= totalStreams);
             }
         }
-        assert( validStreamIdIndex == totalStreams );
+        ASSERT( validStreamIdIndex == totalStreams );
 
         if ( totalStreams > 0 ) {
             int outputWidth = outputSetting_.width;
@@ -68,7 +68,7 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
 
             if( totalStreams == 1 ) {
                 int curStreamId = validStreamId[0];
-                assert( curStreamId != -1 );
+                ASSERT( curStreamId != -1 );
 
                 if(videoRect) {
                     videoRect[curStreamId].x = 0;
@@ -316,7 +316,6 @@ bool VideoMixer::tryToInitSws(SmartPtr<VideoRawData>* rawData, int totalStreams)
                                                    SWS_BICUBIC, 0, 0, 0 );
                 if( !swsCtx_[i] ) {
                     LOG("FAILED to create swscale context, inWidth=%d, inHeight=%d, outWith=%d, outHeight=%d\n", curSetting->width, curSetting->height, outputWidth, outputHeight);
-                    assert(0);
                     ret = false;
                 }
             }

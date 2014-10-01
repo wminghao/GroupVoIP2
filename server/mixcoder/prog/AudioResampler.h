@@ -5,10 +5,10 @@
 extern "C" {
 #include <samplerate.h> //resampling
 }
-#include <assert.h>
 #include <list>
 #include <stdlib.h>
 #include "fwk/SmartBuffer.h"
+#include "fwk/log.h"
 
 
 //each mp3 frame, contains 1152 samples
@@ -25,8 +25,8 @@ class AudioResampler
         alloc();
 
         frameSize_ = MP3_FRAME_SAMPLE_SIZE * sizeof(short) * outputChannels_;
-        assert(inputChannels_==1 || inputChannels_==2);
-        assert(outputChannels_==2);
+        ASSERT(inputChannels_==1 || inputChannels_==2);
+        ASSERT(outputChannels_==2);
     }
     ~AudioResampler(){
         reset();
@@ -53,7 +53,10 @@ class AudioResampler
     void alloc() {
         int error = 0;
         resamplerState_ = src_new( SRC_SINC_MEDIUM_QUALITY, inputChannels_, &error );
-        assert(resamplerState_);
+        if( !resamplerState_ ) {
+            LOG("***Cannot create resampler! inputChannels_=%d\n", inputChannels_);
+        }
+        ASSERT(resamplerState_);
     }
     void reset() {
         if( resamplerState_) {            

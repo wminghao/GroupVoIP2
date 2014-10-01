@@ -3,7 +3,7 @@
 #include "CodecInfo.h"
 #include "fwk/BitStreamParser.h"
 #include <stdio.h>
-#include <assert.h>
+#include "fwk/Units.h"
 
 const string stBytesPadding ("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);// FF_INPUT_BUFFER_PADDING_SIZE = 16
 
@@ -266,7 +266,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
             //based on the very 1st audio frame or very 1st video frame(not sps)
             if( MAX_S32 == relTimeStampOffset_ && accessUnit->st != kDataStreamType) {
                 //u64 curEpocTime = getEpocTime();
-                //assert( curEpocTime > startEpocTime_ );
+                //ASSERT( curEpocTime > startEpocTime_ );
                 //relTimeStampOffset_ = ( curEpocTime - startEpocTime_ ) - tsUnion.timestamp;
                 relTimeStampOffset_ = delegate_->getGlobalAudioTimestamp() - tsUnion.timestamp;
                 LOG( "==========================StreamId=%d Initial(Video/Audio) relTimestampOffset_=%d, tsUnion.timestamp=%d===========\r\n", index_, relTimeStampOffset_, tsUnion.timestamp);

@@ -1,5 +1,5 @@
 #include "AudioMp3Encoder.h"
-#include <assert.h>
+#include "fwk/Units.h"
 #include <stdio.h>
 #include <lame/lame.h>
 #include "fwk/log.h"
@@ -8,7 +8,7 @@ void error_handler_function(const char *format, va_list ap)
 {
     LOG( format, ap);
     //Not critical
-    //assert(0);
+    //ASSERT(0);
 }
 AudioMp3Encoder::AudioMp3Encoder(AudioStreamSetting* outputSetting, int aBitrate):AudioEncoder(outputSetting, aBitrate)
 {

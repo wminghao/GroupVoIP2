@@ -1,6 +1,6 @@
 #include "AudioFfmpegDecoder.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 
 AudioFfmpegDecoder::~AudioFfmpegDecoder()
 {
@@ -37,15 +37,21 @@ void  AudioFfmpegDecoder::newAccessUnit( SmartPtr<AccessUnit> au, AudioStreamSet
         } else if ( setting_.acid == kMP3 ) {
             codecID = CODEC_ID_MP3;
         } else {
+            LOG("----------Unknown codec! setting_.acid=%d", setting_.acid);
             //don't support other codecs
-            assert(0);
         }
 
         decoderInst_ = avcodec_find_decoder( codecID );
-        assert(decoderInst_);
+        if( !decoderInst_ ) {
+            LOG("----decoderInst_ failed");
+        }
+        ASSERT(decoderInst_);
 
         decoderCtx_ = avcodec_alloc_context3( decoderInst_ );
-        assert(decoderCtx_);
+        if( !decoderCtx_ ) {
+            LOG("----decoderCtx_ failed");
+        }
+        ASSERT(decoderCtx_);
 
         decoderCtx_->request_sample_fmt = AV_SAMPLE_FMT_S16;
 
@@ -62,7 +68,9 @@ void  AudioFfmpegDecoder::newAccessUnit( SmartPtr<AccessUnit> au, AudioStreamSet
         }
 
         decoderFrame_ = avcodec_alloc_frame();
-        assert(decoderFrame_);
+        if( !decoderFrame_ ) {
+            LOG("----decoderFrame_ failed");
+        }
         
         AVDictionary* d = 0;
         if( avcodec_open2( decoderCtx_, decoderInst_, &d ) < 0 ) {

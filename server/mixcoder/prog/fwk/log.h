@@ -2,7 +2,6 @@
 #define __LOG_H__
 
 #include <fstream>
-#include <assert.h>
 #include <stdarg.h>
 
 

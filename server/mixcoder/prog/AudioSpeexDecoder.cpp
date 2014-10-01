@@ -1,6 +1,6 @@
 #include "AudioSpeexDecoder.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 #include <stdio.h>
 
 AudioSpeexDecoder::~AudioSpeexDecoder()
@@ -12,7 +12,7 @@ AudioSpeexDecoder::~AudioSpeexDecoder()
 
 void AudioSpeexDecoder::newAccessUnit( SmartPtr<AccessUnit> au , AudioStreamSetting* aRawSetting)
 {
-    assert(au->st == kAudioStreamType);
+    ASSERT(au->st == kAudioStreamType);
         
     if( au && au->payload ) { 
         speex_bits_read_from(&bits_, (char*)au->payload->data(), au->payload->dataLength());

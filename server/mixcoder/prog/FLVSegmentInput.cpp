@@ -1,6 +1,6 @@
 #include "FLVSegmentInput.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 #include <stdio.h>
 #include "AudioDecoderFactory.h"
 
@@ -82,8 +82,9 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
                             //LOG( "--not ready. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d\r\n", audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp);
                         }
                     } else { 
-                        assert( audioBucketTimestamp >= frameTimestamp );
-                        assert( audioBucketTimestamp > nextBucketTimestamp );
+                        ////frameTimestamp > nextBucketTimestamp 
+                        //ASSERT( audioBucketTimestamp >= frameTimestamp );
+                        //ASSERT( audioBucketTimestamp > nextBucketTimestamp );
                         //if audio is already ahead, pop that frame out
                         nextVideoTimestamp_[i] = lastBucketTimestamp_[i] = audioBucketTimestamp;
                         minVideoTimestamp  = MIN(minVideoTimestamp, audioBucketTimestamp); //strictly follow
@@ -129,6 +130,9 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
 
 void FLVSegmentInput::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSize)
 {
+    maxAudioQueueSize = 0;
+    minAudioQueueSize = MAX_U32;
+
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
             maxAudioQueueSize = MAX( maxAudioQueueSize, audioQueue_[i].size());
@@ -170,7 +174,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
         
     //For case 1), we handle it by trimming its queue when a stream has frames comes in batch mode.
     if ( maxAudioQueueSize >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
-        assert( minAudioQueueSize != MAX_U32);
+        ASSERT( minAudioQueueSize != MAX_U32);
 
         //reduce it by half to go through
         u32 threshold = maxAudioQueueSize/2;
@@ -186,8 +190,6 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
         }
     
         //then calculate maxAudioQueueSize again
-        maxAudioQueueSize = 0;
-        minAudioQueueSize = MAX_U32;
         calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
     }
 
@@ -311,8 +313,8 @@ bool FLVSegmentInput::readData(SmartPtr<SmartBuffer> input)
                 }
 
                 if ( curBuf_.size() >= 4 ) {
-                    assert(curBuf_[0] == 'S' && curBuf_[1] == 'G' && curBuf_[2] == 'I');
-                    assert(curBuf_[3] == 0); //even layout for now
+                    ASSERT(curBuf_[0] == 'S' && curBuf_[1] == 'G' && curBuf_[2] == 'I');
+                    ASSERT(curBuf_[3] == 0); //even layout for now
                     curBuf_.clear();
                     curSegTagSize_ = 0;
                     parsingState_ = SEARCHING_STREAM_MASK;
@@ -335,7 +337,7 @@ bool FLVSegmentInput::readData(SmartPtr<SmartBuffer> input)
                     
                     //handle mask here 
                     numStreams_ = count_bits(streamMask);
-                    assert(numStreams_ < (u32)MAX_XCODING_INSTANCES);
+                    ASSERT(numStreams_ < (u32)MAX_XCODING_INSTANCES);
                     //LOG( "---streamMask=0x%x\r\n", streamMask);
                     int index = 0;
                     while( index < (int)MAX_XCODING_INSTANCES ) {
@@ -391,11 +393,11 @@ bool FLVSegmentInput::readData(SmartPtr<SmartBuffer> input)
                 }
                 if ( curBuf_.size() >= 6 ) {
                     curStreamId_ = (curBuf_[0]&0xf8)>>3; //first 5 bits
-                    assert(curStreamId_ < (u32)MAX_XCODING_INSTANCES);
+                    ASSERT(curStreamId_ < (u32)MAX_XCODING_INSTANCES);
 
                     u32 curStreamSource = (curBuf_[0]&0x7); //last 3 bits
-                    assert( curStreamSource < kTotalStreamSource);
-                    assert(curBuf_[1] == 0x0); //ignore the special property
+                    ASSERT( curStreamSource < kTotalStreamSource);
+                    ASSERT(curBuf_[1] == 0x0); //ignore the special property
 
                     memcpy(&curStreamLen_, curBuf_.data()+2, 4); //read the len
                     if( curStreamLen_ > 0 ) {

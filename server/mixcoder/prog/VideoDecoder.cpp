@@ -4,7 +4,7 @@ extern "C" {
 }
 
 #include "VideoDecoder.h"
-#include <assert.h>
+#include "fwk/Units.h"
 #include "fwk/log.h"
             
 VideoDecoder::~VideoDecoder() {
@@ -36,7 +36,7 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
     } else if (codecType_ == kH263VideoPacket) {
         codecId = CODEC_ID_FLV1; //sorenson spark, details see http://en.wikipedia.org/wiki/Sorenson_Media#Encoding_Technologies
     } else {
-        assert(0);
+        ASSERT(0);
     }
 
     /* AVCodec/Decode init */
@@ -88,8 +88,8 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
 bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData> v)
 {
     bool bIsValidFrame = false;
-    assert( au->st == kVideoStreamType );
-    assert( au->ctype == kAVCVideoPacket || au->ctype == kH263VideoPacket);
+    ASSERT( au->st == kVideoStreamType );
+    ASSERT( au->ctype == kAVCVideoPacket || au->ctype == kH263VideoPacket);
 
     //save the settings here
     v->sp = au->sp;
@@ -128,7 +128,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             bCanDecode = false;
         }
         if ( bCanDecode ) {
-            assert(inWidth_ && inHeight_);
+            ASSERT(inWidth_ && inHeight_);
 
             SmartPtr<SmartBuffer> buf = au->payload;
 
@@ -157,8 +157,8 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             */
             if( ( rval = avcodec_decode_video2( codecCtx_, frame_, &gotPic, &pkt ) ) > 0) {
                 if( gotPic ) {
-                    assert(inWidth_ == frame_->width);
-                    assert(inHeight_ == frame_->height);
+                    ASSERT(inWidth_ == frame_->width);
+                    ASSERT(inHeight_ == frame_->height);
 
                     int uvHeight = inHeight_/2; //422 vs. 420
 

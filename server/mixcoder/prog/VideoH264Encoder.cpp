@@ -1,6 +1,6 @@
 #include "VideoH264Encoder.h"
 #include "fwk/log.h"
-#include <assert.h>
+#include "fwk/Units.h"
 
 VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerBitrate ):VideoEncoder(setting, vBaseLayerBitrate), videoHeaderGen_(false), frameInputCnt_(0), frameOutputCnt_(0)
 {  
@@ -37,7 +37,7 @@ VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerB
     x264Ctx_ = x264_encoder_open( & x264Param_ );
     if( !x264Ctx_ ) {
         LOG("---Error cannot create x264 context");
-        assert(0);
+        ASSERT(0);
     }
 
     x264_picture_init( &x264Pic_ );
@@ -96,7 +96,7 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 
         payloadSize = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
         if( payloadSize >= 5 && i_nal == 1) {
-            assert(nals[0].i_payload == payloadSize);
+            ASSERT(nals[0].i_payload == payloadSize);
 
             /*
             //Replace 00 00 00 01 with NAL length in big endian
