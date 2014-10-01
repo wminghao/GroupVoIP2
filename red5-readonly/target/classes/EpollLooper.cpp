@@ -86,6 +86,7 @@ EpollLooper::~EpollLooper()
         EpollEvent* event = itTemp->second;
         freeProc(event);
     }
+    close( epollfd_ );
     OUTPUT("EpollLooper destroyed");
 }
     
@@ -160,7 +161,11 @@ void* EpollLooper::thread()
             if(events[i].events & EPOLLHUP || events[i].events & EPOLLERR) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 if( epollEvent ) {
-                    OUTPUT("i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
+                    if( events[i].events & EPOLLHUP ) {
+                        OUTPUT("EPOLLHUP i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
+                    } else {
+                        OUTPUT("EPOLLERR i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
+                    }
                     //broken pipe
                     closeFd( epollEvent );
                     events[i].data.ptr = NULL;
