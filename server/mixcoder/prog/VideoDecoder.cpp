@@ -43,13 +43,13 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
     codec_ = avcodec_find_decoder( codecId );
     if( ! codec_ ) {
         LOG("FAILED to find decoder, FAILING\n");
-        exit(-1);
+        return;
     }
 
     codecCtx_ = avcodec_alloc_context3( codec_ );
     if( ! codecCtx_ ) {
         LOG("FAILED to init decoder, FAILING2\n" );
-        exit(-1);
+        return;
     }
     
     /*
@@ -72,6 +72,7 @@ void VideoDecoder::initDecoder( SmartPtr<SmartBuffer> spspps ) {
 
     if( avcodec_open2( codecCtx_, codec_, &d ) < 0 ) {
         LOG("FAILED to open decoder, FAILING3\n" );
+        return;
     }
 
     LOG("===>video decoder created: codecType_=%d, cid1=%d, cid2=%d\r\n", codecType_, codecId, codecCtx_->codec->id);

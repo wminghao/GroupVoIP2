@@ -18,7 +18,7 @@ VideoFfmpegEncoder::VideoFfmpegEncoder( VideoStreamSetting* setting, int vBaseLa
     codec_ = avcodec_find_encoder(codecType);
     if ( !codec_ ) {
         LOG( "ffmpeg codec not found, codecType=%d\n", codecType);
-        exit(1);
+        return;
     }
     context_ = avcodec_alloc_context3(codec_);
     picture_ = avcodec_alloc_frame();
@@ -38,7 +38,6 @@ VideoFfmpegEncoder::VideoFfmpegEncoder( VideoStreamSetting* setting, int vBaseLa
     /* open it */
     if ( avcodec_open2(context_, codec_, NULL) < 0 ) {
         LOG("could not open ffmpeg codec\n");
-        exit(1);
     }    
 }
 

@@ -18,7 +18,22 @@ void handlesig( int signum )
 {    
     LOG( "Exiting on signal: %d", signum  );
     LOG( "GroupVoip just crashed, see stack dump below." );
-    //TODO print stack trace
+    LOG( "---------------------------------------------");
+    void *array[10];
+    size_t bt_size;
+
+    // get void*'s for all entries on the stack
+    bt_size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    char **bt_syms = backtrace_symbols(array, bt_size);
+    for (size_t i = 1; i < bt_size; i++) {
+        //size_t len = strlen(bt_syms[i]);
+        LOG("%s", bt_syms[i]);
+    }
+    free( bt_syms );
+    LOG( "---------------------------------------------");
+
     exit( 0 );
 }
 
