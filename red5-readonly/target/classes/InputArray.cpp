@@ -45,7 +45,7 @@ bool InputArray::pushFront(unsigned char* data, unsigned int len) {
             OUTPUT("-----malloc failed InputArray totalBytesToWrite_=%d, len=%d\n", totalBytesToWrite_, len);
         }
     } else {
-        OUTPUT("-----exceed InputArray size, totalBytesToWrite_=%d, len=%d\n", totalBytesToWrite_, len);
+        OUTPUT("-----exceed InputArray size, totalBytesToWrite_=%d, queuesize=%d len=%d\n", totalBytesToWrite_, inputObjectList_.size(), len);
         bRet = false;
     }
     return bRet;
