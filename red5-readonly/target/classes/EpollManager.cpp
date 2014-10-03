@@ -2,8 +2,19 @@
 #include "ProcessPipe.h"
 #include "InputArray.h"
 #include "Output.h"
+#include <sys/param.h>
+#include <sys/fcntl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/signal.h>
+#include <execinfo.h>
+#include <sys/types.h>
+#include <sys/resource.h>
 
 EpollManager::EpollManager(WriteCallback callback):looper_(callback) {
+    //TODO monitor child process status, and restart it if necessary.
+    signal(SIGCHLD, SIG_IGN); //ignore child process death for now. don't occupy resource in the system
 }
 EpollManager::~EpollManager() {
     std::tr1::unordered_map< int, ProcessObject* >::const_iterator itBegin = pipeMap_.begin();
