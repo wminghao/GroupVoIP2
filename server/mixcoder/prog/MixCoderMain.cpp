@@ -48,6 +48,7 @@ int main( int argc, char** argv ) {
     signal( SIGFPE, handlesig );
     signal( SIGBUS, handlesig );
     signal( SIGSYS, handlesig );
+    signal( SIGTERM, handlesig );
 
     Logger::initLog("MixCoder", kSyslog);
     
