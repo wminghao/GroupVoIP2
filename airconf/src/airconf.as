@@ -187,8 +187,8 @@ package
 				this.addChildAt(videoSelf, getChildIndex(videoOthers));
 				videoSelf.x = screenX;
 				videoSelf.y = screenY;
-				videoSelf.width = screenWidth-2*screenX;
-				videoSelf.height = screenHeight;
+				videoSelf.width = (screenWidth-2*screenX)/2;
+				videoSelf.height = screenHeight/2;
 				videoSelf.visible = true;
 				
 				mic.setSilenceLevel(0,200);
