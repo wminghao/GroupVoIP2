@@ -11,6 +11,7 @@
 #include <sys/signal.h>
 #include <execinfo.h>
 #include <sys/types.h>
+#include <sys/resource.h>
 #include "fwk/log.h"
 #include "CodecInfo.h"
 
@@ -47,8 +48,19 @@ int main( int argc, char** argv ) {
     signal( SIGFPE, handlesig );
     signal( SIGBUS, handlesig );
     signal( SIGSYS, handlesig );
-    
+
     Logger::initLog("MixCoder", kSyslog);
+    
+    /*
+      TODO enable core dump
+    //write to /tmp directory
+    const char *directory = "/tmp";
+    int ret = chdir (directory);
+    rlimit core_limit = { RLIM_INFINITY, RLIM_INFINITY };
+    if( setrlimit( RLIMIT_CORE, &core_limit ) == 0 ) {
+        //LOG("---Core dump enabled.");
+    }
+    */
     
     VideoCodecId codecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
 
