@@ -267,8 +267,8 @@ static int flv_set_video_codec(AVFormatContext *s, AVStream *vstream,
     case FLV_CODECID_VP8:
         vcodec->codec_id = AV_CODEC_ID_VP8;
         vcodec->codec_tag = 0x30385056; //fourcc vp8
-	avio_skip(s->pb, 8); // TODO skip 8 bytes of information
-        return 8;     // 8 bytes of extra info
+	//avio_skip(s->pb, 8); // don't skip 8 bytes of x, y, width, height.
+        break;
     default:
         av_log(s, AV_LOG_INFO, "Unsupported video codec (%x)\n", flv_codecid);
         vcodec->codec_tag = flv_codecid;
