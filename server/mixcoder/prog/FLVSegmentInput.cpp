@@ -16,7 +16,7 @@ const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 // 3) audioBucketTimestamp, in abnormal case, bucket can advance by multiple of 33ms (audio jumps timestamp ahead)
 //                         in case there is no video frame within the nextBucket, it's used.
 ////////////////////////////////////////////////////////////////
-bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
+bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudioTimestamp)
 {
     minVideoTimestamp = 0xffffffff;
     bool recordFrameTimestamp[MAX_XCODING_INSTANCES];
@@ -30,11 +30,11 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
 
             //audioBuckeTimestamp is the bucket under which the audio packet falls into. (strictly folow 33ms rule)
             double audioBucketTimestamp = nextBucketTimestamp; //strictly follow 33ms rule
-            if( nextAudioTimestamp_[i] ) {
-                audioBucketTimestamp = lastBucketTimestamp_[i] + frameInterval * ((int)(((double)nextAudioTimestamp_[i] - lastBucketTimestamp_[i])/frameInterval)); 
+            if( minAudioTimestamp ) {
+                audioBucketTimestamp = lastBucketTimestamp_[i] + frameInterval * ((int)(((double)minAudioTimestamp - lastBucketTimestamp_[i])/frameInterval)); 
             }
 
-            //nextLimitTimestamp is useful if audio is ahead of video bucket.
+            //nextLimitTimestamp is useful if audio is way ahead of video bucket.
             u32 nextLimitTimestamp = MAX( nextBucketTimestamp, audioBucketTimestamp );
 
             //frame timestamp is the max video timestamp before the limit
@@ -65,32 +65,58 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp)
                 //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
             }
 
+            //Total of 6 cases
             //after the first frame. every 33ms, considers it's ready, regardless whether there is a frame or not
             if( hasStarted_[i] ) {
                 if ( frameTimestamp != MAX_U32 ) {
                     if( frameTimestamp <= (u32)nextBucketTimestamp ) { 
                         if( audioBucketTimestamp >= nextBucketTimestamp) {
+                            //////////////////////////////////////////////////////////////////////////////////////////////////////
+                            //Case 1. frameTimestamp <= nextBucketTimestamp <= audioBucketTimestamp 
+                            //////////////////////////////////////////////////////////////////////////////////////////////////////
                             //video has accumulated some data and audio has already catch up
                             nextVideoTimestamp_[i] = lastBucketTimestamp_[i] = nextBucketTimestamp; //strictly follow
                             minVideoTimestamp = MIN(minVideoTimestamp, nextBucketTimestamp); //strictly follow
                             //LOG( "===follow up video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d, lastBucketTimestamp_=%d, recordFrameTimestamp[i]=%d\r\n",minVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp, (u32)lastBucketTimestamp_[i], recordFrameTimestamp[i]);
                         } else {
+                            ASSERT(audioBucketTimestamp < nextBucketTimestamp);
                             //wait for the nextBucketTimestamp, since audio is not ready yet, not advanced to the next level yet
-                            //audio not ready yet, but video can pop out,
-                            nextVideoTimestamp_[i] = lastBucketTimestamp_[i] = frameTimestamp;
-                            minVideoTimestamp = MIN(minVideoTimestamp, frameTimestamp); 
-                            //LOG( "--audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d, recordFrameTimestamp[i]=%d\r\n", frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp, recordFrameTimestamp[i]);
+                            if( frameTimestamp <= audioBucketTimestamp ) {
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //Case 2. frameTimestamp <= audioBucketTimestamp < nextBucketTimestamp
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //audio not ready yet, but video can pop out,
+                                nextVideoTimestamp_[i] = audioBucketTimestamp;
+                                //dont advance lastBucketTimestamp_[i]
+                                minVideoTimestamp = MIN(minVideoTimestamp, audioBucketTimestamp );
+                                //LOG( "--audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d, recordFrameTimestamp[i]=%d\r\n", frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp, recordFrameTimestamp[i]);
+                            } else {
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //Case 3. audioBucketTimestamp < frameTimestamp <= nextBucketTimestamp
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //audio may or may not be ready yet, but video can pop out,
+                                nextVideoTimestamp_[i] = frameTimestamp;
+                                //dont advance lastBucketTimestamp_[i]
+                                minVideoTimestamp = MIN(minVideoTimestamp, frameTimestamp); 
+                                //LOG( "--audio may be ready, give it a try. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d, recordFrameTimestamp[i]=%d\r\n", frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp, recordFrameTimestamp[i]);
+                            }
                         }
                     } else { 
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////
+                        //Case 4. nextBucketTimestamp < frameTimestamp <= audioBucketTimestamp 
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////
                         ////frameTimestamp > nextBucketTimestamp 
-                        //ASSERT( audioBucketTimestamp >= frameTimestamp );
-                        //ASSERT( audioBucketTimestamp > nextBucketTimestamp );
-                        //if audio is already ahead, pop that frame out
+                        ASSERT( audioBucketTimestamp >= frameTimestamp );
+                        ASSERT( audioBucketTimestamp > nextBucketTimestamp );
+                        //if audio is already ahead, pop that frame out, jump forward
                         nextVideoTimestamp_[i] = lastBucketTimestamp_[i] = audioBucketTimestamp;
                         minVideoTimestamp  = MIN(minVideoTimestamp, audioBucketTimestamp); //strictly follow
                         //LOG( "===follow up 2 video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d, lastBucketTimestamp_=%d, recordFrameTimestamp[i]=%d\r\n", minVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp, (u32)lastBucketTimestamp_[i], recordFrameTimestamp[i]);
                     }
                 } else {
+                    //////////////////////////////////////////////////////////////////////////////////////////////////////
+                    //Case 5 & 6. frameTimestamp > MAX( audioBucketTimestamp, nextBucketTimestamp )
+                    //////////////////////////////////////////////////////////////////////////////////////////////////////
                     //no data available
                     //wait for the nextBucketTimestamp
                     //LOG( "--no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d, recordFrameTimestamp[i]=%d\r\n", audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp, recordFrameTimestamp[i]);
