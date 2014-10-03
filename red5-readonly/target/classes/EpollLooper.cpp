@@ -165,6 +165,15 @@ void* EpollLooper::thread()
                         OUTPUT("EPOLLHUP i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
                     } else {
                         OUTPUT("EPOLLERR i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
+                        int       error = 0;
+                        socklen_t errlen = sizeof(error);
+                        if (getsockopt(epollEvent->inputToProcess, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
+                            OUTPUT("-->Details: EPOLLERR i=%d n=%d Input pipe broken. %s", i, n, strerror(error));
+                        } 
+                        error = 0;
+                        if (getsockopt(epollEvent->outputFromProcess, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
+                            OUTPUT("-->Details: EPOLLERR i=%d n=%d Output pipe broken. %s", i, n, strerror(error));
+                        }
                     }
                     //broken pipe
                     closeFd( epollEvent );
