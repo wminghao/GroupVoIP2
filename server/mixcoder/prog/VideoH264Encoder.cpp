@@ -117,7 +117,6 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
     return result;
 }
 
-//TODO spspps header generation, attach to each key frame
 SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
 {
     SmartPtr<SmartBuffer> header = NULL;

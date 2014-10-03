@@ -188,6 +188,11 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
     SmartPtr<SmartBuffer> videoFrame = new SmartBuffer( fixedFlvHeaderLen + videoDataLen + 4 );
     u8* data = videoFrame->data();
 
+    //if it's keyframe, inject spspps for each frame
+    if( bIsKeyFrame ) {
+        videoHeaderSent_ = false;
+    }
+
     //frame tag
     data[0] = (u8)kVideoStreamType;
     //frame data length
