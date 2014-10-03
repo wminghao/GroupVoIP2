@@ -17,8 +17,10 @@ InputArray::~InputArray(){
     OUTPUT("-----InputArray destroyed----\r\n");
     while( !inputObjectList_.empty() ) {
         InputObject* newObj = inputObjectList_.back();
-        free(newObj->data);
-        free(newObj);
+        if( newObj ) {
+            free(newObj->data);
+            free(newObj);
+        }
         inputObjectList_.pop_back();
     }
 }
@@ -27,13 +29,23 @@ bool InputArray::pushFront(unsigned char* data, unsigned int len) {
     //OUTPUT("-----Pushed to Inputarray, len=%d----\r\n", len);
     if( (totalBytesToWrite_ + len ) < MAX_CLOG_WRITE_BUFFER ) {
         InputObject* newObj = (InputObject*)malloc(sizeof(InputObject));
-        newObj->data = (unsigned char*)malloc(len);
-        memcpy(newObj->data, data, len);
-        newObj->len = len;
-        Guard g(&mutex_);
-        inputObjectList_.push_front(newObj);
-        totalBytesToWrite_ += len;
+        bool bIsSuccessful = false;
+        if( newObj ) {
+            newObj->data = (unsigned char*)malloc(len);
+            if( newObj->data ) {
+                memcpy(newObj->data, data, len);
+                newObj->len = len;
+                Guard g(&mutex_);
+                inputObjectList_.push_front(newObj);
+                totalBytesToWrite_ += len;
+                bIsSuccessful = true;
+            } 
+        }
+        if( !bIsSuccessful ) {
+            OUTPUT("-----malloc failed InputArray totalBytesToWrite_=%d, len=%d\n", totalBytesToWrite_, len);
+        }
     } else {
+        OUTPUT("-----exceed InputArray size, totalBytesToWrite_=%d, len=%d\n", totalBytesToWrite_, len);
         bRet = false;
     }
     return bRet;

@@ -125,11 +125,14 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
 				bytesToRead += bytesRead;
 			    }
             	        }
-            	        segParser_.readData(result, bytesToRead); //send to segment parser
+			//Input segment
+			mixCoderBridge.sendInput(result, bytesToRead, procId);
+			//Output segment
+            	        //segParser_.readData(result, bytesToRead); //send to segment parser
             	        bytesTotal += bytesToRead;
             	        Thread.sleep(20);
     
-			log.info("Total bytes read:  {}, len {}", bytesTotal, fileLen);
+			//log.info("Total bytes read:  {}, len {}", bytesTotal, fileLen);
 		    }
 		} catch (InterruptedException ex) {
 		    log.info("InterruptedException:  {}", ex);

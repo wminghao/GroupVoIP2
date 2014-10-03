@@ -94,7 +94,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
     bool bIsAudioReady = flvSegInput_->isNextAudioStreamReady( audioPts );
 
     u32 videoPts = 0;//min video Pts as the final pts
-    bool bIsVideoReady = bIsAudioReady?flvSegInput_->isNextVideoStreamReady( videoPts ):false;
+    bool bIsVideoReady = bIsAudioReady?flvSegInput_->isNextVideoStreamReady( videoPts, audioPts ):false;
 
     if( bIsVideoReady && bIsAudioReady) {
         //audio and video are both ready.

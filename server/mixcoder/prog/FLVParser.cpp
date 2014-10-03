@@ -139,7 +139,7 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                             u16 ppsLen = ((u16)ppsLenStr[0]<<8)|ppsLenStr[1];
                             string pps = bsParser.readBytes(ppsLen);                            
                             inputData = naluStarterCode + sps + naluStarterCode + pps;
-                            //LOG( "---spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", spsLen, ppsLen, inputData.size());
+                            //LOG( "---index=%d spsLen = %d, ppsLen = %d, inputDataLen=%ld\r\n", index_, spsLen, ppsLen, inputData.size());
                             break;
                         }
                     case kAVCNalu:
@@ -163,12 +163,12 @@ void FLVParser::parseNextFLVFrame( string& strFlvTag )
                                     inputData += (naluStarterCode + slice);
                                 }
                                 dataSize -= (4+dsUnion.dataSize);
-
-                                //LOG( "---slice size=%d, first byte=0x%x\r\n", dsUnion.dataSize, slice[0]);
+                                
+                                //LOG( "---index=%d slice size=%d, first byte=0x%x\r\n", index_, dsUnion.dataSize, slice[0]);
                             }
                             //avcodec_decode_video2 & avcodec_decode_audio4 documentation requires an extra of FF_INPUT_BUFFER_PADDING_SIZE padding for each video buffer
                             inputData += stBytesPadding;
-                            //LOG( "---inputData %x_%x_%x_%x_0x%x__0x%x\r\n", inputData[0], inputData[1], inputData[2], inputData[3], inputData[4], inputData[inputData.size()-1-16]);
+                            //LOG( "---index=%d inputData %x_%x_%x_%x_0x%x__0x%x\r\n", index_, inputData[0], inputData[1], inputData[2], inputData[3], inputData[4], inputData[inputData.size()-1-16]);
                             break;
                         }
                     case kAVCEndOfSeq:
