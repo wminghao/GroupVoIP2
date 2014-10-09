@@ -45,6 +45,16 @@ class SmartBuffer : public SmartPtrInterface<SmartBuffer>
         return ( dataLength_ == b->dataLength_ ) && 
             ( !memcmp( data_, b->data_, dataLength_ ) );
     }
+
+    static SmartPtr<SmartBuffer> genBlankBuffer(SmartPtr<SmartBuffer> a)
+    {
+        u32 bufSize = a->dataLength();
+        SmartPtr<SmartBuffer> c = new SmartBuffer(bufSize);
+        if( c ) {
+            memset(c->data(), 0, bufSize);
+        }
+        return c;
+    }
     
  private:
     SmartBuffer();

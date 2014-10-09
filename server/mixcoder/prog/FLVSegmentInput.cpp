@@ -3,7 +3,7 @@
 #include "fwk/Units.h"
 #include <stdio.h>
 #include "AudioDecoderFactory.h"
-#include <queue>
+#include "AudioMixer.h"
 
 const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
@@ -223,9 +223,8 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 //A better algorithm is to quickly playback video as fast as possible.
                 //algorithm to speed up the playback by merging 2 samples into 1.
                 if ( audioQueue_[i].size() >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
-
-                    LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
-
+                    LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), 
+                        maxAudioQueueSize, minAudioQueueSize);
                     u32 totalIter = audioQueue_[i].size()/2;
                     list<SmartPtr<AudioRawData> > tempQueue;
                     for(u32 j = 0; j < totalIter; j++ ) {
@@ -234,7 +233,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                         SmartPtr<AudioRawData> a2 = audioQueue_[i].front();
                         audioQueue_[i].pop_front();
                         //combine a1 and a2 and push into the end of the temp queue queue
-                        SmartPtr<AudioRawData> c = combineAudioRawData( a1, a2 );
+                        SmartPtr<AudioRawData> c = AudioMixer::combineAudioRawData( a1, a2 );
                         tempQueue.push_back(c) ;
                     }
                     while( tempQueue.size() > 0 ) {
@@ -245,7 +244,8 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     printQueueInfo(i);
                     //then calculate maxAudioQueueSize again
                     calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
-                    LOG("---------->After audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
+                    LOG("---------->After audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), 
+                        maxAudioQueueSize, minAudioQueueSize);
                 }
             }
         }    
@@ -264,12 +264,15 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     SmartPtr<AudioRawData> a = new AudioRawData();
                     bool bIsStereo = false;
                     u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
-                    a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                    //Don't duplicate the previous frame, but use a blank frame instead
+                    //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                    SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                    a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
                     a->bIsStereo = bIsStereo;
                     a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
                     audioQueue_[i].push_back( a );
 
-                    LOG("---------->Stream:%d push an prev audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
+                    LOG("---------->Stream:%d push an empty audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
                     printQueueSize();
 
                     nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;

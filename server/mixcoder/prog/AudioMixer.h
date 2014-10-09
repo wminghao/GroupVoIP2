@@ -21,6 +21,9 @@ class AudioMixer
                                      int totalStreams,
                                      u32 excludeStreamId);
 
+    //combine 2 audio raw data to shrink the audio length
+    static SmartPtr<AudioRawData> combineAudioRawData( SmartPtr<AudioRawData> a1, SmartPtr<AudioRawData> a2);
+
  private:
     void mixOneStreams(SmartPtr<AudioRawData>* rawData, 
                        int oneIndex,

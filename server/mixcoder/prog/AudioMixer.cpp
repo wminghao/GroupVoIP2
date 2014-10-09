@@ -1,8 +1,7 @@
 #include "AudioMixer.h"
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>
-
-#define CLIP( val, max, min ) ( val >  max ) ? max: ( ( val < min ) ? min: val)
+#include "fwk/log.h"
 
 int randInRange(int max)
 {
@@ -21,6 +20,65 @@ void genWhiteNoise(short* buffer, int bufSize)
         idx = randInRange(bufSize);
         buffer[idx] = -2;
     }
+}
+
+//combine 2 audio raw data to shrink the audio length
+SmartPtr<AudioRawData> AudioMixer::combineAudioRawData( SmartPtr<AudioRawData> a1, SmartPtr<AudioRawData> a2) {
+    SmartPtr<AudioRawData> c = new AudioRawData();
+    if ( c ) {
+        c->bIsStereo = a1->bIsStereo;
+        c->bIsValid = a1->bIsValid;
+        c->ss = a1->ss;
+        c->pts = a1->pts;
+        u32 bufSize = a1->rawAudioFrame_->dataLength();
+        c->rawAudioFrame_ = new SmartBuffer(bufSize);
+        if( c->rawAudioFrame_ ) {
+            if( a1->bIsStereo ) {
+                //combine stereo samples
+                u32 i = 0;
+                short* target = (short*)c->rawAudioFrame_->data();
+                short* src = (short*)a1->rawAudioFrame_->data();
+                u32 sampleSize = bufSize/(sizeof(short) * 2);
+                LOG( "---combine stereo channels a1->pts=%d, a2->pts=%d, sampleSize=%d", a1->pts, a2->pts, sampleSize);
+                while( i< sampleSize ) {
+                    int valLeft  = *(src++);
+                    int valRight = *(src++);
+                    valLeft     += *(src++);
+                    valRight    += *(src++);
+                    target[i++] = CLIP(valLeft/2, 32767, -32768);
+                    target[i++] = CLIP(valRight/2, 32767, -32768);
+                }
+                src = (short*)a2->rawAudioFrame_->data();
+                while( i< sampleSize*2 ) {
+                    int valLeft  = *(src++);
+                    int valRight = *(src++);
+                    valLeft     += *(src++);
+                    valRight    += *(src++);
+                    target[i++] = CLIP(valLeft/2, 32767, -32768);
+                    target[i++] = CLIP(valRight/2, 32767, -32768);
+                }
+            } else {
+                //combine 2 samples
+                u32 i = 0;
+                short* target = (short*)c->rawAudioFrame_->data();
+                short* src = (short*)a1->rawAudioFrame_->data();
+                u32 sampleSize = bufSize/sizeof(short);
+                LOG( "---combine mono channels a1->pts=%d, a2->pts=%d, sampleSize=%d", a1->pts, a2->pts, sampleSize);
+                while( i< sampleSize/2 ) {
+                    int val = *(src++);
+                    val    += *(src++);
+                    target[i++] = CLIP(val/2, 32767, -32768);
+                }
+                src = (short*)a2->rawAudioFrame_->data();
+                while( i< sampleSize ) {
+                    int val = *(src++);
+                    val    += *(src++);
+                    target[i++] = CLIP(val/2, 32767, -32768);
+                }
+            }
+        }
+    }
+    return c;
 }
 
 void AudioMixer::mixOneStreams(SmartPtr<AudioRawData>* rawData, 

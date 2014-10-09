@@ -14,6 +14,7 @@ typedef int64_t s64;
 
 #define MAX(a, b) (a > b)? a : b
 #define MIN(a, b) (a < b)? a : b
+#define CLIP( val, max, min ) ( val >  max ) ? max: ( ( val < min ) ? min: val)
 
 #define MAX_U32 0xffffffff
 #define MAX_S32 0x0fffffff
