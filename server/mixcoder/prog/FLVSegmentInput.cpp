@@ -3,6 +3,7 @@
 #include "fwk/Units.h"
 #include <stdio.h>
 #include "AudioDecoderFactory.h"
+#include <queue>
 
 const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
@@ -167,7 +168,7 @@ void FLVSegmentInput::calcQueueSize(u32& maxAudioQueueSize, u32&minAudioQueueSiz
 }
 void FLVSegmentInput::printQueueSize()
 {
-#if 0
+#if 1
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
             LOG("----Queue %d size=%d", i, audioQueue_[i].size());
@@ -202,14 +203,38 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
         ASSERT( minAudioQueueSize != MAX_U32);
 
         //reduce it by half to go through
-        u32 threshold = maxAudioQueueSize/2;
-        LOG("---------->Audio stream trimmed, maxAudioQueueSize=%d, minAudioQueueSize=%d, threshold=%d!\n", maxAudioQueueSize, minAudioQueueSize, threshold);
         printQueueSize();
 
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
             if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
-                while ( audioQueue_[i].size() > threshold ) {
-                    audioQueue_[i].pop();
+                /* Algorithm to drop frames
+                   u32 threshold = maxAudioQueueSize/2;
+                   while ( audioQueue_[i].size() > threshold ) {
+                      audioQueue_[i].pop();
+                   }
+                 */
+                //A better algorithm is to quickly playback video as fast as possible.
+                //algorithm to speed up the playback by merging 2 samples into 1.
+                if ( audioQueue_[i].size() > MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
+                    LOG("---------->Audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
+                    ASSERT((MAX_LATE_AUDIO_FRAME_THRESHOLD/2) * 2 == MAX_LATE_AUDIO_FRAME_THRESHOLD);
+                    u32 totalIter = audioQueue_[i].size()/2;
+                    list<SmartPtr<AudioRawData> > tempQueue;
+                    for(u32 j = 0; j < totalIter; j++ ) {
+                        SmartPtr<AudioRawData> a1 = audioQueue_[i].front();
+                        audioQueue_[i].pop_front();
+                        SmartPtr<AudioRawData> a2 = audioQueue_[i].front();
+                        audioQueue_[i].pop_front();
+                        //combine a1 and a2 and push into the end of the temp queue queue
+                        SmartPtr<AudioRawData> c = combineAudioRawData( a1, a2 );
+                        tempQueue.push_back(c) ;
+                    }
+                    while( tempQueue.size() > 0 ) {
+                        SmartPtr<AudioRawData> c = tempQueue.back();
+                        audioQueue_[i].push_front( c );
+                        tempQueue.pop_back();
+                    }
+                    LOG("---------->Afterwards Audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
                 }
             }
         }
@@ -234,7 +259,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
                     a->bIsStereo = bIsStereo;
                     a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
-                    audioQueue_[i].push( a );
+                    audioQueue_[i].push_back( a );
 
                     LOG("---------->Stream:%d push an prev audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
                     printQueueSize();
@@ -284,7 +309,7 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
-            videoQueue_[index].push( v );
+            videoQueue_[index].push_back( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
         }
     } else if ( au->st == kAudioStreamType ) {
@@ -309,7 +334,7 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             a->bIsStereo = bIsStereo;
             a->pts = audioTsMapper_[index].getNextTimestamp( origPts ); 
             //LOG("-----------After resampling, pts=%d to %d, isStereo=%d\r\n", au->pts, a->pts, a->bIsStereo);
-            audioQueue_[index].push( a );
+            audioQueue_[index].push_back( a );
             globalAudioTimestamp_ = a->pts; //global audio timestamp updated here
             hasAnyDataPoppedOut = true;
         }
@@ -497,7 +522,7 @@ SmartPtr<VideoRawData> FLVSegmentInput::getNextVideoFrame(u32 index)
         u32 timestamp = nextVideoTimestamp_[index];
         v = videoQueue_[index].front();
         if ( v && v->pts <= timestamp ) {
-            videoQueue_[index].pop();
+            videoQueue_[index].pop_front();
             if( videoQueue_[index].size() > 0 ) {
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, videoQueue_[index].back()->pts, videoQueue_[index].size());
             } else {
@@ -518,7 +543,7 @@ SmartPtr<AudioRawData> FLVSegmentInput::getNextAudioFrame(u32 index)
     if ( audioQueue_[index].size() > 0 ) {
         a = audioQueue_[index].front();
         if ( a ) {
-            audioQueue_[index].pop();
+            audioQueue_[index].pop_front();
             
             if( audioQueue_[index].size() > 0 ) {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, audioQueue_[index].back()->pts, audioQueue_[index].size());

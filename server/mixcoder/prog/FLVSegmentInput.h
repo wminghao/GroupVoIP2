@@ -11,7 +11,7 @@
 #include "AudioDecoder.h"
 #include "AudioTimestampMapper.h"
 #include "FLVSegmentInputDelegate.h"
-#include <queue>
+#include <list>
 
 using namespace std;
 
@@ -136,9 +136,9 @@ class FLVSegmentInput:public FLVParserDelegate
     u32 numStreams_;
 
     //stores raw audio and video messages
-    queue<SmartPtr<AudioRawData> > audioQueue_[MAX_XCODING_INSTANCES];
+    list<SmartPtr<AudioRawData> > audioQueue_[MAX_XCODING_INSTANCES];
     StreamStatus audioStreamStatus_[MAX_XCODING_INSTANCES]; //tells whether a queue has benn used or not
-    queue<SmartPtr<VideoRawData> > videoQueue_[MAX_XCODING_INSTANCES];
+    list<SmartPtr<VideoRawData> > videoQueue_[MAX_XCODING_INSTANCES];
     StreamStatus videoStreamStatus_[MAX_XCODING_INSTANCES]; //tells whether a queue has been used or not
 
     //video timestamp adjustment. output is always 30fps

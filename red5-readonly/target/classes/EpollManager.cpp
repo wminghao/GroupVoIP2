@@ -17,6 +17,7 @@ EpollManager::EpollManager(WriteCallback callback):looper_(callback) {
     signal(SIGCHLD, SIG_IGN); //ignore child process death for now. don't occupy resource in the system
 }
 EpollManager::~EpollManager() {
+    OUTPUT("--->~EpollManager destroyed");
     std::tr1::unordered_map< int, ProcessObject* >::const_iterator itBegin = pipeMap_.begin();
     std::tr1::unordered_map< int, ProcessObject* >::const_iterator itEnd   = pipeMap_.end();
     std::tr1::unordered_map< int, ProcessObject* >::const_iterator itTemp;

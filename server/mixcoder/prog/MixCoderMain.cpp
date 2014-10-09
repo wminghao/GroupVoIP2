@@ -38,22 +38,50 @@ void handlesig( int signum )
     exit( 0 );
 }
 
+void fnExit (void)
+{
+    LOG("----MixCoder Exited!");
+}
+
+/*
+ * Signal handler for kill signal
+ */
+void sigkill_sigaction(int signal __attribute__ ((unused)), siginfo_t *si, void *arg __attribute__ ((unused)))
+{
+    LOG("Caught sigkill at address %p, sent by pid: %d\n", si->si_addr, si->si_pid);
+}
+
 //big enough buffer
 const int MAX_BUF_SIZE = 512;//4096;
 
 int main( int argc, char** argv ) {
-
+    atexit(fnExit);
     signal( SIGPIPE, SIG_IGN );
+    signal( SIGHUP, SIG_IGN ); //ignore hangup
     signal( SIGSEGV, handlesig );
     signal( SIGFPE, handlesig );
     signal( SIGBUS, handlesig );
     signal( SIGSYS, handlesig );
     signal( SIGTERM, handlesig );
+    signal( SIGQUIT, handlesig );
+    signal( SIGINT, handlesig );
+    signal( SIGILL, handlesig );    
+    signal( SIGABRT, handlesig );
+    signal( SIGALRM, handlesig );
+    // SIGKILL command cannot be caught
 
     Logger::initLog("MixCoder", kSyslog);
+
+    struct sigaction sa;
+
+    /* Set up to catch sigkill */
+    memset(&sa, 0, sizeof(sa));
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = sigkill_sigaction;
+    //sa.sa_flags   = SA_SIGKILL;
+    int res = sigaction(SIGKILL, &sa, NULL);
+    LOG("------ret=%d", res);
     
-    /*
-      TODO enable core dump
     //write to /tmp directory
     const char *directory = "/tmp";
     int ret = chdir (directory);
@@ -61,7 +89,21 @@ int main( int argc, char** argv ) {
     if( setrlimit( RLIMIT_CORE, &core_limit ) == 0 ) {
         //LOG("---Core dump enabled.");
     }
-    */
+    struct rlimit limit;
+    if (getrlimit(RLIMIT_CORE, &limit) != 0) {
+        LOG("getrlimit() failed\n");
+    }
+    LOG("---rlmit, core dump limit cur=%d, limit max=%d", limit.rlim_cur, limit.rlim_max);
+
+    rlimit core_limit2 = { 65535, 65535 };
+    if( setrlimit( RLIMIT_NOFILE, &core_limit2 ) == 0 ) {
+        //LOG("---file handler enabled.");
+    }
+    struct rlimit limit2;
+    if (getrlimit(RLIMIT_NOFILE, &limit2) != 0) {
+        LOG("getrlimit() failed\n");
+    }
+    LOG("---rlmit, open file limit cur=%d, limit max=%d", limit2.rlim_cur, limit2.rlim_max);
     
     VideoCodecId codecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
 

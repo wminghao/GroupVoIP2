@@ -1,8 +1,8 @@
 #ifndef __CODECINFOCOMMON_H__
 #define __CODECINFOCOMMON_H__
 
-const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 10; //260+ms max delay to drop frames
-const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 5;  //130ms max delay
+const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 6; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
+const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 4; //100ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
 
 const u32 TIMESTAMP_JUMP_THRESHOLD = 100;
 const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
