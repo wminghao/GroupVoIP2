@@ -97,7 +97,9 @@ class FLVSegmentInput:public FLVParserDelegate
 
     //helper function
     void calcQueueSize(u32& maxQueueSize, u32&minQueueSize);
+
     void printQueueSize();
+    void printQueueInfo(int i);
 
  private:
     bool isNextVideoFrameSpsPps(u32 index, u32& timestamp);
