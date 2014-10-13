@@ -1,0 +1,46 @@
+#!/bin/sh
+	
+# description: Red5 flash streaming server
+# processname: red5
+PROG=red5
+RED5_HOME=/usr/share/red5-server-1.0.2-RC4
+DAEMON=$RED5_HOME/$PROG.sh
+PIDFILE=$RED5_HOME/$PROG.pid
+
+# Source function library
+RETVAL=0
+
+case "$1" in
+  start)	
+  	echo -n $"Starting $PROG: "
+	cd $RED5_HOME
+    	$DAEMON >/dev/null 2>/dev/null &
+    	RETVAL=$?
+    	if [ $RETVAL -eq 0 ]; then
+           echo $! > $PIDFILE
+    	   touch $RED5_HOME/$PROG."lock"
+    	fi
+    	#[ $RETVAL -eq 0 ] && success $"$PROG startup" || failure $"$PROG startup"
+    	echo
+    	;;
+  stop)
+	echo -n $"Shutting down $PROG: "
+	pid=`cat $PIDFILE`
+  	kill -9 $pid
+  	RETVAL=$?
+  	echo
+  	#[ $RETVAL -eq 0 ] && rm -f $RED5_HOME/$PROG."lock"
+  	;;
+  restart)
+	$0 stop
+  	$0 start
+  	;;
+  status)
+	status $PROG -p $PIDFILE
+  	RETVAL=$?
+  	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|status}"
+  	RETVAL=1
+  esac
+exit $RETVAL
