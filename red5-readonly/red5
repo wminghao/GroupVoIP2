@@ -12,7 +12,7 @@ RETVAL=0
 
 case "$1" in
   start)	
-  	echo -n $"Starting $PROG: "
+  	echo -n "Starting $PROG: "
 	cd $RED5_HOME
     	$DAEMON >/dev/null 2>/dev/null &
     	RETVAL=$?
@@ -20,16 +20,20 @@ case "$1" in
            echo $! > $PIDFILE
     	   touch $RED5_HOME/$PROG."lock"
     	fi
-    	#[ $RETVAL -eq 0 ] && success $"$PROG startup" || failure $"$PROG startup"
+    	if [ $RETVAL -eq 0 ]; then 
+	   echo "$PROG startup successful"
+	else 
+	   echo "$PROG startup failed"
+        fi
     	echo
     	;;
   stop)
-	echo -n $"Shutting down $PROG: "
+	echo -n "Shutting down $PROG: "
 	pid=`cat $PIDFILE`
   	kill -9 $pid
   	RETVAL=$?
   	echo
-  	#[ $RETVAL -eq 0 ] && rm -f $RED5_HOME/$PROG."lock"
+        [ $RETVAL -eq 0 ] && rm -f $RED5_HOME/$PROG."lock" && rm -f $PIDFILE
   	;;
   restart)
 	$0 stop
