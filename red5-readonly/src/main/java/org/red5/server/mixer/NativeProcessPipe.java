@@ -89,7 +89,6 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
 		//call native C function send it to an array
 		ByteBuffer seg = inputObject.toByteBuffer();
 		mixCoderBridge.sendInput(seg.array(), seg.limit(), procId);
-		//log.info("====>outBuffers_ queue size {}", outBuffers_.size());
 	    }
 	}
     }
@@ -151,7 +150,6 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     	    }
     	}
     }
-    
     
     @Override
     public void onFrameParsed(int mixerId, ByteBuffer frame, int len) {

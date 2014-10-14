@@ -70,18 +70,20 @@ int main( int argc, char** argv ) {
     signal( SIGALRM, handlesig );
     // SIGKILL command cannot be caught
 
-    Logger::initLog("MixCoder", kSyslog);
+    Logger::initLog("MixCoder", kStderr);
 
     struct sigaction sa;
 
     /* Set up to catch sigkill */
-    memset(&sa, 0, sizeof(sa));
+    //Can NEVER catch sigkill
+    /*memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);
     sa.sa_sigaction = sigkill_sigaction;
     //sa.sa_flags   = SA_SIGKILL;
     int res = sigaction(SIGKILL, &sa, NULL);
     LOG("------ret=%d", res);
-    
+    */
+
     //write to /tmp directory
     const char *directory = "/tmp";
     int ret = chdir (directory);
@@ -93,7 +95,7 @@ int main( int argc, char** argv ) {
     if (getrlimit(RLIMIT_CORE, &limit) != 0) {
         LOG("getrlimit() failed\n");
     }
-    LOG("---rlmit, core dump limit cur=%d, limit max=%d", limit.rlim_cur, limit.rlim_max);
+    //LOG("---rlmit, core dump limit cur=%d, limit max=%d", limit.rlim_cur, limit.rlim_max);
 
     rlimit core_limit2 = { 65535, 65535 };
     if( setrlimit( RLIMIT_NOFILE, &core_limit2 ) == 0 ) {
@@ -103,7 +105,7 @@ int main( int argc, char** argv ) {
     if (getrlimit(RLIMIT_NOFILE, &limit2) != 0) {
         LOG("getrlimit() failed\n");
     }
-    LOG("---rlmit, open file limit cur=%d, limit max=%d", limit2.rlim_cur, limit2.rlim_max);
+    //LOG("---rlmit, open file limit cur=%d, limit max=%d", limit2.rlim_cur, limit2.rlim_max);
     
     VideoCodecId codecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
 

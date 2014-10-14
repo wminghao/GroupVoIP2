@@ -59,7 +59,9 @@ void EpollManager::newInput(int procId, unsigned char* data, unsigned int len)
     if ( got != pipeMap_.end() ) {
         object = got->second;
     }
+
     if ( object != NULL) {
+        //OUTPUT("-------procId=%d, newInput, len=%d, notify object", procId, len);
         looper_.notifyWrite(procId, data, len); //tell looper there is data now to write
     }
 }

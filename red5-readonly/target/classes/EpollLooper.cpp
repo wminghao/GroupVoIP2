@@ -125,6 +125,7 @@ void EpollLooper::unreg(int procId)
 }
 void EpollLooper::freeProc(EpollEvent* epollEvent)
 {
+    OUTPUT("===>freeProc");
     closeFd(epollEvent);
 
     procMapping_.erase( epollEvent->procId );
