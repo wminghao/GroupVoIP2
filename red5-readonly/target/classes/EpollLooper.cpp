@@ -45,7 +45,7 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     if(-1 == epoll_ctl(epollfd, operation, fd, &epoll_event)) {
         OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
     } else {
-        //OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
+        OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
     }
 }
 
@@ -108,7 +108,9 @@ void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, Inp
     //always ready to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->outputFromProcess, EPOLLIN, epollEvent);
     //but don't try to write unless there is data
-    //modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+#if !defined(EFFICIENT_EPOLL)
+    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+#endif
     OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", inputToProcess, outputFromProcess, procId, epollEvent);
 }
 
@@ -133,7 +135,9 @@ void EpollLooper::freeProc(EpollEvent* epollEvent)
 void EpollLooper::closeFd(EpollEvent* epollEvent)
 {
     closeFd(epollEvent->outputFromProcess);
+#ifdef EFFICIENT_EPOLL
     Guard g(&mutex_);
+#endif
     closeFd(epollEvent->inputToProcess);
     bIsWriterFdEnabled_ = false;
 }
@@ -229,12 +233,14 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
             OUTPUT("-----Clogged----\r\n");
             unreg(procId);
         } else {
+#ifdef EFFICIENT_EPOLL
             Guard g(&mutex_);
             if( !bIsWriterFdEnabled_ ) {
                 //notify epollfd input is ready
                 modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
                 bIsWriterFdEnabled_ = true;
             }
+#endif
         }
     }
 }
@@ -278,13 +284,14 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             }
         }
     }
-
+#ifdef EFFICIENT_EPOLL
     if( !bTryAgain ) {
         Guard g(&mutex_);
         bIsWriterFdEnabled_ = false;
         //notify epollfd input is done
         modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
     }
+#endif
 
     return (!encounteredError);
 }
