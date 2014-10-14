@@ -45,7 +45,7 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     if(-1 == epoll_ctl(epollfd, operation, fd, &epoll_event)) {
         OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
     } else {
-        OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
+        //OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
     }
 }
 
@@ -94,10 +94,7 @@ EpollLooper::~EpollLooper()
 void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input)
 {
     setNonBlocking(inputToProcess);
-    //setCloseOnExec(inputToProcess);
-
     setNonBlocking(outputFromProcess);
-    //setCloseOnExec(outputFromProcess);
     
     EpollEvent* epollEvent = (EpollEvent*)calloc(1, sizeof(EpollEvent));
     epollEvent->inputToProcess = inputToProcess;
@@ -110,7 +107,8 @@ void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, Inp
 
     //always ready to read output from pipe
     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->outputFromProcess, EPOLLIN, epollEvent);
-    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+    //but don't try to write unless there is data
+    //modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
     OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", inputToProcess, outputFromProcess, procId, epollEvent);
 }
 
@@ -134,8 +132,10 @@ void EpollLooper::freeProc(EpollEvent* epollEvent)
 
 void EpollLooper::closeFd(EpollEvent* epollEvent)
 {
-    closeFd(epollEvent->inputToProcess);
     closeFd(epollEvent->outputFromProcess);
+    Guard g(&mutex_);
+    closeFd(epollEvent->inputToProcess);
+    bIsWriterFdEnabled_ = false;
 }
 void EpollLooper::closeFd(int fd) {
     modifyEpollContext(epollfd_, EPOLL_CTL_DEL, fd, 0, 0);
@@ -166,6 +166,7 @@ void* EpollLooper::thread()
                         OUTPUT("EPOLLHUP i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
                     } else {
                         OUTPUT("EPOLLERR i=%d n=%d Pipe broken. %s", i, n, strerror(errno));
+                        /*
                         int       error = 0;
                         socklen_t errlen = sizeof(error);
                         if (getsockopt(epollEvent->inputToProcess, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
@@ -175,6 +176,7 @@ void* EpollLooper::thread()
                         if (getsockopt(epollEvent->outputFromProcess, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
                             OUTPUT("-->Details: EPOLLERR i=%d n=%d Output pipe broken. %s", i, n, strerror(error));
                         }
+                        */
                     }
                     //broken pipe
                     closeFd( epollEvent );
@@ -226,6 +228,13 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
         if( !epollEvent->input->pushFront( data, len ) ) {
             OUTPUT("-----Clogged----\r\n");
             unreg(procId);
+        } else {
+            Guard g(&mutex_);
+            if( !bIsWriterFdEnabled_ ) {
+                //notify epollfd input is ready
+                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+                bIsWriterFdEnabled_ = true;
+            }
         }
     }
 }
@@ -235,6 +244,7 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
 bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
     bool doneWriting = false;
     bool encounteredError = false;
+    bool bTryAgain = false;
     InputArray* outgoingBuffers = epollEvent->input;
     assert( outgoingBuffers );
 
@@ -243,11 +253,13 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
         unsigned char* data = outgoingBuffers->getTail(&len);
         unsigned int sent = epollEvent->writeBufOffset;
         assert( sent < len );
+
         int t = write(epollEvent->inputToProcess, data + sent, len - sent);
         if ( t < 0 ) {
             doneWriting = true;
             int netErrorNumber = errno;
             if ( netErrorNumber == EAGAIN) {
+                bTryAgain = true;
                 OUTPUT("-----write again later----\r\n");
             } else {
                 OUTPUT("-----error, netErrorNumber=%d----\r\n", netErrorNumber);
@@ -267,7 +279,13 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
         }
     }
 
+    if( !bTryAgain ) {
+        Guard g(&mutex_);
+        bIsWriterFdEnabled_ = false;
+        //notify epollfd input is done
+        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+    }
+
     return (!encounteredError);
 }
-
 

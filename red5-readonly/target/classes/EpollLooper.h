@@ -4,6 +4,7 @@
 #include <tr1/unordered_map>
 #include <pthread.h>
 #include "InputObject.h"
+#include "Guard.h"
 
 //each read mx len 100k bytes
 #define MAXLEN 100*1024
@@ -65,6 +66,10 @@ class EpollLooper
 
     //mapping table of epollEvent and procId
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
+
+    //mutex
+    GMutex mutex_;
+    bool bIsWriterFdEnabled_;
 };
 
 
