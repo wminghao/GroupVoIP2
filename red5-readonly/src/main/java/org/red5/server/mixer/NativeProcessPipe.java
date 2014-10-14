@@ -53,6 +53,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
 	int dataLen = buf.limit();
 	if( dataLen > 0 ) {
 	    InputObject inputObject = new InputObject(idLookupTable, streamName, msgType, buf, eventTime, dataLen);
+	    ByteBuffer seg = inputObject.toByteBuffer();
+
 	    if(bSaveToDisc) {
 		try {
 		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
@@ -60,7 +62,6 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
             	    	outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
 		    }
 		    if( outputFile_ != null ) {
-			ByteBuffer seg = inputObject.toByteBuffer();
 			if( seg != null ) {
 			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
 			    outputFile_.write(seg.array(), 0, seg.array().length);
@@ -87,7 +88,6 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
 		}			
 	    } else {
 		//call native C function send it to an array
-		ByteBuffer seg = inputObject.toByteBuffer();
 		mixCoderBridge.sendInput(seg.array(), seg.limit(), procId);
 	    }
 	}
