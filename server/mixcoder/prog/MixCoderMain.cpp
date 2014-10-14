@@ -70,7 +70,7 @@ int main( int argc, char** argv ) {
     signal( SIGALRM, handlesig );
     // SIGKILL command cannot be caught
 
-    Logger::initLog("MixCoder", kStderr);
+    Logger::initLog("MixCoder", kSyslog);
 
     struct sigaction sa;
 
