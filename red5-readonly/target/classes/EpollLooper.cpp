@@ -101,6 +101,7 @@ void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, Inp
     epollEvent->outputFromProcess = outputFromProcess;
     epollEvent->input = input;
     epollEvent->procId = procId;
+    epollEvent->closedDue2Error = false;
     //add to mapping table
     procMapping_[procId] = epollEvent;
     assert(epollEvent->input);
@@ -182,8 +183,7 @@ void* EpollLooper::thread()
                         }
                         */
                     }
-                    //broken pipe
-                    closeFd( epollEvent );
+                    closeDueToError( epollEvent );
                     events[i].data.ptr = NULL;
                 }
             } else if(EPOLLIN == events[i].events) {
@@ -191,7 +191,7 @@ void* EpollLooper::thread()
                 //handle read event
                 if( epollEvent && !tryToRead(epollEvent)) {
                     OUTPUT("i=%d n=%d Read failed. %s", i, n, strerror(errno));
-                    closeFd( epollEvent );
+                    closeDueToError( epollEvent );
                     events[i].data.ptr = NULL;
                 } 
             } else if(EPOLLOUT == events[i].events) {
@@ -199,8 +199,7 @@ void* EpollLooper::thread()
                 //handle write event
                 if( epollEvent && !tryToWrite(epollEvent) ) {
                     OUTPUT("i=%d n=%d Write failed. %s", i, n, strerror(errno));
-                    //broken pipe
-                    closeFd( epollEvent );
+                    closeDueToError( epollEvent );
                     events[i].data.ptr = NULL;
                 }
             }
@@ -208,6 +207,12 @@ void* EpollLooper::thread()
     }
     free(events);
     return NULL;
+}
+
+void EpollLooper::closeDueToError(EpollEvent* epollEvent)
+{
+    closeFd( epollEvent );
+    epollEvent->closedDue2Error = true;
 }
 
 bool EpollLooper::tryToRead(EpollEvent* epollEvent)
@@ -245,18 +250,22 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
     if ( got != procMapping_.end() ) {
         EpollEvent* epollEvent = got->second;
         //push data to the queue, then write to the process
-        if( !epollEvent->input->pushFront( data, len ) ) {
-            OUTPUT("-----Clogged----\r\n");
-            unreg(procId);
-        } else {
+        if( epollEvent) {
+            if( epollEvent->closedDue2Error ) {
+                //do nothing, since it's already in error mode
+            } else if( !epollEvent->input->pushFront( data, len ) ) {
+                OUTPUT("-----Clogged----\r\n");
+                closeDueToError(epollEvent);
+            } else {
 #ifdef EFFICIENT_EPOLL
-            Guard g(&mutex_);
-            if( !bIsWriterFdEnabled_ ) {
-                //notify epollfd input is ready, use edge based epoll
-                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
-                bIsWriterFdEnabled_ = true;
-            }
+                Guard g(&mutex_);
+                if( !bIsWriterFdEnabled_ ) {
+                    //notify epollfd input is ready, use edge based epoll
+                    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
+                    bIsWriterFdEnabled_ = true;
+                }
 #endif
+            }
         }
     }
 }

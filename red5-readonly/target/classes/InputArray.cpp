@@ -5,7 +5,7 @@
 #include <string.h>
 #include "Output.h"
 
-#define MAX_CLOG_WRITE_BUFFER 5<<20 //5M total it's clogged
+#define MAX_CLOG_WRITE_BUFFER 2<<20 //2M total it's clogged
 
 InputArray::InputArray():totalBytesToWrite_(0) {
 }

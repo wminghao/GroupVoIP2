@@ -25,6 +25,9 @@ typedef struct {
 
     //write buffer offset
     int writeBufOffset;
+    
+    //indiate closedDue2Error
+    bool closedDue2Error;
 }EpollEvent;
 
 class EpollLooper
@@ -57,6 +60,7 @@ class EpollLooper
     void freeProc(EpollEvent* epollEvent);
     void closeFd(EpollEvent* epollEvent);
     void closeFd(int fd);
+    void closeDueToError(EpollEvent* epollEvent);
  private:
     WriteCallback writeCallback_;
     
@@ -70,7 +74,7 @@ class EpollLooper
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
 
 #ifdef EFFICIENT_EPOLL
-    //mutex
+    //mutex, per pipe TODO
     GMutex mutex_;
     bool bIsWriterFdEnabled_;
 #endif
