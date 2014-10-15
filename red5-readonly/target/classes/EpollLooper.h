@@ -6,6 +6,8 @@
 #include "InputObject.h"
 #include "Guard.h"
 
+#define EFFICIENT_EPOLL
+
 //each read mx len 100k bytes
 #define MAXLEN 100*1024
 
@@ -67,9 +69,11 @@ class EpollLooper
     //mapping table of epollEvent and procId
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
 
+#ifdef EFFICIENT_EPOLL
     //mutex
     GMutex mutex_;
     bool bIsWriterFdEnabled_;
+#endif
 };
 
 

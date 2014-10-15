@@ -22,9 +22,9 @@
 #include "Output.h"
 #include "InputArray.h"
 
-//max instances of 10 mixers per machine
-#define MAXEVENTS 10
-#define MAXPIPES 10*2
+//max instances of 16 mixers per machine, each mixer on average of 4 instances
+#define MAXEVENTS 16
+#define MAXPIPES MAXEVENTS*2
 
 void setNonBlocking( int fd )
 {
@@ -137,9 +137,9 @@ void EpollLooper::closeFd(EpollEvent* epollEvent)
     closeFd(epollEvent->outputFromProcess);
 #ifdef EFFICIENT_EPOLL
     Guard g(&mutex_);
+    bIsWriterFdEnabled_ = false;
 #endif
     closeFd(epollEvent->inputToProcess);
-    bIsWriterFdEnabled_ = false;
 }
 void EpollLooper::closeFd(int fd) {
     modifyEpollContext(epollfd_, EPOLL_CTL_DEL, fd, 0, 0);
@@ -237,7 +237,7 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
             Guard g(&mutex_);
             if( !bIsWriterFdEnabled_ ) {
                 //notify epollfd input is ready
-                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
                 bIsWriterFdEnabled_ = true;
             }
 #endif
@@ -250,9 +250,17 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
 bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
     bool doneWriting = false;
     bool encounteredError = false;
-    bool bTryAgain = false;
     InputArray* outgoingBuffers = epollEvent->input;
     assert( outgoingBuffers );
+
+#ifdef EFFICIENT_EPOLL
+    {
+        Guard g(&mutex_); 
+        bIsWriterFdEnabled_ = false;
+        //notify epollfd input is done
+        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, 0, 0);
+    }
+#endif
 
     while (!outgoingBuffers->isEmpty() && !doneWriting) {
         unsigned int len = 0;
@@ -265,7 +273,14 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             doneWriting = true;
             int netErrorNumber = errno;
             if ( netErrorNumber == EAGAIN) {
-                bTryAgain = true;
+#ifdef EFFICIENT_EPOLL
+                Guard g(&mutex_);
+                if( !bIsWriterFdEnabled_ ) {
+                    //notify epollfd input is ready
+                    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
+                    bIsWriterFdEnabled_ = true;
+                }
+#endif    
                 OUTPUT("-----write again later----\r\n");
             } else {
                 OUTPUT("-----error, netErrorNumber=%d----\r\n", netErrorNumber);
@@ -284,15 +299,6 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             }
         }
     }
-#ifdef EFFICIENT_EPOLL
-    if( !bTryAgain ) {
-        Guard g(&mutex_);
-        bIsWriterFdEnabled_ = false;
-        //notify epollfd input is done
-        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
-    }
-#endif
-
     return (!encounteredError);
 }
 
