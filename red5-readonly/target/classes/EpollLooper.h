@@ -48,7 +48,7 @@ class EpollLooper
     void* thread();
 
     //try to read from proc pipe
-    void tryToRead(EpollEvent* epollEvent);
+    bool tryToRead(EpollEvent* epollEvent);
 
     //tryToWrite to proc pipe
     bool tryToWrite(EpollEvent* epollEvent);

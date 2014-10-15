@@ -45,7 +45,7 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     if(-1 == epoll_ctl(epollfd, operation, fd, &epoll_event)) {
         OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
     } else {
-        OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
+        //OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
     }
 }
 
@@ -189,7 +189,11 @@ void* EpollLooper::thread()
             } else if(EPOLLIN == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 //handle read event
-                tryToRead(epollEvent);
+                if( epollEvent && !tryToRead(epollEvent)) {
+                    OUTPUT("i=%d n=%d Read failed. %s", i, n, strerror(errno));
+                    closeFd( epollEvent );
+                    events[i].data.ptr = NULL;
+                } 
             } else if(EPOLLOUT == events[i].events) {
                 EpollEvent* epollEvent = (EpollEvent*) events[i].data.ptr;
                 //handle write event
@@ -206,20 +210,32 @@ void* EpollLooper::thread()
     return NULL;
 }
 
-void EpollLooper::tryToRead(EpollEvent* epollEvent)
+bool EpollLooper::tryToRead(EpollEvent* epollEvent)
 {
+    bool bIsSuccess = true;
     //output from process pipe
     int n = read(epollEvent->outputFromProcess, epollEvent->readBuffer, MAXLEN);        
     if(0 >= n){
-        /*
-         * Process Pipe closed 
-         */
-        OUTPUT("Pipe closed connection, n=%d.\n", n);
-        unreg(epollEvent->procId);
+        if( n = 0 ) {
+            /*
+             * Process Pipe read failed
+             */
+            OUTPUT("Pipe read failed, close Fd, n=%d.\n", n);
+            bIsSuccess = false;
+        } else{
+            if ( errno == EAGAIN ) {
+                //try again
+                OUTPUT("-----read again later----\r\n");
+            } else {
+                OUTPUT("Pipe read failed 2, close Fd, n=%d.\n", n);
+                bIsSuccess = false;
+            }
+        }
     } else {
         //OUTPUT("Read data length:%d", n);
         writeCallback_(epollEvent->readBuffer, n, epollEvent->procId); //send it to Java
     }        
+    return bIsSuccess;
 }
 
 //notify new data has arrived
@@ -236,7 +252,7 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
 #ifdef EFFICIENT_EPOLL
             Guard g(&mutex_);
             if( !bIsWriterFdEnabled_ ) {
-                //notify epollfd input is ready
+                //notify epollfd input is ready, use edge based epoll
                 modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
                 bIsWriterFdEnabled_ = true;
             }
@@ -273,15 +289,15 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             doneWriting = true;
             int netErrorNumber = errno;
             if ( netErrorNumber == EAGAIN) {
+                OUTPUT("-----write again later----\r\n");
 #ifdef EFFICIENT_EPOLL
                 Guard g(&mutex_);
                 if( !bIsWriterFdEnabled_ ) {
-                    //notify epollfd input is ready
+                    //notify epollfd input is ready, use edge based epoll
                     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
                     bIsWriterFdEnabled_ = true;
                 }
 #endif    
-                OUTPUT("-----write again later----\r\n");
             } else {
                 OUTPUT("-----error, netErrorNumber=%d----\r\n", netErrorNumber);
                 encounteredError = true;
@@ -289,6 +305,7 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
         } else if ( t == 0 ) {
             doneWriting = true;
             encounteredError = true;
+            OUTPUT("-----error, netErrorNumber=%d----\r\n", errno);
         } else {
             sent += t;
             if ( sent == len ) {
