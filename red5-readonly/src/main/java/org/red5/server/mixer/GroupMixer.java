@@ -169,9 +169,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             		
 			//send karaoke to mixer directly
 			if( isKaraoke ) {
-			    IStreamData<AudioData> streamData = msgEvent;
-			    IoBuffer buf = streamData.getData();
-			    pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+			    IoBuffer buf = msgEvent.getData();
+			    if( buf != null) {
+			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+			    } else {
+			    	log.info("----------------onAudioData failed, streamId={}, curIndex={}, size={}", streamId, curIndex, msgSize); 			    	
+			    }
 			}   
 			//log.info("----------------onAudioData, streamId = {}, size={}", streamId, msgSize);         			
 			break;
@@ -189,9 +192,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             		
 			//send Karaoke to mixer directly
 			if( isKaraoke ) {
-			    IStreamData<VideoData> streamData = msgEvent;
-			    IoBuffer buf = streamData.getData();
-			    pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+			    IoBuffer buf = msgEvent.getData();
+			    if( buf != null) {
+			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+			    } else {
+			    	log.info("----------------onVideoData failed, streamId = {}, curIndex={}, size={}", streamId, curIndex,  msgSize); 			    	
+			    }
 			} 
 			//log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
 			break;

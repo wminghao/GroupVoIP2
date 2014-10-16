@@ -70,15 +70,15 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
     
     private void loadASong(String fileName) {
-	firstPTS_ = 0xffffffff;
-	File file = new File(fileName);
-	nextAsDefaultSong(); //set next as default song
-        log.info("File {} size: {}", fileName, file.length());
+    	firstPTS_ = 0xffffffff;
+    	File file = new File(fileName);
+    	nextAsDefaultSong(); //set next as default song
+        log.info("Open a file {} size: {}", fileName, file.length());
         long startTime = System.currentTimeMillis();
         try {
-	    flvParser_ = new FLVParser(this, lastTimestamp_);
-	    InputStream input = null;
-	    try {
+        	flvParser_ = new FLVParser(this, lastTimestamp_);
+        	InputStream input = null;
+        	try {
     	    	int bytesTotal = 0;
     	    	byte[] result = new byte[4096];
     	        input = new BufferedInputStream(new FileInputStream(file));
@@ -86,69 +86,69 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	        //skip 13 bytes header
     	        byte[] header = new byte[13];
     	        input.read(header);
-		//log.info("---->Start timestamp:  {}", startTime);
+    	        log.info("---->Start timestamp:  {}", startTime);
     	        //read frame by frame
     	        while( (bytesTotal < fileLen || flvFrameQueue_.size() > 0 ) && !bCancelCurrentSong.get()) {
-		    if( flvFrameQueue_.size() > 0) {
-			while ( true ) {
-			    FLVFrameObject curFrame = flvFrameQueue_.peek();
-			    if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
-				Thread.sleep( 1 );
-			    } else {
-				break;
-			    }
-			}
-			FLVFrameObject curFrame = flvFrameQueue_.remove();
-			delegate_.onKaraokeFrameParsed(curFrame.frame, curFrame.frame.capacity());
-			//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
-		    }
+    	        	if( flvFrameQueue_.size() > 0) {
+    	        		while ( true ) {
+    	        			FLVFrameObject curFrame = flvFrameQueue_.peek();
+    	        			if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
+    	        				Thread.sleep( 1 );
+    	        			} else {
+    	        				break;
+    	        			}
+    	        		}
+    	        		FLVFrameObject curFrame = flvFrameQueue_.remove();
+    	        		delegate_.onKaraokeFrameParsed(curFrame.frame, curFrame.frame.capacity());
+    	        		//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
+    	        	}
 		    
-		    if( flvFrameQueue_.size() < 10) {
-			//read data
-			int bytesRead = readBuf(result, input, bytesTotal, fileLen);
-			flvParser_.readData(result, bytesRead); //send to segment parser
-			bytesTotal += bytesRead;
-			//log.info("Total bytes read:  {}, len {}", bytesTotal, fileLen);
+    	        	if( flvFrameQueue_.size() < 10) {
+    	        		//read data
+    	        		int bytesRead = readBuf(result, input, bytesTotal, fileLen);
+    	        		flvParser_.readData(result, bytesRead); //send to segment parser
+    	        		bytesTotal += bytesRead;
+    	        		//log.info("Total bytes read:  {}, len {}", bytesTotal, fileLen);
             	        Thread.sleep(1);
-		    } else {
+    	        	} else {
             	        Thread.sleep(10);
-		    }
+    	        	}
     	        }
     	    } catch (InterruptedException ex) {
-		log.info("InterruptedException:  {}", ex);
+    	    	log.info("InterruptedException:  {}", ex);
     	    } catch (Exception ex) {
-		log.info("General exception:  {}", ex);
+    	    	log.info("General exception:  {}", ex);
     	    } finally {
     	     	log.info("Closing input stream.");
-		input.close();
+    	     	input.close();
     	    }
-	    //empty the flvFrameQueue
-	    if(bCancelCurrentSong.get()) {
+        	//empty the flvFrameQueue
+        	if(bCancelCurrentSong.get()) {
     	     	log.info("flvFrameQueue_.size()={}", flvFrameQueue_.size());
     	     	while ( flvFrameQueue_.size() > 0 ) {
-		    FLVFrameObject curFrame = flvFrameQueue_.peek();
-		    if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
-			Thread.sleep( 1 );
-		    } else {
-			FLVFrameObject frame = flvFrameQueue_.remove();
-			delegate_.onKaraokeFrameParsed(frame.frame, frame.frame.capacity());
-			//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
-		    }
-		}
-	    }
+    	     		FLVFrameObject curFrame = flvFrameQueue_.peek();
+    	     		if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
+    	     			Thread.sleep( 1 );
+    	     		} else {
+    	     			FLVFrameObject frame = flvFrameQueue_.remove();
+    	     			delegate_.onKaraokeFrameParsed(frame.frame, frame.frame.capacity());
+    	     			//log.info("---->Finally Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
+    	     		}
+    	     	}
+        	}
 	    
             lastTimestamp_ += 20; //advance a little bit
-	    bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
+            bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
         }
         catch (FileNotFoundException ex) {
-	    log.info("File not found:  {}", ex);
+        	log.info("File not found:  {}", ex);
         }
         catch (IOException ex) {
-	    log.info("Other exception:  {}", ex);
+        	log.info("Other exception:  {}", ex);
         }
         catch (Exception ex) {
-	    log.info("General exception:  {}", ex);
-	} 
+        	log.info("General exception:  {}", ex);
+        } 
     }
     
     @Override

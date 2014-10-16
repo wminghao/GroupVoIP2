@@ -1,3 +1,4 @@
+rm -rf vlclibs
 mkdir vlclibs
 cd vlclibs
 mkdir Release-iphoneos
