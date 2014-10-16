@@ -22,10 +22,6 @@
 #include "Output.h"
 #include "InputArray.h"
 
-//max instances of 16 mixers per machine, each mixer on average of 4 instances
-#define MAXEVENTS 16
-#define MAXPIPES MAXEVENTS*2
-
 void setNonBlocking( int fd )
 {
     if ( -1 == fd ) return;
@@ -91,28 +87,35 @@ EpollLooper::~EpollLooper()
 }
     
 //register process pipe output
-void EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input)
+bool EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input)
 {
-    setNonBlocking(inputToProcess);
-    setNonBlocking(outputFromProcess);
-    
-    EpollEvent* epollEvent = (EpollEvent*)calloc(1, sizeof(EpollEvent));
-    epollEvent->inputToProcess = inputToProcess;
-    epollEvent->outputFromProcess = outputFromProcess;
-    epollEvent->input = input;
-    epollEvent->procId = procId;
-    epollEvent->closedDue2Error = false;
-    //add to mapping table
-    procMapping_[procId] = epollEvent;
-    assert(epollEvent->input);
-
-    //always ready to read output from pipe
-    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->outputFromProcess, EPOLLIN, epollEvent);
-    //but don't try to write unless there is data
+    bool bSuccess = true;
+    if( procId < MAXEVENTS ) {
+        setNonBlocking(inputToProcess);
+        setNonBlocking(outputFromProcess);
+        
+        EpollEvent* epollEvent = (EpollEvent*)calloc(1, sizeof(EpollEvent));
+        epollEvent->inputToProcess = inputToProcess;
+        epollEvent->outputFromProcess = outputFromProcess;
+        epollEvent->input = input;
+        epollEvent->procId = procId;
+        epollEvent->closedDue2Error = false;
+        //add to mapping table
+        procMapping_[procId] = epollEvent;
+        assert(epollEvent->input);
+        
+        //always ready to read output from pipe
+        modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->outputFromProcess, EPOLLIN, epollEvent);
+        //but don't try to write unless there is data
 #if !defined(EFFICIENT_EPOLL)
-    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
+        modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT, epollEvent);
 #endif
-    OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", inputToProcess, outputFromProcess, procId, epollEvent);
+        OUTPUT("EpollLooper registered, readFd=%d writeFd=%d, procId=%d, ptr=0x%x", inputToProcess, outputFromProcess, procId, epollEvent);
+    } else {
+        bSuccess = false;
+        OUTPUT("EpollLooper cannot be registered, readFd=%d writeFd=%d, procId=%d", inputToProcess, outputFromProcess, procId);
+    }
+    return bSuccess;
 }
 
 void EpollLooper::unreg(int procId)
@@ -137,8 +140,8 @@ void EpollLooper::closeFd(EpollEvent* epollEvent)
 {
     closeFd(epollEvent->outputFromProcess);
 #ifdef EFFICIENT_EPOLL
-    Guard g(&mutex_);
-    bIsWriterFdEnabled_ = false;
+    Guard g(&mutex_[epollEvent->procId]);
+    bIsWriterFdEnabled_[epollEvent->procId] = false;
 #endif
     closeFd(epollEvent->inputToProcess);
 }
@@ -258,11 +261,11 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
                 closeDueToError(epollEvent);
             } else {
 #ifdef EFFICIENT_EPOLL
-                Guard g(&mutex_);
-                if( !bIsWriterFdEnabled_ ) {
+                Guard g(&mutex_[procId]);
+                if( !bIsWriterFdEnabled_[procId] ) {
                     //notify epollfd input is ready, use edge based epoll
                     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
-                    bIsWriterFdEnabled_ = true;
+                    bIsWriterFdEnabled_[procId] = true;
                 }
 #endif
             }
@@ -278,10 +281,11 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
     InputArray* outgoingBuffers = epollEvent->input;
     assert( outgoingBuffers );
 
+    int procId = epollEvent->procId;
 #ifdef EFFICIENT_EPOLL
     {
-        Guard g(&mutex_); 
-        bIsWriterFdEnabled_ = false;
+        Guard g(&mutex_[procId]); 
+        bIsWriterFdEnabled_[procId] = false;
         //notify epollfd input is done
         modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, 0, 0);
     }
@@ -300,11 +304,11 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             if ( netErrorNumber == EAGAIN) {
                 OUTPUT("-----write again later----\r\n");
 #ifdef EFFICIENT_EPOLL
-                Guard g(&mutex_);
-                if( !bIsWriterFdEnabled_ ) {
+                Guard g(&mutex_[procId]);
+                if( !bIsWriterFdEnabled_[procId] ) {
                     //notify epollfd input is ready, use edge based epoll
                     modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
-                    bIsWriterFdEnabled_ = true;
+                    bIsWriterFdEnabled_[procId] = true;
                 }
 #endif    
             } else {
