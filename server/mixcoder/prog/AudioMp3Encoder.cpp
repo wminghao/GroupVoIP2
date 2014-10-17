@@ -33,18 +33,22 @@ AudioMp3Encoder::AudioMp3Encoder(AudioStreamSetting* outputSetting, int aBitrate
         int ret_code = lame_init_params(lgf_);
         //LOG( "AudioMp3Encoder lame encoder initialized=%d, bitRate=%dkbps\n", ret_code, aBitrate);
         //ret_code < 0 means failed
+    } else {
+        LOG("---Lame init failed!");
     }
 }
 AudioMp3Encoder::~AudioMp3Encoder()
 {
-    lame_close(lgf_);
-    lgf_ = NULL;
+    if( lgf_ ) {
+        lame_close(lgf_);
+        lgf_ = NULL;
+    }
 }
 
 SmartPtr<SmartBuffer> AudioMp3Encoder::encodeAFrame(SmartPtr<SmartBuffer> input)
 {
     SmartPtr<SmartBuffer> result = NULL;
-    if ( input && input->dataLength() ) {
+    if ( lgf_ && input && input->dataLength() ) {
         int numChannels = getNumChannels(outputSetting_.at);
         int sampleSize = input->dataLength()/(sizeof(short)*numChannels);
 

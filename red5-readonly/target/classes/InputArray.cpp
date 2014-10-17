@@ -26,7 +26,7 @@ InputArray::~InputArray(){
 }
 bool InputArray::pushFront(unsigned char* data, unsigned int len) {
     bool bRet = true;
-    OUTPUT("-----Pushed to Inputarray, len=%d, totalBytesToWrite_=%d----\r\n", len, totalBytesToWrite_);
+    //OUTPUT("-----Pushed to Inputarray, len=%d, totalBytesToWrite_=%d----\r\n", len, totalBytesToWrite_);
     if( (totalBytesToWrite_ + len ) < MAX_CLOG_WRITE_BUFFER ) {
         InputObject* newObj = (InputObject*)malloc(sizeof(InputObject));
         bool bIsSuccessful = false;

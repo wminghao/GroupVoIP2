@@ -8,6 +8,10 @@
 
 #define EFFICIENT_EPOLL
 
+//max instances of 16 mixers per machine, each mixer on average of 4 instances
+#define MAXEVENTS 16
+#define MAXPIPES MAXEVENTS*2
+
 //each read mx len 100k bytes
 #define MAXLEN 100*1024
 
@@ -37,7 +41,8 @@ class EpollLooper
     ~EpollLooper();
     
     //register process pipe input and output
-    void reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input);
+    //TODO return value to java layer
+    bool reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input);
     void unreg(int procId);
     
     //notify new data has arrived
@@ -75,8 +80,8 @@ class EpollLooper
 
 #ifdef EFFICIENT_EPOLL
     //mutex, per pipe TODO
-    GMutex mutex_;
-    bool bIsWriterFdEnabled_;
+    GMutex mutex_[MAXEVENTS];
+    bool bIsWriterFdEnabled_[MAXEVENTS];
 #endif
 };
 

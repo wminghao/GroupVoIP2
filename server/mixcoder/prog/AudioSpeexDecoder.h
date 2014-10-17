@@ -17,11 +17,13 @@ class AudioSpeexDecoder:public AudioDecoder
         speex_bits_init(&bits_);
         /*Create a new decoder state in wideband mode, 16khz*/
         decoder_ = speex_decoder_init(&speex_wb_mode);
-        int tmp=1;
-        speex_decoder_ctl(decoder_, SPEEX_SET_ENH, &tmp);
-
-        speex_decoder_ctl(decoder_, SPEEX_GET_FRAME_SIZE, &sampleSize_);  
-        outputFrame_ = (short*)malloc(sizeof(short)*sampleSize_);
+        if( decoder_ ) {
+            int tmp=1;
+            speex_decoder_ctl(decoder_, SPEEX_SET_ENH, &tmp);
+            
+            speex_decoder_ctl(decoder_, SPEEX_GET_FRAME_SIZE, &sampleSize_);  
+            outputFrame_ = (short*)malloc(sizeof(short)*sampleSize_);
+        }
     }
     virtual ~AudioSpeexDecoder();
     //send it to the decoder

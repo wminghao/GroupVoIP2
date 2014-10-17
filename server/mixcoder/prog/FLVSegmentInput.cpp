@@ -5,6 +5,7 @@
 #include "AudioDecoderFactory.h"
 #include "AudioMixer.h"
 
+const u32 MAX_VIDEO_QUEUE_SIZE = 30; //max of 30 frames per queue size
 const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
 ////////////////////////////////////////////////////////////////
@@ -319,8 +320,12 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         SmartPtr<VideoRawData> v = new VideoRawData();
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
-            //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
-            videoQueue_[index].push_back( v );
+            if( MAX_VIDEO_QUEUE_SIZE > videoQueue_[index].size())  {
+                //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
+                videoQueue_[index].push_back( v );
+            } else {
+                LOG("------Cannot enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
+            }
             videoStreamStatus_[index] = kStreamOnlineStarted;
         }
     } else if ( au->st == kAudioStreamType ) {
