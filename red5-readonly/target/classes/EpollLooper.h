@@ -79,9 +79,9 @@ class EpollLooper
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
 
 #ifdef EFFICIENT_EPOLL
-    //mutex, per pipe TODO
-    GMutex mutex_[MAXEVENTS];
-    bool bIsWriterFdEnabled_[MAXEVENTS];
+    //mutex, per pipe, index starts from 1
+    GMutex mutex_[MAXEVENTS+1];
+    bool bIsWriterFdEnabled_[MAXEVENTS+1];
 #endif
 };
 
