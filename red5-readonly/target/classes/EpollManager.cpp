@@ -59,11 +59,11 @@ EpollManager::~EpollManager() {
     }
 }
 
-void EpollManager::startProc( int procId ) {
+bool EpollManager::startProc( int procId ) {
     OUTPUT("--->StartProc, id=%d", procId);
     ProcessObject* po = new ProcessObject(); 
     pipeMap_[ procId ] = po;
-    looper_.reg(procId, po->pipe.getInFd(), po->pipe.getOutFd(), &po->input);
+    return looper_.reg(procId, po->pipe.getInFd(), po->pipe.getOutFd(), &po->input);
 }
     
 void EpollManager::stopProc( int procId )  {

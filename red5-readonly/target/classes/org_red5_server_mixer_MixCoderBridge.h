@@ -18,9 +18,9 @@ JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_open
 /*
  * Class:     org_red5_server_mixer_MixCoderBridge
  * Method:    startProc
- * Signature: (I)V
+ * Signature: (I)Z
  */
-JNIEXPORT void JNICALL Java_org_red5_server_mixer_MixCoderBridge_startProc
+JNIEXPORT jboolean JNICALL Java_org_red5_server_mixer_MixCoderBridge_startProc
   (JNIEnv *, jobject, jint);
 
 /*

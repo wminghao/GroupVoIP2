@@ -12,9 +12,9 @@ extern "C"
     {
         delete((EpollManager*)object);
     }
-    void CLASSFUNC(EpollManager, startProc)(void* object, int procId)
+    int CLASSFUNC(EpollManager, startProc)(void* object, int procId)
     {
-        ((EpollManager*)object)->startProc(procId);
+        return ((EpollManager*)object)->startProc(procId);
     }
     void CLASSFUNC(EpollManager, stopProc)(void* object, int procId)
     {

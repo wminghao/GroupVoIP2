@@ -11,7 +11,7 @@ extern "C"
     //Epoll Manager
     void* CLASSFUNC(EpollManager, create)(WriteCallback callback);
     void CLASSFUNC(EpollManager, destroy)(void* object);
-    void CLASSFUNC(EpollManager, startProc)(void* object, int procId);
+    int  CLASSFUNC(EpollManager, startProc)(void* object, int procId);
     void CLASSFUNC(EpollManager, stopProc)(void* object, int procId);
     void CLASSFUNC(EpollManager, newInput)(void* object, int procId, unsigned char* data, unsigned int len);
 

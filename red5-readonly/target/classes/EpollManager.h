@@ -22,7 +22,7 @@ class EpollManager
     EpollManager(WriteCallback callback);
     ~EpollManager();
 
-    void startProc(int procId);
+    bool startProc(int procId);
     void stopProc(int procId);
 
     void newInput(int procId, unsigned char* data, unsigned int len);
