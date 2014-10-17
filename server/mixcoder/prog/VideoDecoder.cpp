@@ -124,7 +124,7 @@ bool VideoDecoder::newAccessUnit( SmartPtr<AccessUnit> au, SmartPtr<VideoRawData
             }
         }
 
-        bool bCanDecode = true;
+        bool bCanDecode = (codec_ != NULL);
         if( codecType_ == kAVCVideoPacket && !spspps_) {
             bCanDecode = false;
         }

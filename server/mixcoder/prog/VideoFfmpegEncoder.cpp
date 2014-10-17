@@ -22,36 +22,44 @@ VideoFfmpegEncoder::VideoFfmpegEncoder( VideoStreamSetting* setting, int vBaseLa
     }
     context_ = avcodec_alloc_context3(codec_);
     picture_ = avcodec_alloc_frame();
-    
-    /* put sample parameters */
-    context_->bit_rate = vBaseLayerBitrate*1024; //kbps
-    /* resolution must be a multiple of two */
-    context_->width = setting->width;
-    context_->height = setting->height;
-    /* frames per second */
-    context_->time_base= (AVRational){1,30};
-    context_->gop_size = 30; /* emit one intra frame every ten frames */
-    context_->pix_fmt = PIX_FMT_YUV420P;
-    
-    nSize_ = context_->width * context_->height;
 
-    /* open it */
-    if ( avcodec_open2(context_, codec_, NULL) < 0 ) {
-        LOG("could not open ffmpeg codec\n");
-    }    
+    if( context_ && picture_ ) {
+        /* put sample parameters */
+        context_->bit_rate = vBaseLayerBitrate*1024; //kbps
+        /* resolution must be a multiple of two */
+        context_->width = setting->width;
+        context_->height = setting->height;
+        /* frames per second */
+        context_->time_base= (AVRational){1,30};
+        context_->gop_size = 30; /* emit one intra frame every ten frames */
+        context_->pix_fmt = PIX_FMT_YUV420P;
+        
+        nSize_ = context_->width * context_->height;
+        
+        /* open it */
+        if ( avcodec_open2(context_, codec_, NULL) < 0 ) {
+            LOG("could not open ffmpeg codec\n");
+        }    
+    } else {
+        LOG("could not alloc ffmpeg codec context or picture\n");
+    }
 }
 
 VideoFfmpegEncoder::~VideoFfmpegEncoder()
 {
-    avcodec_close(context_);
-    av_free(context_);
-    av_free(picture_);
+    if( context_ ) {
+        avcodec_close(context_);
+        av_free(context_);
+    } 
+    if( picture_ ) {
+        av_free(picture_);
+    }
 }
 
 SmartPtr<SmartBuffer> VideoFfmpegEncoder::encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame)
 {
     SmartPtr<SmartBuffer> result;
-    if ( input && input->dataLength() > 0 ) {
+    if ( context_ && picture_ && input && input->dataLength() > 0 ) {
         picture_->data[0] = input->data();
         picture_->data[1] = picture_->data[0] + nSize_;
         picture_->data[2] = picture_->data[1] + nSize_ / 4;

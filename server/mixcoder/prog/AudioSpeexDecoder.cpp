@@ -6,15 +6,21 @@
 AudioSpeexDecoder::~AudioSpeexDecoder()
 {
     speex_bits_destroy(&bits_);
-    speex_decoder_destroy(decoder_); 
-    free(outputFrame_);
+    if( decoder_ ) {
+        speex_decoder_destroy(decoder_); 
+        decoder_ = NULL;
+    }
+    if( outputFrame_ ) {
+        free(outputFrame_);
+        outputFrame_ = NULL;
+    }
 }
 
 void AudioSpeexDecoder::newAccessUnit( SmartPtr<AccessUnit> au , AudioStreamSetting* aRawSetting)
 {
     ASSERT(au->st == kAudioStreamType);
-        
-    if( au && au->payload ) { 
+    
+    if( decoder_ && outputFrame_ && au && au->payload ) { 
         speex_bits_read_from(&bits_, (char*)au->payload->data(), au->payload->dataLength());
         speex_decode_int(decoder_, &bits_, outputFrame_);
 
