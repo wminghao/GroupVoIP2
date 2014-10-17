@@ -18,52 +18,52 @@ public class MixCoderBridge {
     // public functions
     /////////////////////////
     public interface Delegate {
-	public void newOutput(byte[] bytesRead, int len);		
+    	public void newOutput(byte[] bytesRead, int len);		
     }    
 
     public class DelegateObject{
-	public DelegateObject(MixCoderBridge.Delegate del) {
-	    this.delegate = del;
-	}
-	public MixCoderBridge.Delegate delegate;
+    	public DelegateObject(MixCoderBridge.Delegate del) {
+    		this.delegate = del;
+    	}
+    	public MixCoderBridge.Delegate delegate;
     }
 
     public static synchronized MixCoderBridge getInstance() {
         if(instance_ == null) {
-	    instance_ = new MixCoderBridge();
+        	instance_ = new MixCoderBridge();
         }
         return instance_;
     }
     
     public MixCoderBridge() {
-	open();//open the connection to process pipe
+    	open();//open the connection to process pipe
     }
     
     //callback from native c code
     public void newOutput(byte[] bytesRead, int len, int procId) {
-	synchronized(syncObj) {
-	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
-	    if ( obj != null ) {     
-		MixCoderBridge.Delegate del = obj.delegate;
-		del.newOutput(bytesRead, len);
-		//log.info("=====>Reading from process pipe={}, procId={}", len, procId);
-	    }
-	}
+    	synchronized(syncObj) {
+    		DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+    		if ( obj != null ) {     
+    			MixCoderBridge.Delegate del = obj.delegate;
+    			del.newOutput(bytesRead, len);
+    			//log.info("=====>Reading from process pipe={}, procId={}", len, procId);
+    		}
+    	}
     }
     
     //a new proc
     public int newProc(MixCoderBridge.Delegate del) {
-	int procId = -1;
-	synchronized(syncObj) {
-	    procId = reserveProcId();
-	    if( procId != -1 ) {
-		DelegateObject obj = new DelegateObject(del);
-		procIdDelegateMap.put( new Integer(procId), obj );
-		startProc( procId );
-	    }
-	}	
+    	int procId = -1;
+    	synchronized(syncObj) {
+    		procId = reserveProcId();
+    		if( procId != -1 ) {
+    			DelegateObject obj = new DelegateObject(del);
+    			procIdDelegateMap.put( new Integer(procId), obj );
+    			startProc( procId );
+    		}
+    	}	
 
-	return procId;
+    	return procId;
     }
     public void delProc(int procId) {
 	synchronized(syncObj) {
