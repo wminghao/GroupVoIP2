@@ -35,52 +35,52 @@ public class IdLookup {
     
     //map streamId to the actual streamId in StreamService class
     private int reserveStreamId() {
-	int result = -1;
-	for (int i = 0; true; i++) {
-	    if (!reservedStreams.get(i)) {
-		reservedStreams.set(i);
-		result = i;
-		break;
-	    }
-	}
-	return result + 1;
+    	int result = -1;
+    	for (int i = 0; true; i++) {
+    	    if (!reservedStreams.get(i)) {
+    		reservedStreams.set(i);
+    		result = i;
+    		break;
+    	    }
+    	}
+    	return result + 1;
     }
     
     private void unreserveStreamId(int streamId) {
-	if (streamId > 0) {
-	    reservedStreams.clear(streamId - 1);
-	}
+    	if (streamId > 0) {
+    	    reservedStreams.clear(streamId - 1);
+    	}
     }
     
     //map streamId to the 0-MAX_STREAM_COUNT streamId used in mixcoder
     private int reserveMixerId(String streamName) {
-	int result = -1;
-	if(streamName.equalsIgnoreCase(GroupMixer.ALL_IN_ONE_STREAM_NAME)) {
-	    result = ALL_IN_ONE_STREAM_MIXER_ID; //should not be mixed
-	} else {
-	    for (int i = 0; true; i++) {
-		if (!mixerStreams.get(i)) {
-		    mixerStreams.set(i);
-		    result = i;
-		    break;
-		}
-	    }
-	}
-	return result;
+    	int result = -1;
+    	if(streamName.equalsIgnoreCase(GroupMixer.ALL_IN_ONE_STREAM_NAME)) {
+    	    result = ALL_IN_ONE_STREAM_MIXER_ID; //should not be mixed
+    	} else {
+    	    for (int i = 0; true; i++) {
+    		if (!mixerStreams.get(i)) {
+    		    mixerStreams.set(i);
+    		    result = i;
+    		    break;
+    		}
+    	    }
+    	}
+    	return result;
     }
     //return a mask of mixerid
     private int getMixerMask() {
-	int result = 0;
-	for (int i = MAX_STREAM_COUNT-1; i>=0; i--) {
-	    if (mixerStreams.get(i)) {
-		result |= 0x1;
-	    }
-	    if( i > 0 ) {
-		result <<= 1;
-	    }
-	}
-	//log.info("======>getMixerMask value={}", result);
-	return result;
+    	int result = 0;
+    	for (int i = MAX_STREAM_COUNT-1; i>=0; i--) {
+    	    if (mixerStreams.get(i)) {
+    		result |= 0x1;
+    	    }
+    	    if( i > 0 ) {
+    		result <<= 1;
+    	    }
+    	}
+    	//log.info("======>getMixerMask value={}", result);
+    	return result;
     }
     
     private void unreserveMixerId(int mixerId) {
@@ -162,5 +162,9 @@ public class IdLookup {
 	    }
 	}
     	return streamId;
+    }
+    
+    public boolean isEmpty() {
+    	return (getMixerMask() == 0 );
     }
 }

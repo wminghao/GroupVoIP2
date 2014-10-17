@@ -35,6 +35,16 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private String allInOneSessionId_ = null; //all-in-one mixer rtmp connection
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     
+    //startup info
+    IRTMPHandler handler_; 
+	boolean bShouldMix_; 
+	boolean bSaveToDisc_;
+	String outputFilePath_;
+	boolean bLoadFromDisc_;
+	String inputFilePath_;
+	boolean bGenKaraoke_;
+	String karaokeFilePath_;
+    
     private IdLookup idLookupTable = new IdLookup();
     
     // Java processPipe vs. native Process pipe
@@ -51,50 +61,71 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         }
         return instance_;
     }
+
+    public void prepare(IRTMPHandler handler, 
+    					boolean bShouldMix, 
+    					boolean bSaveToDisc, String outputFilePath,
+    					boolean bLoadFromDisc, String inputFilePath,
+    					boolean bGenKaraoke, String karaokeFilePath)
+	{
+    	handler_ = handler;
+    	bShouldMix_ = bShouldMix;
+    	bSaveToDisc_ = bSaveToDisc;
+    	outputFilePath_ = outputFilePath;
+    	bLoadFromDisc_ = bLoadFromDisc;
+    	inputFilePath_ = inputFilePath;
+    	bGenKaraoke_ = bGenKaraoke;
+    	karaokeFilePath_ = karaokeFilePath;    	
+	}
     
-    public void tryToCreateAllInOneConn(IRTMPHandler handler, 
-					boolean bShouldMix, 
-					boolean bSaveToDisc, String outputFilePath,
-					boolean bLoadFromDisc, String inputFilePath,
-					boolean bGenKaraoke, String karaokeFilePath)
+    public void tryToCreateAllInOneConn()
     {
     	if( allInOneSessionId_ == null ) {
-	    //starts process pipe
-	    if( bShouldMix ) {
-	    	mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
-	    }
-	    // create a connection
-	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
-	    // add session to the connection
-	    connAllInOne.setIoSession(null);
-	    // add the handler
-	    connAllInOne.setHandler(handler);
-	    
-	    // set it in MixerManager
-	    allInOneSessionId_ = connAllInOne.getSessionId();
-	    
-	    //??? different thread , see mina threading model ???
-	    //next assume the session is opened
-	    handler.connectionOpened(connAllInOne);
-	    
-	    //handle connect, createStream and publish events
-	    handleConnectEvent(connAllInOne);
-	    
-	    //kick off createStream event
-	    createMixedStream(ALL_IN_ONE_STREAM_NAME);
-	    
-	    //kick off karaoke 
-	    if( bGenKaraoke ) {
-	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
-	    	createMixedStream(SPECIAL_STREAM_NAME);
-	    }
-	    
-	    log.info("Created all In One connection with sessionId {} on thread: {}", allInOneSessionId_, Thread.currentThread().getName());
+    	    //starts process pipe
+    	    if( bShouldMix_ ) {
+    	    	mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc_, outputFilePath_, bLoadFromDisc_, inputFilePath_);
+    	    }
+    	    // create a connection
+    	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
+    	    // add session to the connection
+    	    connAllInOne.setIoSession(null);
+    	    // add the handler
+    	    connAllInOne.setHandler(handler_);
+    	    
+    	    // set it in MixerManager
+    	    allInOneSessionId_ = connAllInOne.getSessionId();
+    	    
+    	    //??? different thread , see mina threading model ???
+    	    //next assume the session is opened
+    	    handler_.connectionOpened(connAllInOne);
+    	    
+    	    //handle connect, createStream and publish events
+    	    handleConnectEvent(connAllInOne);
+    	    
+    	    //kick off createStream event
+    	    createMixedStream(ALL_IN_ONE_STREAM_NAME);
+    	    
+    	    //kick off karaoke 
+    	    if( bGenKaraoke_ ) {
+    	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath_);
+    	    	createMixedStream(SPECIAL_STREAM_NAME);
+    	    }
+    	    
+    	    log.info("Created all In One connection with sessionId {} on thread: {}", allInOneSessionId_, Thread.currentThread().getName());
     	}
     }	
     
+    public boolean hasAnythingStarted() {
+    	return !idLookupTable.isEmpty();
+    }
+    
     public void createMixedStream(String streamName)
     {
+    	if( idLookupTable.isEmpty() ) {
+    		//next creates the all-in-one RTMPMinaConnection
+    		GroupMixer.getInstance().tryToCreateAllInOneConn();
+    	}
+    	
     	RTMPMinaConnection conn = getAllInOneConn();
     	int newStreamId = idLookupTable.createNewEntry(streamName);
     	handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
@@ -104,20 +135,26 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	int streamId = idLookupTable.deleteEntry(streamName);
     	if ( streamId != -1 ) {        	
-	    RTMPMinaConnection conn = getAllInOneConn();
-	    handleDeleteEvent(conn, streamId);
+    		RTMPMinaConnection conn = getAllInOneConn();
+    		handleDeleteEvent(conn, streamId);
     	}
+    	/*
+    	//if all streams are removed, remove the special stream and free up the mixer
+    	if(true) {
+    		shutdown();
+    	}
+    	*/
     }
     
     public void pushInputMessage(String streamName, int msgType, IoBuffer buf, int eventTime)
     {	
-	//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}", buf.limit(), mixerPipe_);
+    	//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}", buf.limit(), mixerPipe_);
     	if( buf.limit() > 0 && mixerPipe_ != null ) {
-	    mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
+    		mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
     	}
     	if( karaokeGen_!= null ) {
-	    //start the karaoke thread
-	    karaokeGen_.tryToStart();
+    		//start the karaoke thread
+    		karaokeGen_.tryToStart();
     	}
     }
 
@@ -222,10 +259,16 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private void shutdown()
     {
-    	//TODO close all-in-one RTMPConnections and all its associated assets
-    	if( mixerPipe_ != null ) {
-	    mixerPipe_.close();
+		//stop the karaoke thread
+    	if( karaokeGen_ != null ) {
+    		karaokeGen_.tryToStop();
     	}
+    	//close the process pipe
+    	if( mixerPipe_ != null ) {
+    		mixerPipe_.close();
+    	}
+    	//TODO close all-in-one RTMPConnections and all its associated assets
+
     }
     
     public RTMPMinaConnection getAllInOneConn()

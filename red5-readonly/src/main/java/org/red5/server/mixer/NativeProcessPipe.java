@@ -37,15 +37,15 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     
     public NativeProcessPipe(SegmentParser.Delegate delegate, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
     {
-	this.delegate = delegate;
-	this.bSaveToDisc = bSaveToDisc;
-	this.outputFilePath = outputFilePath;
-	this.bLoadFromDisc = bLoadFromDisc;
-	this.inputFilePath = inputFilePath;
-
-	procId = mixCoderBridge.newProc(this);
-	
-	log.info("======>GroupMixer configuration, bSaveToDisc={}, outPath={}, bLoadFromDisc={}, inPath={}, procId={}.", bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath, procId);
+    	this.delegate = delegate;
+    	this.bSaveToDisc = bSaveToDisc;
+    	this.outputFilePath = outputFilePath;
+    	this.bLoadFromDisc = bLoadFromDisc;
+    	this.inputFilePath = inputFilePath;
+    
+    	procId = mixCoderBridge.newProc(this);
+    	
+    	log.info("======>GroupMixer configuration, bSaveToDisc={}, outPath={}, bLoadFromDisc={}, inPath={}, procId={}.", bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath, procId);
     }
     
     public void handleSegInput(IdLookup idLookupTable, String streamName, int msgType, IoBuffer buf, int eventTime)
@@ -153,22 +153,22 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     
     @Override
     public void onFrameParsed(int mixerId, ByteBuffer frame, int len) {
-	this.delegate.onFrameParsed(mixerId, frame, len);		
+    	this.delegate.onFrameParsed(mixerId, frame, len);		
     }	
     
     public void close()
     {
-	if( bSaveToDisc ) {
+    	if( bSaveToDisc ) {
     	    try {
     	    	outputFile_.close();
     	    }catch (IOException ex) {
-		log.info("close exception:  {}", ex);
-    	    }
-	}
-	
-	if ( !bLoadFromDisc ) {
-	    //close native c lib.
-	    mixCoderBridge.delProc(procId);
-	}
+    	    	log.info("close exception:  {}", ex);
+        	}
+    	}
+    	
+    	if ( !bLoadFromDisc ) {
+    	    //close native c lib.
+    	    mixCoderBridge.delProc(procId);
+    	}
     }
 }

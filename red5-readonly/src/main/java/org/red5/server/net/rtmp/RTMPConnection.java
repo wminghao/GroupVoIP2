@@ -271,7 +271,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private int    publisherStreamId;
 	
 	public void setPublisherStreamInfo(String publisherStreamName, int publisherStreamId) {
-		if( this != GroupMixer.getInstance().getAllInOneConn()) {
+		if( !GroupMixer.getInstance().hasAnythingStarted() || 
+			this != GroupMixer.getInstance().getAllInOneConn() ) {
 			this.publisherStreamName = publisherStreamName;
 			this.publisherStreamId = publisherStreamId;
 		}

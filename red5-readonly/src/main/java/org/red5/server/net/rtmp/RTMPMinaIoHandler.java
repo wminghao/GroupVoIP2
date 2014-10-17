@@ -79,10 +79,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
 		
 		//next creates the all-in-one RTMPMinaConnection
-		GroupMixer.getInstance().tryToCreateAllInOneConn(handler, bShouldMix, 
-														 bSaveToDisc, outputFilePath, 
-														 bLoadFromDisc, inputFilePath,
-														 bGenKaraoke, karaokeFilePath);
+		GroupMixer.getInstance().prepare(handler, bShouldMix, 
+										 bSaveToDisc, outputFilePath, 
+										 bLoadFromDisc, inputFilePath,
+										 bGenKaraoke, karaokeFilePath);
 	}
 
 	/** {@inheritDoc} */

@@ -25,10 +25,10 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     private FLVParser flvParser_ = null;
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     private LinkedList<FLVFrameObject> flvFrameQueue_ = new LinkedList<FLVFrameObject>();
-    private final static long DELAY_INTERVAL = 100; //delay for 100 milliseconds.
+    //private final static long DELAY_INTERVAL = 100; //delay for 100 milliseconds.
     private int firstPTS_ = 0xffffffff;
     private int lastTimestamp_ = 0;
-    private boolean bStarted_ = false;
+    private AtomicBoolean bStarted_ = new AtomicBoolean(false);
     
     //key is fileName, value is song name
     Map<String,String> songMappingTable_ = new HashMap<String, String>();
@@ -42,11 +42,11 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	public int timestamp;
     	public int length;
     	public FLVFrameObject(ByteBuffer frame, int len, int timestamp) {
-	    this.frame = ByteBuffer.allocate(len);
-	    this.frame.put(frame.array(), 0, len);
-	    this.frame.flip();
-	    this.timestamp = timestamp;
-	    this.length = len;
+    	    this.frame = ByteBuffer.allocate(len);
+    	    this.frame.put(frame.array(), 0, len);
+    	    this.frame.flip();
+    	    this.timestamp = timestamp;
+    	    this.length = len;
     	}
     }
     
@@ -56,17 +56,22 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
     
     public KaraokeGenerator(KaraokeGenerator.Delegate delegate, String karaokeFilePath){
-	this.delegate_ = delegate;
-	this.karaokeFilePath_ = karaokeFilePath;
-	readSongMappingTable();
+    	this.delegate_ = delegate;
+    	this.karaokeFilePath_ = karaokeFilePath;
+    	readSongMappingTable();
     }
     
     public void tryToStart() {
-	if( !bStarted_ ) {
-	    bStarted_ = true;
-	    Thread thread = new Thread(this, "KaraokeThread");
-	    thread.start();
-	}
+    	if( !bStarted_.get() ) {
+    		bStarted_.set(true);
+    		Thread thread = new Thread(this, "KaraokeThread");
+    		thread.start();
+    	}
+    }
+    public void tryToStop() {
+    	if( bStarted_.get() ) {
+    		bStarted_.set(false);
+    	}
     }
     
     private void loadASong(String fileName) {
@@ -88,9 +93,9 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	        input.read(header);
     	        log.info("---->Start timestamp:  {}", startTime);
     	        //read frame by frame
-    	        while( (bytesTotal < fileLen || flvFrameQueue_.size() > 0 ) && !bCancelCurrentSong.get()) {
+    	        while( (bytesTotal < fileLen || flvFrameQueue_.size() > 0 ) && !bCancelCurrentSong.get() && bStarted_.get() ) {
     	        	if( flvFrameQueue_.size() > 0) {
-    	        		while ( true ) {
+    	        		while ( bStarted_.get() ) {
     	        			FLVFrameObject curFrame = flvFrameQueue_.peek();
     	        			if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
     	        				Thread.sleep( 1 );
@@ -123,9 +128,9 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	     	input.close();
     	    }
         	//empty the flvFrameQueue
-        	if(bCancelCurrentSong.get()) {
+        	if(bCancelCurrentSong.get() && bStarted_.get()) {
     	     	log.info("flvFrameQueue_.size()={}", flvFrameQueue_.size());
-    	     	while ( flvFrameQueue_.size() > 0 ) {
+    	     	while ( flvFrameQueue_.size() > 0 && bStarted_.get() ) {
     	     		FLVFrameObject curFrame = flvFrameQueue_.peek();
     	     		if((curFrame.timestamp - firstPTS_) > ( System.currentTimeMillis() - startTime) ) {
     	     			Thread.sleep( 1 );
@@ -136,9 +141,15 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	     		}
     	     	}
         	}
-	    
-            lastTimestamp_ += 20; //advance a little bit
+        	if( bStarted_.get() ) {
+                lastTimestamp_ += 20; //advance a little bit      
+        	} else {
+                flvFrameQueue_.clear(); //delete everything.
+        		lastTimestamp_ = 0;
+        		firstPTS_ = 0xffffffff;
+        	}
             bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
+	    
         }
         catch (FileNotFoundException ex) {
         	log.info("File not found:  {}", ex);
@@ -153,79 +164,79 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     
     @Override
     public void run() {
-	log.info("Karaoke thread is started");
+    	log.info("Karaoke thread is started");
     	//read a segment file and send it over
     	log.info("Reading in karaoke filePath: {}", karaokeFilePath_);
-    	while(true) {
+    	while( bStarted_.get() ) {
             delegate_.onSongPlaying(curSongName_);
-	    loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
+            loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
     }
 
     @Override
     public void onKaraokeFrameParsed(ByteBuffer frame, int len, int timestamp) {
-	if( firstPTS_ == 0xffffffff ) {
-	    //send the first frame immediately
-	    firstPTS_ = timestamp;
-	    delegate_.onKaraokeFrameParsed(frame, len);
-	    //log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
-	} else {
-	    //for the rest, put into the queue first
-	    flvFrameQueue_.add( new FLVFrameObject(frame, len, timestamp) );
-	}
-	lastTimestamp_ = timestamp;
+    	if( firstPTS_ == 0xffffffff ) {
+    	    //send the first frame immediately
+    	    firstPTS_ = timestamp;
+    	    delegate_.onKaraokeFrameParsed(frame, len);
+    	    //log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
+    	} else {
+    	    //for the rest, put into the queue first
+    	    flvFrameQueue_.add( new FLVFrameObject(frame, len, timestamp) );
+    	}
+    	lastTimestamp_ = timestamp;
     }
     
     private int readBuf(byte[] result, InputStream input, int bytesTotal, int fileLen) throws IOException {
-	int bytesToRead = 0;
+    	int bytesToRead = 0;
         while(bytesToRead < result.length && (bytesToRead+bytesTotal)<fileLen){
-	    int bytesRemaining = result.length - bytesToRead;
-	    //input.read() returns -1, 0, or more :
-	    int bytesRead = input.read(result, bytesToRead, bytesRemaining); 
-	    if (bytesRead > 0){
-		bytesToRead += bytesRead;
-	    }
+    	    int bytesRemaining = result.length - bytesToRead;
+    	    //input.read() returns -1, 0, or more :
+    	    int bytesRead = input.read(result, bytesToRead, bytesRemaining); 
+    	    if (bytesRead > 0){
+    		bytesToRead += bytesRead;
+    	    }
         }
         return bytesToRead;
     }
     
     private void readSongMappingTable() {
-	Properties prop = new Properties();
+    	Properties prop = new Properties();
         InputStream in;
-	try {
-	    in = new FileInputStream(karaokeFilePath_ + "/karaoke.properties");
-	    prop.load(in);
-	    Enumeration<?> e = prop.propertyNames();
-	    while (e.hasMoreElements()) {
-		String fileName = (String) e.nextElement();
-		String songName = prop.getProperty(fileName);
-		songMappingTable_.put(songName, fileName);
-		curSongFile_ = fileName;
-		curSongName_ = songName;
-		log.info("-------Reading song property file: Key : {}, Value : {}", fileName, songName);
-	    }
-	    in.close();
-	} catch (FileNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
+    	try {
+    	    in = new FileInputStream(karaokeFilePath_ + "/karaoke.properties");
+    	    prop.load(in);
+    	    Enumeration<?> e = prop.propertyNames();
+    	    while (e.hasMoreElements()) {
+        		String fileName = (String) e.nextElement();
+        		String songName = prop.getProperty(fileName);
+        		songMappingTable_.put(songName, fileName);
+        		curSongFile_ = fileName;
+        		curSongName_ = songName;
+        		log.info("-------Reading song property file: Key : {}, Value : {}", fileName, songName);
+    	    }
+    	    in.close();
+    	} catch (FileNotFoundException e) {
+    	    // TODO Auto-generated catch block
+    	    e.printStackTrace();
+    	} catch (IOException e) {
+    	    // TODO Auto-generated catch block
+    	    e.printStackTrace();
+    	}
     }
     
     public void selectSong(String songName) {
-	String fileName = songMappingTable_.get(songName);
-	if(fileName != null ) {
-	    curSongFile_ = fileName;
-	    curSongName_ = songName;
-	    bCancelCurrentSong.set(true);
-	    log.info("-------A song selected: Key : {}, Value : {}", fileName, songName);
-	}
+    	String fileName = songMappingTable_.get(songName);
+    	if(fileName != null ) {
+    	    curSongFile_ = fileName;
+    	    curSongName_ = songName;
+    	    bCancelCurrentSong.set(true);
+    	    log.info("-------A song selected: Key : {}, Value : {}", fileName, songName);
+    	}
     }
     //set next as the default song, an ad for viewing only
     private void nextAsDefaultSong() {
-	curSongFile_ = defaultSong;
-	curSongName_ = defaultSong;
+    	curSongFile_ = defaultSong;
+    	curSongName_ = defaultSong;
     }
 }
