@@ -59,29 +59,35 @@ public class MixCoderBridge {
     		if( procId != -1 ) {
     			DelegateObject obj = new DelegateObject(del);
     			procIdDelegateMap.put( new Integer(procId), obj );
-    			startProc( procId );
+    			if( !startProc( procId )) {
+        	    	unreserveProcId( procId );
+        	    	procIdDelegateMap.remove(new Integer(procId));
+    				procId = -1;
+    			}
     		}
     	}	
 
     	return procId;
     }
     public void delProc(int procId) {
-	synchronized(syncObj) {
-	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
-	    if ( obj != null ) {     
-		stopProc( procId );
-		unreserveProcId( procId );
-	    }
-	}
+    	synchronized(syncObj) {
+    		Integer id = new Integer(procId);
+    	    DelegateObject obj = procIdDelegateMap.get(id);
+    	    if ( obj != null ) {     
+    	    	stopProc( procId );
+    	    	unreserveProcId( procId );
+    	    	procIdDelegateMap.remove(id);
+    	    }
+    	}
     }
 
     public void sendInput( byte[] inputBuf, int len, int procId ) {
-	synchronized(syncObj) {
-	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
-	    if ( obj != null ) {     
-		newInput( inputBuf, len, procId );
-	    }
-	}
+    	synchronized(syncObj) {
+    	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+    	    if ( obj != null ) {     
+    	    	newInput( inputBuf, len, procId );
+    	    }
+    	}
     }
 
     /////////////////////////
@@ -89,35 +95,35 @@ public class MixCoderBridge {
     /////////////////////////
     //map procId to delegate
     private int reserveProcId() {
-	int result = -1;
-	for (int i = 0; true; i++) {
-	    if (!reservedProcIds.get(i)) {
-		reservedProcIds.set(i);
-		result = i;
-		break;
-	    }
-	}
-	return result + 1;
+    	int result = -1;
+    	for (int i = 0; true; i++) {
+    	    if (!reservedProcIds.get(i)) {
+    		reservedProcIds.set(i);
+    		result = i;
+    		break;
+    	    }
+    	}
+    	return result + 1;
     }
 
     private void unreserveProcId(int procId) {
-	if (procId > 0) {
-	    reservedProcIds.clear(procId - 1);
-	}
+    	if (procId > 0) {
+    	    reservedProcIds.clear(procId - 1);
+    	}
     }
 
     //open and close thread doing process pipe
     private native void open();
 
     //start/stop a new proc
-    private native void startProc(int procId);    
+    private native boolean startProc(int procId);    
     private native void stopProc(int prodId);
 
     //calling c code to pass input around
     private native void newInput( byte[] inputBuf, int len, int procId ); 
     static {
-	//Use an absolute path
-	System.load("/usr/share/red5-server-1.0.2-RC4/MixCoderBridge.so");
-	//System.loadLibrary("MixCoderBridge"); 
+    	//Use an absolute path
+    	System.load("/usr/share/red5-server-1.0.2-RC4/MixCoderBridge.so");
+    	//System.loadLibrary("MixCoderBridge"); 
     } 
 }
