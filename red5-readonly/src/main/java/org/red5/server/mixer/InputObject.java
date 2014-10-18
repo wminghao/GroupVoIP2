@@ -58,7 +58,7 @@ public class InputObject {
 		    flvSegment.putInt(result[0]); //calc mask here
 		    byte idtype = (byte)((mixerId<<3) | kMobileStreamSource); // TODO assume all mobile
 		    if( streamName.equalsIgnoreCase(GroupMixer.SPECIAL_STREAM_NAME) ){
-		    	idtype = (byte)((mixerId<<3) | kDesktopStreamSource); // except for delayed_karaoke stream
+		    	idtype = (byte)((mixerId<<3) | kDesktopStreamSource); // except for special stream
 		    }		    
 		    flvSegment.put((byte)idtype);
 		    flvSegment.put((byte)0); //ignore for now

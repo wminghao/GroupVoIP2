@@ -60,6 +60,7 @@ public class MixCoderBridge {
     			DelegateObject obj = new DelegateObject(del);
     			procIdDelegateMap.put( new Integer(procId), obj );
     			if( !startProc( procId )) {
+    				log.info("newProc failed:  {}", procId);
         	    	unreserveProcId( procId );
         	    	procIdDelegateMap.remove(new Integer(procId));
     				procId = -1;
@@ -74,6 +75,7 @@ public class MixCoderBridge {
     		Integer id = new Integer(procId);
     	    DelegateObject obj = procIdDelegateMap.get(id);
     	    if ( obj != null ) {     
+				log.info("delProc successful:  {}", procId);
     	    	stopProc( procId );
     	    	unreserveProcId( procId );
     	    	procIdDelegateMap.remove(id);
@@ -98,9 +100,9 @@ public class MixCoderBridge {
     	int result = -1;
     	for (int i = 0; true; i++) {
     	    if (!reservedProcIds.get(i)) {
-    		reservedProcIds.set(i);
-    		result = i;
-    		break;
+        		reservedProcIds.set(i);
+        		result = i;
+        		break;
     	    }
     	}
     	return result + 1;

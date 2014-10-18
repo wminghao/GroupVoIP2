@@ -40,6 +40,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     // Java processPipe vs. native Process pipe
     // private ProcessPipe mixerPipe_ = null;
     private NativeProcessPipe mixerPipe_ = null;
+    private boolean bMixerOpenedSuccess_ = false;
+    private IRTMPHandler handler_ = null;
+    
+    //special stream
     private KaraokeGenerator karaokeGen_ = null;
     
     private GroupMixer() {
@@ -58,54 +62,59 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     					boolean bLoadFromDisc, String inputFilePath,
     					boolean bGenKaraoke, String karaokeFilePath)
 	{ 	
-    	if( allInOneSessionId_ == null ) {
+    	if( handler_ == null ) {
+        	handler_ = handler;
     	    //starts process pipe
     	    if( bShouldMix ) {
     	    	mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
     	    }
+    
+    	    if( bGenKaraoke ) {
+    	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
+    	    }
+    	}
+    	log.info("prepare AllInOneConn!");
+	}
+    
+    private void createAllInOneConn()
+    {  
+    	if( allInOneSessionId_ == null ) {
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
     	    // add session to the connection
     	    connAllInOne.setIoSession(null);
     	    // add the handler
-    	    connAllInOne.setHandler(handler);
+    	    connAllInOne.setHandler(handler_);
     	    
     	    // set it in MixerManager
     	    allInOneSessionId_ = connAllInOne.getSessionId();
     	    
     	    //??? different thread , see mina threading model ???
     	    //next assume the session is opened
-    	    handler.connectionOpened(connAllInOne);
+    	    handler_.connectionOpened(connAllInOne);
     	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne);
-
-    	    if( bGenKaraoke ) {
-    	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
-    	    }
-    	    log.info("Created all In One connection with sessionId {} on thread: {}", allInOneSessionId_, Thread.currentThread().getName());
     	}
-	}
-    
-    private void createAllInOneConn()
-    {  
 	    //kick off createStream event
-	    createMixedStream(ALL_IN_ONE_STREAM_NAME);
+    	createMixedStreamInternal(ALL_IN_ONE_STREAM_NAME);
 	    
 	    //kick off karaoke 
 	    if( karaokeGen_!= null ) {
-	    	createMixedStream(SPECIAL_STREAM_NAME);
+	    	createMixedStreamInternal(SPECIAL_STREAM_NAME);
 	    }
 	    
 	    if( mixerPipe_ != null) {
-	    	mixerPipe_.open(); 
-	    	//TODO check for return value
+	    	bMixerOpenedSuccess_ = mixerPipe_.open(); 
 	    }
+	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
     }	
 
 	//close all-in-one RTMPConnections and all its associated assets
-    private void stopAllinOneConn()
+    private void deleteAllinOneConn()
     {
+    	log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
+
 		//stop the karaoke thread
     	if( karaokeGen_ != null ) {
     		karaokeGen_.tryToStop();
@@ -116,13 +125,18 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
 
 	    //shutdown all in one stream
-	    deleteMixedStream(ALL_IN_ONE_STREAM_NAME);
+    	deleteMixedStreamInternal(ALL_IN_ONE_STREAM_NAME);
 	    
 	    //shutdown karaoke stream
 	    if( karaokeGen_!= null ) {
-	    	deleteMixedStream(SPECIAL_STREAM_NAME);
+	    	deleteMixedStreamInternal(SPECIAL_STREAM_NAME);
 	    }
+	    
+	    //remove connection
+	    RTMPConnManager.getInstance().removeConnection(allInOneSessionId_);
+	    allInOneSessionId_ = null;
     }
+    
     public boolean hasAnythingStarted() {
     	return !idLookupTable.isEmpty();
     }
@@ -133,30 +147,49 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     		//next creates the all-in-one RTMPMinaConnection
     		createAllInOneConn();
     	}
-    	
-    	RTMPMinaConnection conn = getAllInOneConn();
-    	int newStreamId = idLookupTable.createNewEntry(streamName);
-    	handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
-    }    
-    
+    	createMixedStreamInternal(streamName);
+    }  
+
     public void deleteMixedStream(String streamName)
     {
-    	int streamId = idLookupTable.deleteEntry(streamName);
-    	if ( streamId != -1 ) {        	
-    		RTMPMinaConnection conn = getAllInOneConn();
-    		handleDeleteEvent(conn, streamId);
-
+    	if( deleteMixedStreamInternal(streamName) != -1 ) {
+        	log.info("----------------after deleting stream {}, idLookupTable cnt={}", streamName, idLookupTable.getCount());
         	//if all streams are removed, remove the special stream and free up the mixer
-        	if(idLookupTable.isEmpty()) {
-        		stopAllinOneConn();
+        	boolean isEmpty = idLookupTable.isEmpty();
+        	if( !isEmpty && karaokeGen_!= null ) {
+        		//if there is only 1 stream, which is the special stream, also clean up everything
+        		if( idLookupTable.getCount() == 1) {
+        			isEmpty = true;
+        		}
+        	}
+        	if( isEmpty ) {
+        		deleteAllinOneConn();
         	}
     	}
     }
     
+    private void createMixedStreamInternal(String streamName) {
+    	int newStreamId = idLookupTable.createNewEntry(streamName);
+    	
+    	RTMPMinaConnection conn = getAllInOneConn();
+    	handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
+    }
+    
+    private int deleteMixedStreamInternal(String streamName)
+    {
+    	log.info("----------------try to delete stream {}", streamName);
+    	int streamId = idLookupTable.deleteEntry(streamName);
+    	if ( streamId != -1 ) {        	
+    		RTMPMinaConnection conn = getAllInOneConn();
+    		handleDeleteEvent(conn, streamId);
+    	}
+    	return streamId;
+    }
+    
     public void pushInputMessage(String streamName, int msgType, IoBuffer buf, int eventTime)
     {	
-    	//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}", buf.limit(), mixerPipe_);
-    	if( buf.limit() > 0 && mixerPipe_ != null ) {
+    	if( buf.limit() > 0 && mixerPipe_ != null && bMixerOpenedSuccess_ ) {
+    		//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}, bMixerOpenedSuccess_={}", buf.limit(), mixerPipe_, bMixerOpenedSuccess_);
     		mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
     	}
     	if( karaokeGen_!= null ) {
@@ -271,106 +304,106 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private void handleConnectEvent(RTMPMinaConnection conn)
     {
-	///////////////////////////////////
-	//handle StreamAction.CONNECT event
-	//RTMP Chunk Header
-	Header connectMsgHeader = new Header();
-	connectMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
-	connectMsgHeader.setChannelId(3); //3 means invoke command
-	// see RTMPProtocolDecoder::decodePacket() 
-	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-	connectMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
-	connectMsgHeader.setStreamId(0);  //0 means netconnection
-	connectMsgHeader.setTimerBase(0); //base+delta=timestamp
-	connectMsgHeader.setTimerDelta(0);
-	connectMsgHeader.setExtendedTimestamp(0); //extended timestamp
-	
-	//No need for PendingServiceCall only for callbacks with _result or _error
-	/*
-	  if (call instanceof IPendingServiceCall) {
-	  registerPendingCall(connectMsgEvent.getTransactionId(), (IPendingServiceCall) connectMsgEvent);
-	  }
-	*/   
-	PendingCall connectCall = new PendingCall( "connect");
-	Invoke connectMsgEvent = new Invoke(connectCall);
-	connectMsgEvent.setHeader(connectMsgHeader);
-	connectMsgEvent.setTimestamp(0);
-	connectMsgEvent.setTransactionId(1);
-	connectMsgEvent.setCall(connectCall);
-	
-	Map<String, Object> connectParams = new HashMap<String, Object>();
-	connectParams.put("app", AppName);
-	connectParams.put("flashVer", "FMSc/1.0");
-	connectParams.put("swfUrl", "a.swf");
-	connectParams.put("tcUrl", "rtmp://"+ipAddr+":1935/"+AppName); //server ip address
-	connectParams.put("fpad", false);
-	connectParams.put("audioCodecs", 0x0fff); //All codecs
-	connectParams.put("videoCodecs", 0x0ff); //All codecs
-	connectParams.put("videoFunction", 1); //SUPPORT_VID_CLIENT_SEEK
-	connectParams.put("pageUrl", "a.html");
-	connectParams.put("objectEncoding", 0); //AMF0
-	connectMsgEvent.setConnectionParams(connectParams);
-	
-	Packet connectMsg = new Packet(connectMsgHeader, connectMsgEvent);
-	conn.handleMessageReceived(connectMsg);    	
-	
-	log.info("A new connection event sent on thread: {}", Thread.currentThread().getName());
+    	///////////////////////////////////
+    	//handle StreamAction.CONNECT event
+    	//RTMP Chunk Header
+    	Header connectMsgHeader = new Header();
+    	connectMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
+    	connectMsgHeader.setChannelId(3); //3 means invoke command
+    	// see RTMPProtocolDecoder::decodePacket() 
+    	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+    	connectMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
+    	connectMsgHeader.setStreamId(0);  //0 means netconnection
+    	connectMsgHeader.setTimerBase(0); //base+delta=timestamp
+    	connectMsgHeader.setTimerDelta(0);
+    	connectMsgHeader.setExtendedTimestamp(0); //extended timestamp
+    	
+    	//No need for PendingServiceCall only for callbacks with _result or _error
+    	/*
+    	  if (call instanceof IPendingServiceCall) {
+    	  registerPendingCall(connectMsgEvent.getTransactionId(), (IPendingServiceCall) connectMsgEvent);
+    	  }
+    	*/   
+    	PendingCall connectCall = new PendingCall( "connect");
+    	Invoke connectMsgEvent = new Invoke(connectCall);
+    	connectMsgEvent.setHeader(connectMsgHeader);
+    	connectMsgEvent.setTimestamp(0);
+    	connectMsgEvent.setTransactionId(1);
+    	connectMsgEvent.setCall(connectCall);
+    	
+    	Map<String, Object> connectParams = new HashMap<String, Object>();
+    	connectParams.put("app", AppName);
+    	connectParams.put("flashVer", "FMSc/1.0");
+    	connectParams.put("swfUrl", "a.swf");
+    	connectParams.put("tcUrl", "rtmp://"+ipAddr+":1935/"+AppName); //server ip address
+    	connectParams.put("fpad", false);
+    	connectParams.put("audioCodecs", 0x0fff); //All codecs
+    	connectParams.put("videoCodecs", 0x0ff); //All codecs
+    	connectParams.put("videoFunction", 1); //SUPPORT_VID_CLIENT_SEEK
+    	connectParams.put("pageUrl", "a.html");
+    	connectParams.put("objectEncoding", 0); //AMF0
+    	connectMsgEvent.setConnectionParams(connectParams);
+    	
+    	Packet connectMsg = new Packet(connectMsgHeader, connectMsgEvent);
+    	conn.handleMessageReceived(connectMsg);    	
+    	
+    	log.info("A new connection event sent on thread: {}", Thread.currentThread().getName());
     }
     
     private void handleCreatePublishEvents(RTMPMinaConnection conn, String streamName, int streamId)
     {
-	///////////////////////////////////
-	//handle create Stream event
-	
-	//RTMP Chunk Header
-	Header createStreamMsgHeader = new Header();
-	createStreamMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
-	createStreamMsgHeader.setChannelId(3); //3 means invoke command
-	// see RTMPProtocolDecoder::decodePacket() 
-	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-	createStreamMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
-	createStreamMsgHeader.setStreamId(0);  //0 means netconnection
-	createStreamMsgHeader.setTimerBase(0); //base+delta=timestamp
-	createStreamMsgHeader.setTimerDelta(0);
-	createStreamMsgHeader.setExtendedTimestamp(0); //extended timestamp
-	
-	PendingCall createStreamCall = new PendingCall( "createStream" );
-	Invoke createStreamMsgEvent = new Invoke(createStreamCall);
-	createStreamMsgEvent.setHeader(createStreamMsgHeader);
-	createStreamMsgEvent.setTimestamp(0);
-	createStreamMsgEvent.setTransactionId(2);
-	createStreamMsgEvent.setCall(createStreamCall);
-		
-	Packet createStreamMsg = new Packet(createStreamMsgHeader, createStreamMsgEvent);
-	conn.handleMessageReceived(createStreamMsg);
-	
-	///////////////////////////////////
-	//handle publish event
-	
-	//RTMP Chunk Header
-	Header publishMsgHeader = new Header();
-	publishMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
-	publishMsgHeader.setChannelId(3); //3 means invoke command
-	// see RTMPProtocolDecoder::decodePacket() 
-	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-	publishMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
-	publishMsgHeader.setStreamId(streamId);  // the newly created stream id
-	publishMsgHeader.setTimerBase(0); //base+delta=timestamp
-	publishMsgHeader.setTimerDelta(0);
-	publishMsgHeader.setExtendedTimestamp(0); //extended timestamp
-	
-	Object [] publishArgs = new Object[2];
-	publishArgs[0] = streamName;
-	publishArgs[1] = "live";
-	PendingCall publishCall = new PendingCall( "publish", publishArgs );
-	Invoke publishMsgEvent = new Invoke(publishCall);
-	publishMsgEvent.setHeader(publishMsgHeader);
-	publishMsgEvent.setTimestamp(0);
-	publishMsgEvent.setTransactionId(3);
-	publishMsgEvent.setCall(publishCall);
-	
-	Packet publishMsg = new Packet(publishMsgHeader, publishMsgEvent);
-	conn.handleMessageReceived(publishMsg);
+    	///////////////////////////////////
+    	//handle create Stream event
+    	
+    	//RTMP Chunk Header
+    	Header createStreamMsgHeader = new Header();
+    	createStreamMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
+    	createStreamMsgHeader.setChannelId(3); //3 means invoke command
+    	// see RTMPProtocolDecoder::decodePacket() 
+    	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+    	createStreamMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
+    	createStreamMsgHeader.setStreamId(0);  //0 means netconnection
+    	createStreamMsgHeader.setTimerBase(0); //base+delta=timestamp
+    	createStreamMsgHeader.setTimerDelta(0);
+    	createStreamMsgHeader.setExtendedTimestamp(0); //extended timestamp
+    	
+    	PendingCall createStreamCall = new PendingCall( "createStream" );
+    	Invoke createStreamMsgEvent = new Invoke(createStreamCall);
+    	createStreamMsgEvent.setHeader(createStreamMsgHeader);
+    	createStreamMsgEvent.setTimestamp(0);
+    	createStreamMsgEvent.setTransactionId(2);
+    	createStreamMsgEvent.setCall(createStreamCall);
+    		
+    	Packet createStreamMsg = new Packet(createStreamMsgHeader, createStreamMsgEvent);
+    	conn.handleMessageReceived(createStreamMsg);
+    	
+    	///////////////////////////////////
+    	//handle publish event
+    	
+    	//RTMP Chunk Header
+    	Header publishMsgHeader = new Header();
+    	publishMsgHeader.setDataType(Constants.TYPE_INVOKE);//invoke is command, val=20
+    	publishMsgHeader.setChannelId(3); //3 means invoke command
+    	// see RTMPProtocolDecoder::decodePacket() 
+    	// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+    	publishMsgHeader.setSize(1024);   //Chunk Data Length, a big enough buffersize
+    	publishMsgHeader.setStreamId(streamId);  // the newly created stream id
+    	publishMsgHeader.setTimerBase(0); //base+delta=timestamp
+    	publishMsgHeader.setTimerDelta(0);
+    	publishMsgHeader.setExtendedTimestamp(0); //extended timestamp
+    	
+    	Object [] publishArgs = new Object[2];
+    	publishArgs[0] = streamName;
+    	publishArgs[1] = "live";
+    	PendingCall publishCall = new PendingCall( "publish", publishArgs );
+    	Invoke publishMsgEvent = new Invoke(publishCall);
+    	publishMsgEvent.setHeader(publishMsgHeader);
+    	publishMsgEvent.setTimestamp(0);
+    	publishMsgEvent.setTransactionId(3);
+    	publishMsgEvent.setCall(publishCall);
+    	
+    	Packet publishMsg = new Packet(publishMsgHeader, publishMsgEvent);
+    	conn.handleMessageReceived(publishMsg);
         
         ///////////////////////////////////
         //handle chunksize event

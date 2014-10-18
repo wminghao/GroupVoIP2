@@ -66,12 +66,12 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     		bStarted_.set(true);
     		Thread thread = new Thread(this, "KaraokeThread");
     		thread.start();
+            log.info("----tryToStart");
     	}
     }
     public void tryToStop() {
-    	if( bStarted_.get() ) {
-    		bStarted_.set(false);
-    	}
+    	bStarted_.set(false);
+        log.info("----tryToStop");
     }
     
     private void loadASong(String fileName) {
@@ -171,6 +171,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
             delegate_.onSongPlaying(curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
+    	log.info("Karaoke thread is stopped");
     }
 
     @Override

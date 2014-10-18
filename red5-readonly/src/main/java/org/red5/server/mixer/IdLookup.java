@@ -137,14 +137,14 @@ public class IdLookup {
     }
     
     public int createNewEntry(String streamName) {
-	GroupMappingTableEntry entry = new GroupMappingTableEntry();
-	synchronized( syncObj) {
-	    entry.mixerId = reserveMixerId(streamName);
-	    entry.streamId = reserveStreamId();
-	    groupMappingTable.put(streamName, entry);
-	    totalInputStreams++;
-	}
-	log.info("A new stream id: {}, mixer id: {} name: {} is created on thread: {}", entry.streamId, entry.mixerId, streamName, Thread.currentThread().getName());
+    	GroupMappingTableEntry entry = new GroupMappingTableEntry();
+    	synchronized( syncObj) {
+    	    entry.mixerId = reserveMixerId(streamName);
+    	    entry.streamId = reserveStreamId();
+    	    groupMappingTable.put(streamName, entry);
+    	    totalInputStreams++;
+    	}
+    	log.info("A new stream id: {}, mixer id: {} name: {} is created on thread: {}", entry.streamId, entry.mixerId, streamName, Thread.currentThread().getName());
     	return entry.streamId;
     }
     
@@ -166,5 +166,17 @@ public class IdLookup {
     
     public boolean isEmpty() {
     	return (getMixerMask() == 0 );
+    }
+    public int getCount() {
+    	int result = 0;
+    	synchronized( syncObj) {
+        	for (int i = MAX_STREAM_COUNT-1; i>=0; i--) {
+        	    if (mixerStreams.get(i)) {
+        	    	result++;
+        	    }
+        	}
+        	//log.info("======>getCount value={}", result);
+        	return result;
+    	}
     }
 }
