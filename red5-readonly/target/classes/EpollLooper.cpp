@@ -90,7 +90,7 @@ EpollLooper::~EpollLooper()
 bool EpollLooper::reg(int procId, int inputToProcess, int outputFromProcess, InputArray* input)
 {
     bool bSuccess = true;
-    if( procId < MAXEVENTS ) {
+    if( procId < (MAXEVENTS+1) ) {
         setNonBlocking(inputToProcess);
         setNonBlocking(outputFromProcess);
         

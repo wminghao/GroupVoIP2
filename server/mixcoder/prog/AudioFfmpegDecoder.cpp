@@ -45,7 +45,7 @@ void  AudioFfmpegDecoder::newAccessUnit( SmartPtr<AccessUnit> au, AudioStreamSet
         decoderInst_ = avcodec_find_decoder( codecID );
         if( !decoderInst_ ) {
             canDecode = false;
-            LOG("----decoderInst_ failed");
+            LOG("----decoderInst_ failed, acId=%d", setting_.acid);
         }
         ASSERT(decoderInst_);
         
@@ -90,6 +90,8 @@ void  AudioFfmpegDecoder::newAccessUnit( SmartPtr<AccessUnit> au, AudioStreamSet
                 LOG( "Source audio settings: #Channels=%d, #Freq=%d, sampleFmt=%s\n", decoderCtx_->channels, getFreq(setting_.ar), codecID==CODEC_ID_AAC?"aac":"mp3" );
             }
         }
+    } else {
+        canDecode = (decoderCtx_!=NULL) && (decoderFrame_!=NULL);
     }
     
     if( canDecode ) {
