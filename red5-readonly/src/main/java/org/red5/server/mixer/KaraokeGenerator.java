@@ -143,10 +143,6 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
         	}
         	if( bStarted_.get() ) {
                 lastTimestamp_ += 20; //advance a little bit      
-        	} else {
-                flvFrameQueue_.clear(); //delete everything.
-        		lastTimestamp_ = 0;
-        		firstPTS_ = 0xffffffff;
         	}
             bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
 	    
@@ -171,6 +167,10 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
             delegate_.onSongPlaying(curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
+
+        flvFrameQueue_.clear(); //delete everything.
+		lastTimestamp_ = 0;
+		firstPTS_ = 0xffffffff;
     	log.info("Karaoke thread is stopped");
     }
 

@@ -107,6 +107,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    if( mixerPipe_ != null) {
 	    	bMixerOpenedSuccess_ = mixerPipe_.open(); 
 	    }
+	    
+		//start the karaoke thread
+	    if( karaokeGen_!= null ) {
+    		karaokeGen_.tryToStart();
+    	}
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
     }	
 
@@ -191,10 +196,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	if( buf.limit() > 0 && mixerPipe_ != null && bMixerOpenedSuccess_ ) {
     		//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}, bMixerOpenedSuccess_={}", buf.limit(), mixerPipe_, bMixerOpenedSuccess_);
     		mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
-    	}
-    	if( karaokeGen_!= null ) {
-    		//start the karaoke thread
-    		karaokeGen_.tryToStart();
     	}
     }
 
