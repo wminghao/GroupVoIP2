@@ -58,13 +58,13 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
         		try {
         		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
         		    if( outputFile_ == null ) {
-                    	    	outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
+                    	outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
         		    }
         		    if( outputFile_ != null ) {
-        			if( seg != null ) {
-        			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
-        			    outputFile_.write(seg.array(), 0, seg.array().length);
-        			}
+            			if( seg != null ) {
+            			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
+            			    outputFile_.write(seg.array(), 0, seg.array().length);
+            			}
         		    }
         		}
         		catch(FileNotFoundException ex){

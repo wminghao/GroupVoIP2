@@ -28,10 +28,17 @@ public class InputObject {
 	    //see example from BufferUtils.class, TODO why???
 	    flvFrame = ByteBuffer.allocate(dataLen);
 	    flvFrame.order(ByteOrder.LITTLE_ENDIAN);  // to use little endian
+
 	    byte[] inBuf = new byte[dataLen];
 	    buf.get(inBuf);
 	    buf.flip();
 	    this.flvFrame.put(inBuf, 0, dataLen);
+	    /*
+	    ByteBuffer bb = buf.buf();
+	    this.flvFrame.put(bb.array(), 0, dataLen);
+	    bb.flip();
+	    buf.flip();
+	    */
 	    this.flvFrame.flip();
 	    this.eventTime = eventTime;
 	    this.flvSegment = null;

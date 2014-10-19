@@ -22,6 +22,8 @@
 			private var streamPub:NetStream; //must declare outside, otherwise, gc will recycle it.
 			private var streamViewA:NetStream; //must declare outside
 			private var streamViewB:NetStream; //must declare outside
+			private var streamViewC:NetStream; //must declare outside
+			private var streamViewD:NetStream; //must declare outside
 			
 			private var connectionPub:NetConnection;			
 			private var connectionSub:NetConnection;
@@ -36,7 +38,9 @@
 			private var dataSet:ArrayCollection = new ArrayCollection(
 				[   
 					{value:"testliveA", code:"testliveA"},
-					{value:"testliveB", code:"testliveB"}			
+					{value:"testliveB", code:"testliveB"},
+					{value:"testliveC", code:"testliveC"},
+					{value:"testliveD", code:"testliveD"}
 				]
 			);
 			
@@ -76,7 +80,7 @@
 			
 			private var videoWidth:int = 320;
 			private var videoHeight:int = 240;
-			private var positionArray:Array = [ [0, 0], [0, videoHeight]];
+			private var positionArray:Array = [ [0, 0], [0, videoHeight], [videoWidth*3, 0], [videoWidth*3, videoHeight] ];
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
@@ -255,6 +259,14 @@
 					streamViewB = new NetStream(connectionSub);
 					var itemB:Object = dataSet.getItemAt(posIndex-1);
 					connectStream(streamViewB, itemB.value, positionArray[posIndex-1][0], positionArray[posIndex-1][1], videoWidth, videoHeight);
+					posIndex++;
+					streamViewC = new NetStream(connectionSub);
+					var itemC:Object = dataSet.getItemAt(posIndex-1);
+					connectStream(streamViewC, itemC.value, positionArray[posIndex-1][0], positionArray[posIndex-1][1], videoWidth, videoHeight);
+					posIndex++;
+					streamViewD = new NetStream(connectionSub);
+					var itemD:Object = dataSet.getItemAt(posIndex-1);
+					connectStream(streamViewD, itemD.value, positionArray[posIndex-1][0], positionArray[posIndex-1][1], videoWidth, videoHeight);
 					posIndex++;
 				} else {
 					for each(var item:Object in dataSet){

@@ -218,10 +218,10 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	    }
     	    in.close();
     	} catch (FileNotFoundException e) {
-    	    // TODO Auto-generated catch block
+    		log.info("-------FileNotFoundException");
     	    e.printStackTrace();
     	} catch (IOException e) {
-    	    // TODO Auto-generated catch block
+    		log.info("-------IOException");
     	    e.printStackTrace();
     	}
     }
