@@ -128,7 +128,7 @@ package
 			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
 			for (var i:uint = 0; i < numCameras; i++) {
 				var cam:Camera = Camera.getCamera(String(i));
-				logDebug(" cam position="+cam.position);
+				//logDebug(" cam position="+cam.position);
 				if (cam && cam.position == CameraPosition.FRONT) {
 					return cam;
 				}
@@ -275,7 +275,7 @@ package
 			var height:int = 0;
 			for (var propName:String in info) {
 				if (propName != "parameters") {
-					logDebug(propName + " = " + info[propName]);
+					//logDebug(propName + " = " + info[propName]);
 					if( propName == "x" ) {
 						x = info[propName];
 					} else if( propName == "y" ) {
@@ -292,12 +292,12 @@ package
 			videoSelf.y = (y*screenHeight)/videoHeight;
 			videoSelf.width = (width*(screenWidth-2*screenX))/videoWidth;
 			videoSelf.height = (height*screenHeight)/videoHeight;
-			
+			/*
 			logDebug("videoSelf.x = " + videoSelf.x);
 			logDebug("videoSelf.y = " + videoSelf.y);
 			logDebug("videoSelf.width = " + videoSelf.width);			
 			logDebug("videoSelf.height = " + videoSelf.height);
-			
+			*/
 			this.addChild(videoOthers);
 			this.addChildAt(videoSelf, getChildIndex(videoOthers));
 		};
