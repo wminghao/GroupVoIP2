@@ -170,6 +170,7 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     	if( bSaveToDisc ) {
     	    try {
     	    	outputFile_.close();
+    	    	outputFile_ = null;
     	    }catch (IOException ex) {
     	    	log.info("close exception:  {}", ex);
         	}
