@@ -68,6 +68,7 @@ int main( int argc, char** argv ) {
     signal( SIGILL, handlesig );    
     signal( SIGABRT, handlesig );
     signal( SIGALRM, handlesig );
+    signal( SIGXCPU, handlesig ); //CPU limit
     // SIGKILL command cannot be caught
 
     Logger::initLog("MixCoder", kSyslog);
