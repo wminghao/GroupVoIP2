@@ -91,8 +91,8 @@ package
 		{
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
-				NativeApplication.nativeApplication.exit();
 				logDebug("=>handleKeys.");
+				NativeApplication.nativeApplication.exit();
 			}
 		}
 		

@@ -100,7 +100,7 @@
         <!-- <fullScreen></fullScreen> -->
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
-        <renderMode>gpu</renderMode>
+        <renderMode>direct</renderMode>
 
         <!-- Whether the default direct mode rendering context allocates storage for depth and stencil buffers.  Optional.  Default false. -->
         <!-- <depthAndStencil></depthAndStencil> -->
@@ -262,6 +262,7 @@
 	<!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
 
 	<android>
+		<!-- According to this thread, https://forums.adobe.com/message/5730853 containsVideo is a temporary hack will cause problems -->
 		<containsVideo>true</containsVideo>
         <manifestAdditions><![CDATA[
 			<manifest android:installLocation="auto">

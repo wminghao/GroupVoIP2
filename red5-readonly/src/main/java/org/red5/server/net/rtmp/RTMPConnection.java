@@ -1413,8 +1413,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
     public void onSongPlaying(String songName) {
 		Red5.setConnectionLocal(this);
-		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-		cbs.onSongPlaying(songName);
+        try {
+    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
+    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+    		cbs.onSongPlaying(songName);
+        } catch(Exception e) {
+        	log.info("----Non-critical error: onSongPlaying callback failed: {}", e);
+        }
     }
 }
