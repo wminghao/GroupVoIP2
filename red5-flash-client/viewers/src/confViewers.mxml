@@ -19,6 +19,7 @@
 			private var videoURLB:String = "testliveB"//"red5"//"mp4:timbo";
 			private var videoURLC:String = "testliveC"//"red5"//"mp4:timbo";
 			private var videoURLD:String = "testliveD"//"red5"//"mp4:timbo";
+			private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.186.122.59";//"192.168.0.61";
 			private var streamA:NetStream;
 			private var streamB:NetStream;
 			private var streamC:NetStream;
@@ -28,10 +29,7 @@
 			private var videoHeight:int = 240;
 			
 			public function onCreationComplete(event:FlexEvent) : void {
-			}
-			
-			public function onSubscribeButtonClick():void {
-				var videoPath:String = "rtmp://"+serverIp.text+"/myRed5App/";
+				var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
 				// setup connection code
 				connection = new NetConnection();
 				connection.connect(videoPath);  //subscribe to live video
@@ -116,16 +114,4 @@
 			}
 		]]>
 	</fx:Script>
-	
-	<s:Group>
-		<s:layout>
-			<s:HorizontalLayout/>
-		</s:layout>
-		<s:TextInput id="serverIp" width="100" text="127.0.0.1"/>
-		<s:Button id="button1" 
-				  label="Subscribe!" 
-				  width="200" 
-				  fontSize="16"
-				  click="onSubscribeButtonClick();"/>
-	</s:Group>
 </s:Application>
