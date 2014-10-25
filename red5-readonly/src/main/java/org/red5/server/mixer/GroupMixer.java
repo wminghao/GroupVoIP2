@@ -19,7 +19,6 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
-import org.red5.server.stream.IStreamData;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -34,6 +33,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private static GroupMixer instance_;
     private String allInOneSessionId_ = null; //all-in-one mixer rtmp connection
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
+
+    private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
     
     private IdLookup idLookupTable = new IdLookup();
     
@@ -66,7 +67,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	handler_ = handler;
     	    //starts process pipe
     	    if( bShouldMix ) {
-    	    	mixerPipe_ = new NativeProcessPipe(this, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
+    	    	mixerPipe_ = new NativeProcessPipe(this, mixCoderBridge_, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
     	    }
     
     	    if( bGenKaraoke ) {

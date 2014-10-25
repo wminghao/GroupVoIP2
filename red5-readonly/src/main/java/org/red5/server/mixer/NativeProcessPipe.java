@@ -33,17 +33,17 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
      */
     private SegmentParser segParser_ = new SegmentParser(this);
     private SegmentParser.Delegate delegate;
-    private MixCoderBridge mixCoderBridge = MixCoderBridge.getInstance();
+    private MixCoderBridge mixCoderBridge = null;
     private int procId = -1;
     
-    public NativeProcessPipe(SegmentParser.Delegate delegate, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
+    public NativeProcessPipe(SegmentParser.Delegate delegate, MixCoderBridge mixCoderBridge, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
     {
     	this.delegate = delegate;
+    	this.mixCoderBridge = mixCoderBridge;
     	this.bSaveToDisc = bSaveToDisc;
     	this.outputFilePath = outputFilePath;
     	this.bLoadFromDisc = bLoadFromDisc;
     	this.inputFilePath = inputFilePath;
-    	
     	log.info("======>GroupMixer configuration, bSaveToDisc={}, outPath={}, bLoadFromDisc={}, inPath={}, procId={}.", bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath, procId);
     }
     

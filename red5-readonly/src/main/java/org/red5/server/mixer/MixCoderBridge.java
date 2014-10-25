@@ -8,7 +8,6 @@ import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 
 public class MixCoderBridge {
-    private static MixCoderBridge instance_;
     private Map<Integer, DelegateObject> procIdDelegateMap = new HashMap<Integer, DelegateObject>();
     private Object syncObj = new Object();
     private volatile BitSet reservedProcIds = new BitSet();
@@ -28,13 +27,6 @@ public class MixCoderBridge {
     	public MixCoderBridge.Delegate delegate;
     }
 
-    public static synchronized MixCoderBridge getInstance() {
-        if(instance_ == null) {
-        	instance_ = new MixCoderBridge();
-        }
-        return instance_;
-    }
-    
     public MixCoderBridge() {
     	open();//open the connection to process pipe
     }
