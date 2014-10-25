@@ -80,9 +80,18 @@ pid_t ProcessPipe::open()
             perror( "dup2 in child q_[1]" );
         }
         
+        //Howard, this flag is causing a serious issue with parent thread dies killing child process.
+        //  The bug behaves the following way:
+        //    1) userA stream joins to start a movieStream, 2) userB stream joins to watch it together. 3) userA exits, 4) mixer crashes. 5) userB stream cannot see the mixed result.
+        //  The stackoverflow thread is as follows:
+        //    ==>http://stackoverflow.com/questions/26285133/who-sends-a-sigkill-to-my-process-mysteriously-on-ubuntu-server
+        //That's not what we want. Instead we want parent process dies killing child process.
+        //   Even commenting out the code will let the parent process and child process die at the same time. Maybe it's the default Ubuntu behavior.
+        /*
         if( 0 > prctl( PR_SET_PDEATHSIG, SIGKILL ) ) {
             perror( "prctl" );
         }
+        */
 
         if( -1 == execvp( MIXER_PROCESS_LOCATION, arguments ) ) {
             assert(0);
