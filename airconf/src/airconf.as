@@ -91,8 +91,8 @@ package
 		{
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
-				NativeApplication.nativeApplication.exit();
 				logDebug("=>handleKeys.");
+				NativeApplication.nativeApplication.exit();
 			}
 		}
 		
@@ -100,7 +100,7 @@ package
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
-				//Alert.show("NetConnection.Connect.Success!", "Information");
+				logDebug("NetConnection.Connect.Success!");
 			} else {
 				logDebug("Unsuccessful Connection");
 			}
@@ -128,6 +128,7 @@ package
 			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
 			for (var i:uint = 0; i < numCameras; i++) {
 				var cam:Camera = Camera.getCamera(String(i));
+				//logDebug(" cam position="+cam.position);
 				if (cam && cam.position == CameraPosition.FRONT) {
 					return cam;
 				}
@@ -135,6 +136,7 @@ package
 			return null;
 		}
 		public function publishNow() : void {
+			
 			//already published, don't do anything.
 			if( publishDest!=null) {
 				return;
@@ -155,55 +157,61 @@ package
 					break;
 				}
 			}
+			logDebug("----publishNow, publishDest="+publishDest);
 			
-			openViewStream();
-			
-			if( publishDest == null ) {
-				//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
-				return;
-			}
-			
-			var camera:Camera = tryGetFrontCamera();	     
-			if (camera == null) {
-				Security.showSettings(SecurityPanel.CAMERA) ;
-			} else{
-				mic = Microphone.getMicrophone();
-				mic.addEventListener(StatusEvent.STATUS, onMicStatus);
-				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
-				camera.setMode(videoWidth, videoHeight, 30); //640*480 30 fps
-				camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
+			try{
+				openViewStream();
 				
-				streamPub = new NetStream(netConn);
-				var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
-				h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
-				streamPub.videoStreamSettings = h264settings; 
-				streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-				streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-				streamPub.attachCamera(camera);
-				streamPub.publish(publishDest, "live");
-				
-				videoSelf = new Video();
-				videoSelf.attachCamera(camera) ;
-				this.addChildAt(videoSelf, getChildIndex(videoOthers));
-				videoSelf.x = screenX;
-				videoSelf.y = screenY;
-				videoSelf.width = (screenWidth-2*screenX)/2;
-				videoSelf.height = screenHeight/2;
-				videoSelf.visible = true;
-				
-				mic.setSilenceLevel(0,200);
-				//Speex settings
-				mic.encodeQuality = 10; //best quality
-				mic.codec = SoundCodec.SPEEX; 
-				mic.framesPerPacket = 1; //20ms per frame, instead of 40ms per frame
-				
-				mic.setLoopBack(false);
-				mic.setUseEchoSuppression(true);
-				
-				//detectLoopback();
-				//detectVolume();
-				streamPub.attachAudio(mic);
-				//Alert.show("camera width="+camera.width);
+				if( publishDest == null ) {
+					//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
+					return;
+				}
+				var camera:Camera = tryGetFrontCamera();	     
+				if (camera == null) {
+					logDebug("----camera null");
+					Security.showSettings(SecurityPanel.CAMERA) ;
+				} else{
+					logDebug("----try to open microphone");
+					mic = Microphone.getMicrophone();
+					mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+					camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
+					camera.setMode(videoWidth, videoHeight, 30); //640*480 30 fps
+					camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
+					
+					streamPub = new NetStream(netConn);
+					var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
+					h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
+					streamPub.videoStreamSettings = h264settings; 
+					streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+					streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+					streamPub.attachCamera(camera);
+					streamPub.publish(publishDest, "live");
+					
+					videoSelf = new Video();
+					videoSelf.attachCamera(camera) ;
+					this.addChildAt(videoSelf, getChildIndex(videoOthers));
+					videoSelf.x = screenX;
+					videoSelf.y = screenY;
+					videoSelf.width = (screenWidth-2*screenX)/2;
+					videoSelf.height = screenHeight/2;
+					videoSelf.visible = true;
+					
+					mic.setSilenceLevel(0,200);
+					//Speex settings
+					mic.encodeQuality = 10; //best quality
+					mic.codec = SoundCodec.SPEEX; 
+					mic.framesPerPacket = 1; //20ms per frame, instead of 40ms per frame
+					
+					mic.setLoopBack(false);
+					mic.setUseEchoSuppression(true);
+					
+					//detectLoopback();
+					//detectVolume();
+					streamPub.attachAudio(mic);
+					//Alert.show("camera width="+camera.width);
+				}				
+			} catch(e:Error) {
+				logDebug("---Exception="+e);
 			}
 		}
 		private function netStatusHandler(event:NetStatusEvent):void {
@@ -237,6 +245,7 @@ package
 		
 		private function openViewStream():void {
 			streamView = new NetStream(netConn);
+			
 			streamView.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
 			streamView.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
 			
@@ -245,7 +254,8 @@ package
 			streamView.client = cliente;
 			streamView.bufferTime = 0;
 			streamView.bufferTimeMax = 0;
-			streamView.useJitterBuffer = true; //audio is mp3, so set buffer to be 0 
+			//causes android to fail for unknown reason, anyway, this flag is not helping too much.
+			//streamView.useJitterBuffer = true; //audio is mp3, so set buffer to be 0 
 			streamView.play(mixedStreamPrefix + publishDest);
 			
 			videoOthers = new Video();
@@ -265,7 +275,7 @@ package
 			var height:int = 0;
 			for (var propName:String in info) {
 				if (propName != "parameters") {
-					logDebug(propName + " = " + info[propName]);
+					//logDebug(propName + " = " + info[propName]);
 					if( propName == "x" ) {
 						x = info[propName];
 					} else if( propName == "y" ) {
@@ -282,12 +292,12 @@ package
 			videoSelf.y = (y*screenHeight)/videoHeight;
 			videoSelf.width = (width*(screenWidth-2*screenX))/videoWidth;
 			videoSelf.height = (height*screenHeight)/videoHeight;
-			
+			/*
 			logDebug("videoSelf.x = " + videoSelf.x);
 			logDebug("videoSelf.y = " + videoSelf.y);
 			logDebug("videoSelf.width = " + videoSelf.width);			
 			logDebug("videoSelf.height = " + videoSelf.height);
-			
+			*/
 			this.addChild(videoOthers);
 			this.addChildAt(videoSelf, getChildIndex(videoOthers));
 		};
@@ -296,7 +306,7 @@ package
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
 				publishedStream.indexOf(mixedStreamPrefix) < 0 && 
 				publishedStream != publishDest ){ 
-				//Alert.show("A new connection "+publishedStream+" joined", "Information");
+				logDebug("A new connection "+publishedStream+" joined");
 				publishedStreamArray.push(publishedStream);
 			}
 		}
@@ -318,7 +328,7 @@ package
 		
 		public function initStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			//Alert.show("initStreams = "+streamListStr, "Information"); 
+			logDebug("initStreams = "+streamListStr); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;

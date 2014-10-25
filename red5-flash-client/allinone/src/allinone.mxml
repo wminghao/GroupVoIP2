@@ -15,18 +15,12 @@
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			
-			private var videoURLA:String = "testliveA"//"red5"//"mp4:timbo";
-			private var videoURLB:String = "testliveB"//"red5"//"mp4:timbo";
-			private var videoURLC:String = "testliveC"//"red5"//"mp4:timbo";
-			private var videoURLD:String = "testliveD"//"red5"//"mp4:timbo";
-			private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.186.122.59";//"192.168.0.61";
-			private var streamA:NetStream;
-			private var streamB:NetStream;
-			private var streamC:NetStream;
-			private var streamD:NetStream;
+			private var videoURL:String = "__mixed__allinone"//"red5"//"mp4:timbo";
+			private var stream:NetStream;
 			private var connection:NetConnection;
-			private var videoWidth:int = 320;
-			private var videoHeight:int = 240;
+			private var videoWidth:int = 640;
+			private var videoHeight:int = 480;
+			private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.186.122.59";//"192.168.0.61";
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
@@ -61,17 +55,8 @@
 				container.height = stage.height/2;
 				addElement( container );
 				
-				streamA = new NetStream(connection);
-				playStream(streamA, videoURLA, container, 0, 0);
-				
-				streamB = new NetStream(connection);
-				playStream(streamB, videoURLB, container, videoWidth, 0);
-				
-				streamC = new NetStream(connection);
-				playStream(streamC, videoURLC, container, 0, videoHeight);
-				
-				streamD = new NetStream(connection);
-				playStream(streamD, videoURLD, container, videoWidth, videoHeight);
+				stream = new NetStream(connection);
+				playStream(stream, videoURL, container, 0, 0);
 			}
 			
 			private function playStream(stream:NetStream, url:String, container:UIComponent, x:int, y:int):void {
@@ -114,4 +99,12 @@
 			}
 		]]>
 	</fx:Script>
+	
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout><s:Label id="statusText" width="65" height="26" fontSize="20" paddingLeft="5" paddingTop="5"
+							text="Status"/>
+		<s:TextInput id="status" width="305" height="25" text=""/>	
+	</s:Group>
 </s:Application>

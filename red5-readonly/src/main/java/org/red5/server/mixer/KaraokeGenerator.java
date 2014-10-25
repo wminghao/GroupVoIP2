@@ -40,13 +40,11 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     {
     	public ByteBuffer frame;
     	public int timestamp;
-    	public int length;
     	public FLVFrameObject(ByteBuffer frame, int len, int timestamp) {
     	    this.frame = ByteBuffer.allocate(len);
     	    this.frame.put(frame.array(), 0, len);
     	    this.frame.flip();
     	    this.timestamp = timestamp;
-    	    this.length = len;
     	}
     }
     
@@ -62,8 +60,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
     
     public void tryToStart() {
-    	if( !bStarted_.get() ) {
-    		bStarted_.set(true);
+    	if( bStarted_.compareAndSet(false, true) ) {
     		Thread thread = new Thread(this, "KaraokeThread");
     		thread.start();
             log.info("----tryToStart");
@@ -76,11 +73,11 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     
     private void loadASong(String fileName) {
     	firstPTS_ = 0xffffffff;
-    	File file = new File(fileName);
     	nextAsDefaultSong(); //set next as default song
-        log.info("Open a file {} size: {}", fileName, file.length());
         long startTime = System.currentTimeMillis();
         try {
+        	File file = new File(fileName);
+            log.info("Open a file {} size: {}", fileName, file.length());
         	flvParser_ = new FLVParser(this, lastTimestamp_);
         	InputStream input = null;
         	try {
@@ -180,7 +177,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	    //send the first frame immediately
     	    firstPTS_ = timestamp;
     	    delegate_.onKaraokeFrameParsed(frame, len);
-    	    //log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
+    	    log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
     	} else {
     	    //for the rest, put into the queue first
     	    flvFrameQueue_.add( new FLVFrameObject(frame, len, timestamp) );
