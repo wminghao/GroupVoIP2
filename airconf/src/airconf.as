@@ -22,6 +22,7 @@ package
 		
 		private var netConn:NetConnection;	
 		private var mic:Microphone;
+		private var camera:Camera;
 		
 		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
@@ -52,6 +53,33 @@ package
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
+			var minBound : Number = Math.min( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
+			var maxBound : Number = Math.max( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
+			
+			// Landscape  
+			screenWidth = Math.min( stage.fullScreenWidth, maxBound );  
+			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
+			screenX = (screenWidth*videoHeight - videoWidth * screenHeight) / (2*videoHeight);
+			
+			//register for back and home events
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
+			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
+		}
+		
+		private function handleActivate(event:Event):void
+		{
+			logDebug("=>handleActivate.");
+			enterApp();
+		}
+		
+		private function handleDeactivate(event:Event):void
+		{
+			logDebug("=>handleDeactivate.");
+			exitApp();
+		}
+		
+		private function enterApp():void {
 			var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
 			// setup connection code
 			netConn = new NetConnection();
@@ -60,31 +88,33 @@ package
 			netConn.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 			netConn.client = this;
 			
-			//register for back and home events
-			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
-			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
-			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
-			
-			var minBound : Number = Math.min( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
-			var maxBound : Number = Math.max( Screen.mainScreen.visibleBounds.width, Screen.mainScreen.visibleBounds.height );  
-			
-			// Landscape  
-			screenWidth = Math.min( stage.fullScreenWidth, maxBound );  
-			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
-			screenX = (screenWidth*videoHeight - videoWidth * screenHeight) / (2*videoHeight);
-		}
-		
-		private function handleActivate(event:Event):void
-		{
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
 		}
 		
-		private function handleDeactivate(event:Event):void
-		{
-			logDebug("=>handleDeactivate.");	
-			if(!debug) {
-				NativeApplication.nativeApplication.exit();
-			}
+		private function exitApp():void {
+			mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
+			camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
+			
+			videoSelf.attachCamera(null);
+			videoSelf.clear();
+			videoOthers.attachNetStream(null);
+			videoOthers.clear();
+			
+			streamView.dispose();
+			streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+			streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+			streamView.close();
+			
+			streamPub.dispose();
+			streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+			streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+			streamPub.close();
+			
+			netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
+			netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
+			netConn.close();
+			
+			NativeApplication.nativeApplication.exit();
 		}
 		
 		private function handleKeys(event:KeyboardEvent):void
@@ -92,7 +122,7 @@ package
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
-				NativeApplication.nativeApplication.exit();
+				exitApp();
 			}
 		}
 		
@@ -166,7 +196,7 @@ package
 					//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
 					return;
 				}
-				var camera:Camera = tryGetFrontCamera();	     
+				camera = tryGetFrontCamera();	     
 				if (camera == null) {
 					logDebug("----camera null");
 					Security.showSettings(SecurityPanel.CAMERA) ;
