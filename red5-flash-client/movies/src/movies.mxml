@@ -186,8 +186,8 @@
 						break;
 					case "NetStream.Play.Start":
 					case "NetStream.Play.Reset":
-					case "Netstream.Play.PublishNotify":
-					case "Netstream.Play.UnpublishNotify":
+					case "NetStream.Play.PublishNotify":
+					case "NetStream.Play.UnpublishNotify":
 					case "NetStream.Video.DimensionChange":
 						break;
 					default:
