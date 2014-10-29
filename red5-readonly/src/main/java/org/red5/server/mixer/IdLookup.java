@@ -149,18 +149,18 @@ public class IdLookup {
     }
     
     public int deleteEntry(String streamName) {
-	int streamId = -1;
-	synchronized( syncObj) {
-	    GroupMappingTableEntry entry = groupMappingTable.get(streamName);
-	    if ( entry != null ) {
+    	int streamId = -1;
+    	synchronized( syncObj) {
+    	    GroupMappingTableEntry entry = groupMappingTable.get(streamName);
+    	    if ( entry != null ) {
             	unreserveStreamId(entry.streamId);
             	unreserveMixerId(entry.mixerId);
             	groupMappingTable.remove(streamName);
             	streamId = entry.streamId;
             	totalInputStreams--;
-		log.info("A old stream id: {}, mixer id: {} is deleted on thread: {}", entry.streamId, entry.mixerId, Thread.currentThread().getName());
-	    }
-	}
+            	log.info("A old stream id: {}, mixer id: {} is deleted on thread: {}", entry.streamId, entry.mixerId, Thread.currentThread().getName());
+    	    }
+    	}
     	return streamId;
     }
     
