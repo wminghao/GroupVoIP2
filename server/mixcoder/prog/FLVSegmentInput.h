@@ -3,13 +3,13 @@
 
 #include "fwk/SmartBuffer.h"
 #include "fwk/Time.h"
-#include "FLVParser.h"
 #include "CodecInfo.h"
-#include "FLVParserDelegate.h"
+#include "FLVSegmentParserDelegate.h"
 #include "RawData.h"
 #include "VideoDecoder.h"
 #include "AudioDecoder.h"
 #include "AudioTimestampMapper.h"
+#include "FLVSegmentParser.h"
 #include "FLVSegmentInputDelegate.h"
 #include <list>
 
@@ -49,17 +49,15 @@ using namespace std;
 //          When that happens, the stream's timestamp is resynced with the global timestamp.
 ///////////////////////////////////
 
-class FLVSegmentInput:public FLVParserDelegate
+class FLVSegmentInput:public FLVSegmentParserDelegate
 {
  public:
- FLVSegmentInput(FLVSegmentInputDelegate* dele, u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): delegate_(dele), parsingState_(SEARCHING_SEGHEADER),
-        curSegTagSize_(0), curStreamId_(0), curStreamLen_(0), curStreamCnt_(0),
-        numStreams_(0), targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
+   FLVSegmentInput(FLVSegmentInputDelegate* dele, u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): delegate_(dele), segParser_(this), 
+        targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
         {
             memset(audioStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
             memset(videoStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
             for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
-                parser_[i] = new FLVParser(this, i);
                 audioDecoder_[i] = NULL; //initialize it later
                 videoDecoder_[i] = NULL;
                 audioTsMapper_[i].setIndex(i);
@@ -73,14 +71,15 @@ class FLVSegmentInput:public FLVParserDelegate
         }
     virtual ~FLVSegmentInput() {
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
-            delete parser_[i];
             delete audioDecoder_[i];
             delete videoDecoder_[i];
         }
     }
-    StreamSource getStreamSource(int streamId) { return streamSource[streamId]; }
+    StreamSource getStreamSource(int streamId) { return segParser_.getStreamSource(streamId); }
     
-    bool readData(SmartPtr<SmartBuffer> input);
+    bool readData(SmartPtr<SmartBuffer> input) {
+        return segParser_.readData(input);
+    }
 
     //detect whether the next stream is ready or not 
     bool isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudioTimestamp);
@@ -107,35 +106,18 @@ class FLVSegmentInput:public FLVParserDelegate
     //inherited from delegate functions
     virtual void onFLVFrameParsed( SmartPtr<AccessUnit> au, int index );
     virtual u32 getGlobalAudioTimestamp() { return globalAudioTimestamp_;}
+
+    virtual void onStreamOffline(int index);
+    virtual StreamStatus getVideoStreamStatus(int index) { return videoStreamStatus_[index]; }
+    virtual StreamStatus getAudioStreamStatus(int index) { return audioStreamStatus_[index]; }
+    virtual void setVideoStreamStatus(StreamStatus status, int index) { videoStreamStatus_[index] = status; }
+    virtual void setAudioStreamStatus(StreamStatus status, int index) { audioStreamStatus_[index] = status; }
  private:
     //delegate for new output
     FLVSegmentInputDelegate* delegate_;
 
-    typedef enum StreamStatus
-    {
-        kStreamOffline,
-        kStreamOnlineNotStarted,
-        kStreamOnlineStarted
-    } StreamStatus;
-    
-    typedef enum FLVSegmentParsingState
-    {
-        SEARCHING_SEGHEADER,
-        SEARCHING_STREAM_MASK,
-        SEARCHING_STREAM_HEADER,
-        SEARCHING_STREAM_DATA
-    }FLVSegmentParsingState;
-
-    //parsing logic
-    FLVSegmentParsingState parsingState_;
-    string curBuf_;
-    u32 curSegTagSize_;
-    u32 curStreamId_;
-    u32 curStreamLen_;
-    u32 curStreamCnt_;
-    FLVParser* parser_[MAX_XCODING_INSTANCES];
-    StreamSource streamSource[MAX_XCODING_INSTANCES];
-    u32 numStreams_;
+    //segment parser
+    FLVSegmentParser segParser_;    
 
     //stores raw audio and video messages
     list<SmartPtr<AudioRawData> > audioQueue_[MAX_XCODING_INSTANCES];

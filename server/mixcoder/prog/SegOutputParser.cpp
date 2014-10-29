@@ -10,13 +10,6 @@
 
 using namespace std;
 
-u32 count_bits(u32 n) {     
-    unsigned int c; // c accumulates the total bits set in v
-    for (c = 0; n; c++) { 
-        n &= n - 1; // clear the least significant bit set
-    }
-    return c;
-}
 typedef enum FLVSegmentParsingState
 {
     SEARCHING_SEGHEADER,

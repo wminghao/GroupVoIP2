@@ -201,4 +201,12 @@ inline bool isVideoRectSame( VideoRect* rect1, VideoRect* rect2 ) {
              rect1->width == rect2->width &&
              rect1->height == rect2->height );
 }
+
+inline u32 count_bits(u32 n) {     
+    unsigned int c; // c accumulates the total bits set in v
+    for (c = 0; n; c++) { 
+        n &= n - 1; // clear the least significant bit set
+    }
+    return c;
+}
 #endif

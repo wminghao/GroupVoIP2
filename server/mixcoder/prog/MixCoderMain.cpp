@@ -112,7 +112,7 @@ int main( int argc, char** argv ) {
 
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( codecOutputId != kVP8VideoPacket ) {
-        videoBitrate = 200; //200kbps
+        videoBitrate = 300; //300kbps
     }
     int videoWidth = 640;
     int videoHeight = 480;
