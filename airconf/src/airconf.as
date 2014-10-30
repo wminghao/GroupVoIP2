@@ -91,7 +91,7 @@ package
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
 		}
 		
-		private function exitApp():void {
+		private function disableVideo():void {
 			mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
 			camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
 			
@@ -113,7 +113,10 @@ package
 			netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
 			netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
 			netConn.close();
+		}
 			
+		private function exitApp():void {
+			disableVideo();
 			NativeApplication.nativeApplication.exit();
 		}
 		
@@ -133,6 +136,7 @@ package
 				logDebug("NetConnection.Connect.Success!");
 			} else {
 				logDebug("Unsuccessful Connection");
+				disableVideo();
 			}
 		}
 		
