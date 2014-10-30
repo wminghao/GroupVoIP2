@@ -65,6 +65,7 @@ package
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
+			NativeApplication.nativeApplication.addEventListener(Event.EXITING, onExiting);
 		}
 		
 		private function handleActivate(event:Event):void
@@ -76,6 +77,19 @@ package
 		private function handleDeactivate(event:Event):void
 		{
 			logDebug("=>handleDeactivate.");
+			exitApp();
+		}
+		private function onExiting(e:Event):void
+		{
+			e.preventDefault();
+			var t:Timer = new Timer(100);
+			t.addEventListener(TimerEvent.TIMER, onTimer);
+			t.start();
+			
+		}
+		private function onTimer(e:TimerEvent):void
+		{
+			logDebug("=>onTimer exit app.");
 			exitApp();
 		}
 		
