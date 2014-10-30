@@ -7,6 +7,7 @@ const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 3; //78ms max delay to pad with prev 
 const u32 TIMESTAMP_JUMP_THRESHOLD = 100;
 const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
 const u32 MAX_XCODING_INSTANCES = 32;
+const double videoFrameIntervalInMs = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
 typedef  enum VideoLayout {
     kEvenLayout, //evenly distribute streams across the screen

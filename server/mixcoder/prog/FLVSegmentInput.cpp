@@ -2,11 +2,11 @@
 #include "fwk/log.h"
 #include "fwk/Units.h"
 #include <stdio.h>
+#include <math.h>
 #include "AudioDecoderFactory.h"
 #include "AudioMixer.h"
 
 const u32 MAX_VIDEO_QUEUE_SIZE = 30; //max of 30 frames per queue size
-const double frameInterval = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
 ////////////////////////////////////////////////////////////////
 // Audio is always continuous. Video can not be faster than audio.
@@ -28,12 +28,12 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
         if ( videoStreamStatus_[i] == kStreamOnlineStarted ) {
 
             //nextBucketTimestamp is every 33ms since the beginning of video stream
-            double nextBucketTimestamp = lastBucketTimestamp_[i] + frameInterval;
+            double nextBucketTimestamp = lastBucketTimestamp_[i] + videoFrameIntervalInMs;
 
             //audioBuckeTimestamp is the bucket under which the audio packet falls into. (strictly folow 33ms rule)
             double audioBucketTimestamp = nextBucketTimestamp; //strictly follow 33ms rule
             if( minAudioTimestamp ) {
-                audioBucketTimestamp = lastBucketTimestamp_[i] + frameInterval * ((int)(((double)minAudioTimestamp - lastBucketTimestamp_[i])/frameInterval)); 
+                audioBucketTimestamp = lastBucketTimestamp_[i] + videoFrameIntervalInMs * ((int)(((double)minAudioTimestamp - lastBucketTimestamp_[i])/videoFrameIntervalInMs)); 
             }
 
             //nextLimitTimestamp is useful if audio is way ahead of video bucket.
@@ -265,36 +265,41 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 if (  maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
                     //move forward only if enough time has elapsed since last popout, otherwise, give it a pause
                     bool enoughTimeElapsed = true;
-                    if( lastAudioPopoutTime_ && (getEpocTime() - lastAudioPopoutTime_ ) < MP3_FRAME_MAX_GAP_IN_MS) {
+                    u64 elpasedTimeInMs = (getEpocTime() - lastAudioPopoutTime_ );
+                    if( lastAudioPopoutTime_ && elpasedTimeInMs < MP3_FRAME_MAX_GAP_IN_MS) {
                         enoughTimeElapsed = false;
                     }
+                    //Needs to push more than 1 frames b/c gap coudl be too wide.
                     if( enoughTimeElapsed ) {
-                        //case 1, a frame arrives too late and will come in batch mode afterwards
-                        //case 2, a timestamp jump, meaning there are missing frames.
-                        SmartPtr<AudioRawData> a = new AudioRawData();
-                        bool bIsStereo = false;
-                        u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
-                        //Don't duplicate the previous frame, but use a blank frame instead
-                        //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
-                        SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
-                        a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
-                        a->bIsStereo = bIsStereo;
-                        a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
-                        audioQueue_[i].push_back( a );
-                        
-                        LOG("---------->Stream:%d push an empty audio frame, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, a->pts, a->bIsStereo, (getEpocTime() - lastAudioPopoutTime_ ));
+                        int numOfFramesInserted = ceil(((double)elpasedTimeInMs)/MP3_FRAME_INTERVAL_IN_MS);
+                        for( int j = 0; j < numOfFramesInserted; j++ ) {
+                            //case 1, a frame arrives too late and will come in batch mode afterwards
+                            //case 2, a timestamp jump, meaning there are missing frames.
+                            SmartPtr<AudioRawData> a = new AudioRawData();
+                            bool bIsStereo = false;
+                            u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
+                            //Don't duplicate the previous frame, but use a blank frame instead
+                            //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                            SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                            a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
+                            a->bIsStereo = bIsStereo;
+                            a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
+                            audioQueue_[i].push_back( a );
+                            
+                            LOG("---------->Stream:%d push an empty audio frame, max queue size=%d exceeded, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, maxAudioQueueSize, a->pts, a->bIsStereo, elpasedTimeInMs);
+                            if( !j ) {
+                                nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
+                                minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
+                            }
+                        }
                         printQueueSize();
-                        
-                        nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                        minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
-
                         bCannotPopout = false;
                     } else {
-                        LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, (getEpocTime() - lastAudioPopoutTime_ ),MP3_FRAME_MAX_GAP_IN_MS);
+                        //LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, elpasedTimeInMs, MP3_FRAME_MAX_GAP_IN_MS);
                     }
                 }
 
-                if( bCannotPopout) {
+                if( bCannotPopout ) {
                     nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
                     isReady = false;
                     break;
