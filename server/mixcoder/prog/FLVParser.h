@@ -3,7 +3,7 @@
 #define __FLVPARSER_H__
 
 #include "fwk/SmartBuffer.h"
-#include "fwk/Time.h"
+#include "fwk/Util.h"
 #include "fwk/Units.h"
 #include "CodecInfo.h"
 #include "FLVParserDelegate.h"

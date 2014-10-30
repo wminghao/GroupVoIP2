@@ -2,7 +2,7 @@
 #define __FLVSEGMENTINPUT_H
 
 #include "fwk/SmartBuffer.h"
-#include "fwk/Time.h"
+#include "fwk/Util.h"
 #include "CodecInfo.h"
 #include "FLVSegmentParserDelegate.h"
 #include "RawData.h"
@@ -38,7 +38,7 @@ using namespace std;
 //        b) frames comes in at different speed. 
 //       After multiple experiments, 2 simple algorithms achieves the best result.
 //        a) trim the queue when a max threshold is reached, meaning data comes in a batch mode.
-//        b) fill with prev frame if a stream is missing a frame and other streams' queue size reaches a min threshold
+//        b) fill with prev frame if a stream is missing a frame and other streams' queue size reaches a min threshold and the time interval between last pop and cur pop > 1 frame interval        
 // 4) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
 //        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output for a single frame)
 //        if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
@@ -53,7 +53,7 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
 {
  public:
    FLVSegmentInput(FLVSegmentInputDelegate* dele, u32 targetVideoFrameRate, AudioStreamSetting* aRawSetting): delegate_(dele), segParser_(this), 
-        targetVideoFrameRate_(targetVideoFrameRate), globalAudioTimestamp_(0)
+        targetVideoFrameRate_(targetVideoFrameRate), lastAudioPopoutTime_(0), globalAudioTimestamp_(0)
         {
             memset(audioStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
             memset(videoStreamStatus_, 0, sizeof(StreamStatus)*MAX_XCODING_INSTANCES);
@@ -75,11 +75,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
             delete videoDecoder_[i];
         }
     }
-    StreamSource getStreamSource(int streamId) { return segParser_.getStreamSource(streamId); }
-    
-    bool readData(SmartPtr<SmartBuffer> input) {
-        return segParser_.readData(input);
-    }
+    StreamSource getStreamSource(int streamId) { return segParser_.getStreamSource(streamId); }    
+    bool readData(SmartPtr<SmartBuffer> input) { return segParser_.readData(input); }
 
     //detect whether the next stream is ready or not 
     bool isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudioTimestamp);
@@ -94,12 +91,6 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     SmartPtr<AudioRawData> getNextAudioFrame(u32 index); //return at most 1 frame
     SmartPtr<VideoRawData> getNextVideoFrame(u32 index); // can return more than 1 frames
 
-    //helper function
-    void calcQueueSize(u32& maxQueueSize, u32&minQueueSize);
-
-    void printQueueSize();
-    void printQueueInfo(int i);
-
  private:
     bool isNextVideoFrameSpsPps(u32 index, u32& timestamp);
 
@@ -112,6 +103,12 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     virtual StreamStatus getAudioStreamStatus(int index) { return audioStreamStatus_[index]; }
     virtual void setVideoStreamStatus(StreamStatus status, int index) { videoStreamStatus_[index] = status; }
     virtual void setAudioStreamStatus(StreamStatus status, int index) { audioStreamStatus_[index] = status; }
+
+    //helper function
+    void calcQueueSize(u32& maxQueueSize, u32&minQueueSize);
+    void printQueueSize();
+    void printQueueInfo(int i);
+
  private:
     //delegate for new output
     FLVSegmentInputDelegate* delegate_;
@@ -138,7 +135,10 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     u32    nextAudioTimestamp_[ MAX_XCODING_INSTANCES ];      //next audio frame timestamp
     u32    nextVideoTimestamp_[ MAX_XCODING_INSTANCES ];      //next video frame timestamp
     double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp
-    u32    hasStarted_[ MAX_XCODING_INSTANCES ];                 //1st time video stream starts
+    u32    hasStarted_[ MAX_XCODING_INSTANCES ];              //1st time video stream starts
+
+    //In case of audio data comes in burst mode from a stream, avoid immediately pop out data, wait for at least 1 frame interval
+    u64    lastAudioPopoutTime_;                               //This value avoids burst mode edge case
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     //However, a video stream can have timestamp jump back and forth. (Mostly jump forward),

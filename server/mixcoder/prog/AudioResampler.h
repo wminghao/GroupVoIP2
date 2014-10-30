@@ -14,6 +14,7 @@ extern "C" {
 //each mp3 frame, contains 1152 samples
 #define MP3_FRAME_SAMPLE_SIZE 1152
 #define MP3_SAMPLE_PER_SEC 44100
+const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
 
 //an audio resampler from ffmpeg
 class AudioResampler

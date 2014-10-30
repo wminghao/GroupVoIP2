@@ -185,6 +185,8 @@ void FLVSegmentInput::printQueueSize()
     }
 }
 
+const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
+
 //////////////////////////////////////////////////////////////////////////////
 //The algorithm to catch up for real time mixing
 //  When too many audio frames queued up for a stream happens, 
@@ -209,7 +211,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
     //For case 1), we handle it by trimming its queue when a stream has frames comes in batch mode.
     if ( maxAudioQueueSize >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
         ASSERT( minAudioQueueSize != MAX_U32);
-        LOG("---------->Audio stream needs to be trimmed");
+        LOG("---------->Audio stream needs to be trimmed, elapsedTime=%dms", (getEpocTime() - lastAudioPopoutTime_ ));
         //reduce it by half to go through
         printQueueSize();
 
@@ -224,8 +226,8 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 //A better algorithm is to quickly playback video as fast as possible.
                 //algorithm to speed up the playback by merging 2 samples into 1.
                 if ( audioQueue_[i].size() >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
-                    LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), 
-                        maxAudioQueueSize, minAudioQueueSize);
+                    LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", 
+                        i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
                     u32 totalIter = audioQueue_[i].size()/2;
                     list<SmartPtr<AudioRawData> > tempQueue;
                     for(u32 j = 0; j < totalIter; j++ ) {
@@ -245,8 +247,8 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                     printQueueInfo(i);
                     //then calculate maxAudioQueueSize again
                     calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
-                    LOG("---------->After audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", i, audioQueue_[i].size(), 
-                        maxAudioQueueSize, minAudioQueueSize);
+                    LOG("---------->After audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", 
+                        i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
                 }
             }
         }    
@@ -259,28 +261,43 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
                 minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
             } else {
-                if ( maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
-                    //case 1, a frame arrives too late and will come in batch mode afterwards
-                    //case 2, a timestamp jump, meaning there are missing frames.
-                    SmartPtr<AudioRawData> a = new AudioRawData();
-                    bool bIsStereo = false;
-                    u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
-                    //Don't duplicate the previous frame, but use a blank frame instead
-                    //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
-                    SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
-                    a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
-                    a->bIsStereo = bIsStereo;
-                    a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
-                    audioQueue_[i].push_back( a );
+                bool bCannotPopout = true;
+                if (  maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
+                    //move forward only if enough time has elapsed since last popout, otherwise, give it a pause
+                    bool enoughTimeElapsed = true;
+                    if( lastAudioPopoutTime_ && (getEpocTime() - lastAudioPopoutTime_ ) < MP3_FRAME_MAX_GAP_IN_MS) {
+                        enoughTimeElapsed = false;
+                    }
+                    if( enoughTimeElapsed ) {
+                        //case 1, a frame arrives too late and will come in batch mode afterwards
+                        //case 2, a timestamp jump, meaning there are missing frames.
+                        SmartPtr<AudioRawData> a = new AudioRawData();
+                        bool bIsStereo = false;
+                        u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
+                        //Don't duplicate the previous frame, but use a blank frame instead
+                        //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                        SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                        a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
+                        a->bIsStereo = bIsStereo;
+                        a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
+                        audioQueue_[i].push_back( a );
+                        
+                        LOG("---------->Stream:%d push an empty audio frame, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, a->pts, a->bIsStereo, (getEpocTime() - lastAudioPopoutTime_ ));
+                        printQueueSize();
+                        
+                        nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
+                        minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
 
-                    LOG("---------->Stream:%d push an empty audio frame, pts=%d, isStereo=%d\r\n", i, a->pts, a->bIsStereo);
-                    printQueueSize();
+                        bCannotPopout = false;
+                    } else {
+                        LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, (getEpocTime() - lastAudioPopoutTime_ ),MP3_FRAME_MAX_GAP_IN_MS);
+                    }
+                }
 
-                    nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                    minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
-                } else {
+                if( bCannotPopout) {
                     nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
                     isReady = false;
+                    break;
                     //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
                 }
 
@@ -403,6 +420,7 @@ SmartPtr<AudioRawData> FLVSegmentInput::getNextAudioFrame(u32 index)
             } else {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, 0, audioQueue_[index].size()+1);
             }
+            lastAudioPopoutTime_ = getEpocTime();
         }
     }
     return a;

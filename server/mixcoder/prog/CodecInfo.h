@@ -2,7 +2,7 @@
 #define __CODECINFOCOMMON_H__
 
 const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 6; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
-const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 4; //100ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
+const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 3; //78ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
 
 const u32 TIMESTAMP_JUMP_THRESHOLD = 100;
 const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
@@ -200,13 +200,5 @@ inline bool isVideoRectSame( VideoRect* rect1, VideoRect* rect2 ) {
              rect1->y == rect2->y &&
              rect1->width == rect2->width &&
              rect1->height == rect2->height );
-}
-
-inline u32 count_bits(u32 n) {     
-    unsigned int c; // c accumulates the total bits set in v
-    for (c = 0; n; c++) { 
-        n &= n - 1; // clear the least significant bit set
-    }
-    return c;
 }
 #endif

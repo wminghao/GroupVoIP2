@@ -41,7 +41,7 @@ class AudioTimestampMapper
         }
         curTimestamp_ = ts;
 
-        double tsD = startingTimestamp_ + (cnt_ * (double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
+        double tsD = startingTimestamp_ + cnt_ * MP3_FRAME_INTERVAL_IN_MS;
         cnt_++;
         return (u32)tsD;    
     }
