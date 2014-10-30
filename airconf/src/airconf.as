@@ -154,7 +154,7 @@ package
 					//Alert.show("Camera Access Has Been Granted!", "Information");
 					break;
 				case "Microphone.Muted":
-					//Alert.show("Camera Access Has Been Denied!", "Information");
+					logDebug("Camera Access Has Been Denied!");
 					break;
 			}
 		}
