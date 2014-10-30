@@ -87,7 +87,7 @@
 					case "NetStream.Video.DimensionChange":
 						break;
 					default:
-						Alert.show("Unknown event: " + event.info.code, "Information");
+						status.text = "Event: " + event.info.code, "Information";
 						break;
 				}
 			}
