@@ -334,12 +334,12 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         SmartPtr<VideoRawData> v = new VideoRawData();
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
-            if( MAX_VIDEO_QUEUE_SIZE > videoQueue_[index].size())  {
-                //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
-                videoQueue_[index].push_back( v );
-            } else {
-                LOG("------Cannot enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
+            if( MAX_VIDEO_QUEUE_SIZE <= videoQueue_[index].size())  {
+                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index]);
+                videoQueue_[index].clear();
             }
+            //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
+            videoQueue_[index].push_back( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
         }
     } else if ( au->st == kAudioStreamType ) {
