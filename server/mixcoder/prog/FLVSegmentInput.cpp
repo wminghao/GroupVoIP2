@@ -139,6 +139,14 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                     //LOG( "===first video timstamp=%d\r\n", (u32)lastBucketTimestamp_[i]);
                 }
             }
+            /*
+            //make sure nextVideoTimestamp_[i] is no smaller than the first frame timestamp in the queue
+            //otherwise, stuck in an infinite loop b/c it can never be popped 
+            if( videoQueue_[i].size() > 0 && videoQueue_[i].front()->pts > nextVideoTimestamp_[i] ) {
+                LOG( "===oops, videoQueue_[i].front()->pts=%d > nextVideoTimestamp_[i]=%d video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d, lastBucketTimestamp_=%d, recordFrameTimestamp[i]=%d\r\n", videoQueue_[i].front()->pts, nextVideoTimestamp_[i], minVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp, (u32)lastBucketTimestamp_[i], recordFrameTimestamp[i]);
+                lastBucketTimestamp_[i] = nextVideoTimestamp_[i] = videoQueue_[i].front()->pts;
+            }
+            */
         } 
     }
 
@@ -335,7 +343,7 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
             if( MAX_VIDEO_QUEUE_SIZE <= videoQueue_[index].size())  {
-                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index]);
+                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d,  lastBucketTimestamp_=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index],  lastBucketTimestamp_[index]);
                 videoQueue_[index].clear();
             }
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
