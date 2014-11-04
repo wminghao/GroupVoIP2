@@ -225,18 +225,18 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
 
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
             if ( audioStreamStatus_[i] == kStreamOnlineStarted ) {
-                /* Algorithm to drop frames
-                   u32 threshold = maxAudioQueueSize/2;
-                   while ( audioQueue_[i].size() > threshold ) {
-                      audioQueue_[i].pop();
-                   }
-                 */
-                //A better algorithm is to quickly playback video as fast as possible.
-                //algorithm to speed up the playback by merging 2 samples into 1.
                 if ( audioQueue_[i].size() >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
                     LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", 
                         i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
                     u32 totalIter = audioQueue_[i].size()/2;
+                    //A simple algorithm to drop half of the frames
+                    while ( audioQueue_[i].size() > totalIter ) {
+                        audioQueue_[i].pop_front();
+                    }
+                    /*
+                    //The following algorithm is to quickly playback video as fast as possible.
+                    //algorithm to speed up the playback by merging 2 samples into 1.
+                    //In practise, the audio effect is not ideal.
                     list<SmartPtr<AudioRawData> > tempQueue;
                     for(u32 j = 0; j < totalIter; j++ ) {
                         SmartPtr<AudioRawData> a1 = audioQueue_[i].front();
@@ -252,6 +252,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                         audioQueue_[i].push_front( c );
                         tempQueue.pop_back();
                     }
+                    */
                     printQueueInfo(i);
                     //then calculate maxAudioQueueSize again
                     calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
