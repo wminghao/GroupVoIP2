@@ -119,6 +119,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
         int totalMobileStreams = 0;
         if ( curStreamType == kVideoStreamType ) {
             for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
+                flvSegInput_->restoreVideoMomentoTimestamp(i); //update the lastBucketTimestamp
                 bool bIsStreamStarted = flvSegInput_->isStreamOnlineStarted(curStreamType, i );
                 bool bIsValidFrame = false;
                 if( bIsStreamStarted ) { 

@@ -61,6 +61,7 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
                 audioDecoder_[i] = NULL; //initialize it later
                 videoDecoder_[i] = NULL;
                 audioTsMapper_[i].setIndex(i);
+                momentoBucketTimestamp_[i] = MAX_U32;
             }
             memcpy( &rawAudioSettings_, aRawSetting, sizeof(AudioStreamSetting) );
 
@@ -86,6 +87,9 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     bool isStreamOnlineStarted(StreamType streamType, int index);
 
     bool hasFirstFrameDecoded(int i, bool bIsVideo) { return bIsVideo?videoDecoder_[i]->hasFirstFrameDecoded(nextVideoTimestamp_[i]):audioDecoder_[i]->hasFirstFrameDecoded(); }
+
+    //used to advance the video bucket timestamp if video is popped out next
+    void restoreVideoMomentoTimestamp(int i);
 
     //get next decoded frame
     SmartPtr<AudioRawData> getNextAudioFrame(u32 index); //return at most 1 frame
@@ -134,7 +138,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     /////////////////////////////////////////////////////////////////////////////////////////////
     u32    nextAudioTimestamp_[ MAX_XCODING_INSTANCES ];      //next audio frame timestamp
     u32    nextVideoTimestamp_[ MAX_XCODING_INSTANCES ];      //next video frame timestamp
-    double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp
+    double momentoBucketTimestamp_[ MAX_XCODING_INSTANCES ];  //last video frame timestamp temporarily stored, will be saved to lastBucketTimestamp_ if video is popped out
+    double lastBucketTimestamp_[ MAX_XCODING_INSTANCES ];     //last video frame timestamp advanced if video is popped out
     u32    hasStarted_[ MAX_XCODING_INSTANCES ];              //1st time video stream starts
 
     //In case of audio data comes in burst mode from a stream, avoid immediately pop out data, wait for at least 1 frame interval
