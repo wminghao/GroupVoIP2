@@ -65,7 +65,6 @@ package
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
-			NativeApplication.nativeApplication.addEventListener(Event.EXITING, onExiting);
 		}
 		
 		private function handleActivate(event:Event):void
@@ -77,23 +76,22 @@ package
 		private function handleDeactivate(event:Event):void
 		{
 			logDebug("=>handleDeactivate.");
-			exitApp();
-		}
-		private function onExiting(e:Event):void
-		{
-			e.preventDefault();
+			event.preventDefault();
 			var t:Timer = new Timer(100);
-			t.addEventListener(TimerEvent.TIMER, onTimer);
-			t.start();
-			
+			t.addEventListener(TimerEvent.TIMER, onDeactivateTimer);
+			t.start();			
 		}
-		private function onTimer(e:TimerEvent):void
+		private function onDeactivateTimer(e:TimerEvent):void
 		{
-			logDebug("=>onTimer exit app.");
+			logDebug("=>onDeactivateTimer exit app.");
 			exitApp();
 		}
 		
 		private function enterApp():void {
+			connectServer();
+		}
+		
+		private function connectServer():void {
 			var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
 			// setup connection code
 			netConn = new NetConnection();
@@ -149,9 +147,19 @@ package
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				logDebug("NetConnection.Connect.Success!");
 			} else {
-				logDebug("Unsuccessful Connection");
+				logDebug("Unsuccessful Connection, reconnecting");
 				disableVideo();
+				
+				var t:Timer = new Timer(3000);
+				t.addEventListener(TimerEvent.TIMER, onReconnectTimer);
+				t.start();	
 			}
+		}
+		//TODO try 3 times and fail with an error
+		private function onReconnectTimer(e:TimerEvent):void
+		{
+			logDebug("=>onReconnectTimer reconnecting server.");
+			connectServer();
 		}
 		
 		private function onCameraStatus( evt:StatusEvent ):void {
