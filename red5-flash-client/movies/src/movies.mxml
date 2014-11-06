@@ -48,6 +48,7 @@
 			private var movieSet:ArrayCollection = new ArrayCollection(
 				[   
 					{value:"Please Pick A Movie", code:"Please Pick A Movie"},
+					{value:"EvanTube Lego", code:"EvanTube Lego"},
 					{value:"Forrest Gump", code:"Forrest Gump"},
 					{value:"Spiderman", code:"Spiderman"},	
 					{value:"Fire Truck", code:"Fire Truck"},
@@ -143,7 +144,7 @@
 					Security.showSettings(SecurityPanel.CAMERA) ;
 				} else{
 					camera.setMode(videoWidth*2, videoHeight*2, 30); //640*480 30 fps
-					camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
+					camera.setQuality(16384*2,0); //0% quality, 16kBytes/sec bw limitation
 					
 					streamPub = new NetStream(connectionPub);
 					var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
@@ -181,7 +182,6 @@
 						Alert.show("Unable to locate video: " + publishDest, "Information");
 						break;
 					case "NetStream.Publish.Start":
-						//Alert.show("Publisher starts here");
 						subscribeStreams();
 						break;
 					case "NetStream.Play.Start":
@@ -192,7 +192,6 @@
 						break;
 					default:
 						status.text = event.info.code;
-						//Alert.show("Unknown event: " + event.info.code, "Information");
 						break;
 				}
 			}

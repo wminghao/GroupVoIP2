@@ -14,6 +14,7 @@ package
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
+	//import mx.controls.Alert;
 	
 	public class airconf extends Sprite
 	{
@@ -137,6 +138,18 @@ package
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
+				/*
+				// Define button actions.
+				var backClickHandler:Function = function (evt_obj:Object) {
+					if (evt_obj.detail == Alert.OK) {
+						exitApp();
+					} else if (evt_obj.detail == Alert.CANCEL) {
+					}
+				};
+				
+				// Display dialog box.
+				Alert.show("Do you want to exit", "Back button pressed", Alert.OK | Alert.CANCEL, null, backClickHandler, null, Alert.CANCEL);
+				*/
 				exitApp();
 			}
 		}
@@ -282,6 +295,7 @@ package
 				case "NetStream.Video.DimensionChange":
 					break;
 				default:
+					logDebug("New event: " + event.info.code);
 					//Alert.show("Unknown event: " + event.info.code, "Information");
 					break;
 			}
