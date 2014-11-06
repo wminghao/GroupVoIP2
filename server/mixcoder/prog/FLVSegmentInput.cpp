@@ -214,11 +214,15 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                 if ( audioQueue_[i].size() >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
                     LOG("---------->Before audio stream %d trimmed, audioQueue_[i].size()=%d, maxAudioQueueSize=%d, minAudioQueueSize=%d!\n", 
                         i, audioQueue_[i].size(), maxAudioQueueSize, minAudioQueueSize);
-                    u32 totalIter = audioQueue_[i].size()/2;
-                    //A simple algorithm to drop half of the frames
-                    while ( audioQueue_[i].size() > totalIter ) {
-                        audioQueue_[i].pop_front();
+
+                    u32 totalIter = ceil(((double)audioQueue_[i].size())/2);
+                    audioTsMapper_[i].discardFrames(totalIter);
+
+                    //A simple algorithm to drop the latest half of the frames
+                    for(u32 j=0; j < totalIter; j++ ) {
+                        audioQueue_[i].pop_back();
                     }
+
                     /*
                     //The following algorithm is to quickly playback video as fast as possible.
                     //algorithm to speed up the playback by merging 2 samples into 1.

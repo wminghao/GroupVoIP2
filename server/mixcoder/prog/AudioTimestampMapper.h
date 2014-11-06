@@ -22,6 +22,10 @@ class AudioTimestampMapper
         cnt_ = 0;
     }
 
+    void discardFrames( u32 discarded ) {
+        cnt_ -= discarded;
+    }
+
     u32 getLastOrigTimestamp() {
         return curTimestamp_;
     }
