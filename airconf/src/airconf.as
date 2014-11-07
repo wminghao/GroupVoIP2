@@ -14,7 +14,7 @@ package
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
-	//import mx.controls.Alert;
+	import mx.controls.Alert;
 	
 	public class airconf extends Sprite
 	{
@@ -81,6 +81,7 @@ package
 		{
 			logDebug("=>handleDeactivate.");
 			disconnectServer();
+			//Calling exit sometimes causes air app to freeze, don't call it right now.
 			//NativeApplication.nativeApplication.exit();
 		}
 		
@@ -137,25 +138,25 @@ package
 			publishDest = null;
 			publishedStreamArray = new Vector.<String>();
 		}
+		// Define button actions.
+		private function backClickHandler(evt_obj:Object):void 
+		{
+			if (evt_obj.detail == Alert.OK) {
+				disconnectServer();
+			} else if (evt_obj.detail == Alert.CANCEL) {
+			}
+		};
+		
 		
 		private function handleKeys(event:KeyboardEvent):void
 		{
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
-				/*
-				// Define button actions.
-				var backClickHandler:Function = function (evt_obj:Object) {
-					if (evt_obj.detail == Alert.OK) {
-						exitApp();
-					} else if (evt_obj.detail == Alert.CANCEL) {
-					}
-				};
+				event.preventDefault();
 				
 				// Display dialog box.
-				Alert.show("Do you want to exit", "Back button pressed", Alert.OK | Alert.CANCEL, null, backClickHandler, null, Alert.CANCEL);
-				*/
-				disconnectServer();
+				Alert.show("Do you want to exit?", "Back button pressed", Alert.OK | Alert.CANCEL, null, backClickHandler, null, Alert.CANCEL);		
 			}
 		}
 		
