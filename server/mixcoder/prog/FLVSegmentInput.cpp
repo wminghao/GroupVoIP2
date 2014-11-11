@@ -18,12 +18,12 @@ const u32 MAX_VIDEO_QUEUE_SIZE = 30; //max of 30 frames per queue size
 // 3) audioBucketTimestamp, in abnormal case, bucket can advance by multiple of 33ms (audio jumps timestamp ahead)
 //                         in case there is no video frame within the nextBucket, it's used.
 ////////////////////////////////////////////////////////////////
-bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudioTimestamp)
+bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
 {
     //isReady means every 33ms, there is at least one video stream ready
     //if none of the video frames are ready, then it's not ready
     bool isReady = false; 
-    minVideoTimestamp = 0xffffffff;
+    maxVideoTimestamp = 0;
 
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         if ( videoStreamStatus_[i] == kStreamOnlineStarted ) {
@@ -82,8 +82,8 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                             //////////////////////////////////////////////////////////////////////////////////////////////////////
                             //video has accumulated some data and audio has already catch up
                             nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = nextBucketTimestamp; //strictly follow
-                            minVideoTimestamp = MIN(minVideoTimestamp, nextBucketTimestamp); //strictly follow
-                            //LOG( "===stream: %d follow up video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, minVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
+                            maxVideoTimestamp = MAX(maxVideoTimestamp, nextBucketTimestamp); //strictly follow
+                            //LOG( "===stream: %d follow up video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
                         } else {
                             ASSERT(audioBucketTimestamp < nextBucketTimestamp);
                             //wait for the nextBucketTimestamp, since audio is not ready yet, not advanced to the next level yet
@@ -94,8 +94,8 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                                 //audio not ready yet, but video can pop out,
                                 nextVideoTimestamp_[i] = audioBucketTimestamp;
                                 //dont advance lastBucketTimestamp_[i]
-                                minVideoTimestamp = MIN(minVideoTimestamp, audioBucketTimestamp );
-                                //LOG( "===stream:%d audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp);
+                                maxVideoTimestamp = MAX(maxVideoTimestamp, audioBucketTimestamp );
+                                //LOG( "===stream:%d audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
                             } else {
                                 //////////////////////////////////////////////////////////////////////////////////////////////////////
                                 //Case 3. audioBucketTimestamp < frameTimestamp <= nextBucketTimestamp
@@ -103,8 +103,8 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                                 //audio may or may not be ready yet, but video can pop out,
                                 nextVideoTimestamp_[i] = frameTimestamp;
                                 //dont advance lastBucketTimestamp_[i]
-                                minVideoTimestamp = MIN(minVideoTimestamp, frameTimestamp); 
-                                //LOG( "===stream:%d audio may be ready, give it a try. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp);
+                                maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); 
+                                //LOG( "===stream:%d audio may be ready, give it a try. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
                             }
                         }
                     } else { 
@@ -116,8 +116,8 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                         ASSERT( audioBucketTimestamp > nextBucketTimestamp );
                         //if audio is already ahead, pop that frame out, jump forward
                         nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = audioBucketTimestamp;
-                        minVideoTimestamp  = MIN(minVideoTimestamp, audioBucketTimestamp); //strictly follow
-                        //LOG( "===stream:%d follow up 2 video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, minVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
+                        maxVideoTimestamp  = MAX(maxVideoTimestamp, audioBucketTimestamp); //strictly follow
+                        //LOG( "===stream:%d follow up 2 video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
                     }
                 } else {
                     //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +125,7 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                     //////////////////////////////////////////////////////////////////////////////////////////////////////
                     //no data available
                     //wait for the nextBucketTimestamp
-                    //LOG( "===stream:%d no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, minVideoTimestamp=%d\r\n", i, audioBucketTimestamp, nextBucketTimestamp, minVideoTimestamp);
+                    //LOG( "===stream:%d no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
                 }
             } else {
                 if( hasSpsPps ) {
@@ -133,13 +133,13 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudi
                     //LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
                     momentoBucketTimestamp_[i] = audioBucketTimestamp;
                     nextVideoTimestamp_[i] = spsPpsTimestamp;
-                    minVideoTimestamp = MIN(minVideoTimestamp, spsPpsTimestamp); //strictly follow
+                    maxVideoTimestamp = MAX(maxVideoTimestamp, spsPpsTimestamp); //strictly follow
                 } else if ( frameTimestamp != MAX_U32 ) {
                     //first time there is a stream available, always pop out the frame(s)
                     hasStarted_[i] = true;
                     momentoBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = frameTimestamp;
-                    minVideoTimestamp = MIN(minVideoTimestamp, frameTimestamp); //strictly follow
+                    maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); //strictly follow
                     //LOG( "===stream:%d first video timestamp=%d\r\n", i, frameTimestamp);
                 }
             }
@@ -191,8 +191,8 @@ const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
 //Case 1) we trim the queue to match the minimum threshold
 //Case 2) we just catch up by mixing with prev frame for that stream
 //////////////////////////////////////////////////////////////////////////////
-bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
-    minAudioTimestamp = MAX_U32;
+bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
+    maxAudioTimestamp = 0;
     int totalStreams = 0;
     bool isReady = true; //all streams ready means ready
 
@@ -258,7 +258,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
         if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
             if( audioQueue_[i].size() > 0) {
                 nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
+                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
             } else {
                 bool bCannotPopout = true;
                 if (  maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
@@ -288,7 +288,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& minAudioTimestamp) {
                             LOG("---------->Stream:%d push an empty audio frame, max queue size=%d exceeded, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, maxAudioQueueSize, a->pts, a->bIsStereo, elpasedTimeInMs);
                             if( !j ) {
                                 nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                                minAudioTimestamp = MIN( audioQueue_[i].front()->pts, minAudioTimestamp );
+                                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
                             }
                         }
                         //printQueueSize();
