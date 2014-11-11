@@ -269,12 +269,24 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private String publisherStreamName;
 	private int    publisherStreamId;
-	
-	public void setPublisherStreamInfo(String publisherStreamName, int publisherStreamId) {
-		if( !GroupMixer.getInstance().hasAnythingStarted() || 
-			this != GroupMixer.getInstance().getAllInOneConn() ) {
-			this.publisherStreamName = publisherStreamName;
-			this.publisherStreamId = publisherStreamId;
+
+	//this is only called if the current connection has a publisher associated with it.
+	//deleteStreamById must be protected with setPublisherStreamInfo, 
+	//b/c there is an edge case where a stream is deleted from one thread, and created from another thread not finished.
+	//therefore, dangling streams of "__mixed__allinone,__mixed__karaoke,testliveA,__mixed__testliveA" still exits after "testliveA" disappears.
+	public synchronized void setPublisherStreamInfo(String publisherStreamName, int publisherStreamId) {
+		if (publisherStreamId > 0) {
+			if (streams.get(publisherStreamId - 1) != null) {
+        		if( !GroupMixer.getInstance().hasAnythingStarted() || 
+        			this != GroupMixer.getInstance().getAllInOneConn() ) {
+        			this.publisherStreamName = publisherStreamName;
+        			this.publisherStreamId = publisherStreamId;
+        			//don't create for __mixed_all__ stream
+        			if ( !publisherStreamName.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
+        				GroupMixer.getInstance().createMixedStream(publisherStreamName);		
+        			}
+        		}
+    		}
 		}
 	}
 
@@ -876,7 +888,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/** {@inheritDoc} */
-	public void deleteStreamById(int streamId) {
+	//deleteStreamById must be protected with setPublisherStreamInfo, 
+	//b/c there is an edge case where a stream is deleted from one thread, and created from another thread not finished.
+	//therefore, dangling streams of "__mixed__allinone,__mixed__karaoke,testliveA,__mixed__testliveA" still exits after "testliveA" disappears.
+	public synchronized void deleteStreamById(int streamId) {
 		if (streamId > 0) {
 			if (streams.get(streamId - 1) != null) {
 				pendingVideos.remove(streamId);

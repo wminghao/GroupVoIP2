@@ -48,6 +48,7 @@ package
 		
 		//detect connection timeout
 		private var connTimeout:Timer;
+		private var reconnTimer:Timer; 
 		
 		public function airconf()
 		{
@@ -105,6 +106,9 @@ package
 		}
 		
 		private function disconnectServer():void {
+			reconnTimer.stop();
+			connTimeout.stop();
+			
 			mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
 			camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
 			
@@ -170,9 +174,9 @@ package
 				logDebug("Unsuccessful Connection, reconnecting");
 				disconnectServer();
 				
-				var t:Timer = new Timer(3000);
-				t.addEventListener(TimerEvent.TIMER, onReconnectTimer);
-				t.start();	
+				reconnTimer = new Timer(3000);
+				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
+				reconnTimer.start();	
 			}
 		}
 		//TODO try 3 times and fail with an error
