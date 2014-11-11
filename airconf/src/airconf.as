@@ -184,7 +184,6 @@ package
 				logDebug("NetConnection.Connect.Success!");
 			} else {
 				logDebug("Unsuccessful Connection, reconnecting");
-				disconnectServer();
 				
 				reconnTimer = new Timer(3000);
 				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
@@ -195,6 +194,7 @@ package
 		private function onReconnectTimer(e:TimerEvent):void
 		{
 			logDebug("=>onReconnectTimer reconnecting server.");
+			disconnectServer();
 			connectServer();
 		}
 		
