@@ -47,8 +47,8 @@ package
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
 		
 		//detect connection timeout
-		private var connTimeout:Timer;
-		private var reconnTimer:Timer; 
+		private var connTimeoutTimer:Timer = null;
+		private var reconnTimer:Timer = null; 
 		
 		public function airconf()
 		{
@@ -100,43 +100,55 @@ package
 			
 			logDebug("=>connect 2 server!");
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
-			connTimeout = new Timer(4000);
-			connTimeout.addEventListener(TimerEvent.TIMER, onReconnectTimer);
-			connTimeout.start();	
+			connTimeoutTimer = new Timer(4000);
+			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
+			connTimeoutTimer.start();	
 		}
-		
 		private function disconnectServer():void {
-			reconnTimer.stop();
-			connTimeout.stop();
-			
-			mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
-			camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
-			
-			videoSelf.attachCamera(null);
-			videoSelf.clear();
-			this.removeChild(videoSelf);
-			videoSelf = null;
-			videoOthers.attachNetStream(null);
-			videoOthers.clear();
-			this.removeChild(videoOthers);
-			videoOthers = null;
-			
-			streamView.dispose();
-			streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-			streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-			streamView.close();
-			streamView = null;
-			
-			streamPub.dispose();
-			streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-			streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-			streamPub.close();
-			streamPub = null;
-			
-			netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
-			netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
-			netConn.close();
-			netConn = null;
+			if( reconnTimer ) {
+				reconnTimer.stop();
+			}
+			if( connTimeoutTimer ) {
+				connTimeoutTimer.stop();
+			}
+			if( mic ) {
+				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
+			}
+			if( camera ) {
+				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
+			}
+			if( videoSelf ) {
+				videoSelf.attachCamera(null);
+				videoSelf.clear();
+				this.removeChild(videoSelf);
+				videoSelf = null;
+			}
+			if( videoOthers ) {
+				videoOthers.attachNetStream(null);
+				videoOthers.clear();
+				this.removeChild(videoOthers);
+				videoOthers = null;
+			}
+			if( streamView ) {
+				streamView.dispose();
+				streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamView.close();
+				streamView = null;
+			}
+			if( streamPub ) {
+				streamPub.dispose();
+				streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamPub.close();
+				streamPub = null;
+			}
+			if( netConn ) {
+				netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
+				netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
+				netConn.close();
+				netConn = null;
+			}
 			logDebug("=>disconnect from server!");
 			
 			publishDest = null;
@@ -165,7 +177,7 @@ package
 		}
 		
 		public function onConnectionNetStatus(event:NetStatusEvent) : void {
-			connTimeout.stop(); //cancel the timeout timer
+			connTimeoutTimer.stop(); //cancel the timeout timer
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
