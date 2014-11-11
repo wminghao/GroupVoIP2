@@ -14,15 +14,16 @@ package
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
+	import mx.controls.Alert;
 	
 	public class airconf extends Sprite
 	{
-		private var streamPub:NetStream; //must declare outside, otherwise, gc will recycle it.
-		private var streamView:NetStream; //must declare outside
+		private var streamPub:NetStream = null; //must declare outside, otherwise, gc will recycle it.
+		private var streamView:NetStream = null; //must declare outside
 		
-		private var netConn:NetConnection;	
-		private var mic:Microphone;
-		private var camera:Camera;
+		private var netConn:NetConnection = null;	
+		private var mic:Microphone = null;
+		private var camera:Camera = null;
 		
 		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
@@ -34,8 +35,8 @@ package
 		private var videoWidth:int = 640;
 		private var videoHeight:int = 480;
 		
-		private var videoSelf:Video;
-		private var videoOthers:Video;
+		private var videoSelf:Video = null;
+		private var videoOthers:Video = null;
 		
 		//position of video on the screen
 		private var screenWidth:int;
@@ -44,6 +45,10 @@ package
 		private var screenY:int = 0;
 		
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
+		
+		//detect connection timeout
+		private var connTimeoutTimer:Timer = null;
+		private var reconnTimer:Timer = null; 
 		
 		public function airconf()
 		{
@@ -70,28 +75,21 @@ package
 		private function handleActivate(event:Event):void
 		{
 			logDebug("=>handleActivate.");
-			enterApp();
+			connectServer();
 		}
 		
 		private function handleDeactivate(event:Event):void
 		{
 			logDebug("=>handleDeactivate.");
-			event.preventDefault();
-			var t:Timer = new Timer(100);
-			t.addEventListener(TimerEvent.TIMER, onDeactivateTimer);
-			t.start();			
-		}
-		private function onDeactivateTimer(e:TimerEvent):void
-		{
-			logDebug("=>onDeactivateTimer exit app.");
-			exitApp();
-		}
-		
-		private function enterApp():void {
-			connectServer();
+			disconnectServer();
+			//Calling exit sometimes causes air app to freeze, don't call it right now.
+			//NativeApplication.nativeApplication.exit();
 		}
 		
 		private function connectServer():void {
+			if( netConn == null) {
+				logDebug(" null!");				
+			}			
 			var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
 			// setup connection code
 			netConn = new NetConnection();
@@ -100,65 +98,103 @@ package
 			netConn.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 			netConn.client = this;
 			
+			logDebug("=>connect 2 server!");
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
+			connTimeoutTimer = new Timer(4000);
+			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
+			connTimeoutTimer.start();	
 		}
+		private function disconnectServer():void {
+			if( reconnTimer ) {
+				reconnTimer.stop();
+			}
+			if( connTimeoutTimer ) {
+				connTimeoutTimer.stop();
+			}
+			if( mic ) {
+				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
+			}
+			if( camera ) {
+				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
+			}
+			if( videoSelf ) {
+				videoSelf.attachCamera(null);
+				videoSelf.clear();
+				this.removeChild(videoSelf);
+				videoSelf = null;
+			}
+			if( videoOthers ) {
+				videoOthers.attachNetStream(null);
+				videoOthers.clear();
+				this.removeChild(videoOthers);
+				videoOthers = null;
+			}
+			if( streamView ) {
+				streamView.dispose();
+				streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamView.close();
+				streamView = null;
+			}
+			if( streamPub ) {
+				streamPub.dispose();
+				streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamPub.close();
+				streamPub = null;
+			}
+			if( netConn ) {
+				netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
+				netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
+				netConn.close();
+				netConn = null;
+			}
+			logDebug("=>disconnect from server!");
+			
+			publishDest = null;
+			publishedStreamArray = new Vector.<String>();
+		}
+		// Define button actions.
+		private function backClickHandler(evt_obj:Object):void 
+		{
+			if (evt_obj.detail == Alert.OK) {
+				disconnectServer();
+			} else if (evt_obj.detail == Alert.CANCEL) {
+			}
+		};
 		
-		private function disableVideo():void {
-			mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
-			camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
-			
-			videoSelf.attachCamera(null);
-			videoSelf.clear();
-			videoOthers.attachNetStream(null);
-			videoOthers.clear();
-			
-			streamView.dispose();
-			streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-			streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-			streamView.close();
-			
-			streamPub.dispose();
-			streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-			streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-			streamPub.close();
-			
-			netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
-			netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
-			netConn.close();
-		}
-			
-		private function exitApp():void {
-			disableVideo();
-			NativeApplication.nativeApplication.exit();
-		}
 		
 		private function handleKeys(event:KeyboardEvent):void
 		{
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
-				exitApp();
+				event.preventDefault();
+				
+				// Display dialog box.
+				Alert.show("Do you want to exit?", "Back button pressed", Alert.OK | Alert.CANCEL, null, backClickHandler, null, Alert.CANCEL);		
 			}
 		}
 		
 		public function onConnectionNetStatus(event:NetStatusEvent) : void {
+			connTimeoutTimer.stop(); //cancel the timeout timer
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				logDebug("NetConnection.Connect.Success!");
 			} else {
 				logDebug("Unsuccessful Connection, reconnecting");
-				disableVideo();
 				
-				var t:Timer = new Timer(3000);
-				t.addEventListener(TimerEvent.TIMER, onReconnectTimer);
-				t.start();	
+				reconnTimer = new Timer(3000);
+				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
+				reconnTimer.start();	
 			}
 		}
 		//TODO try 3 times and fail with an error
 		private function onReconnectTimer(e:TimerEvent):void
 		{
 			logDebug("=>onReconnectTimer reconnecting server.");
+			disconnectServer();
 			connectServer();
 		}
 		
@@ -277,11 +313,14 @@ package
 					break;
 				case "NetStream.Play.Start":
 				case "NetStream.Play.Reset":
-				case "Netstream.Play.PublishNotify":
-				case "Netstream.Play.UnpublishNotify":
+				case "NetStream.Play.PublishNotify":
+				case "NetStream.Play.UnpublishNotify":
 				case "NetStream.Video.DimensionChange":
+				case "NetStream.Publish.Start":
+				case "NetStream.Unpublish.Success":
 					break;
 				default:
+					logDebug("New event: " + event.info.code);
 					//Alert.show("Unknown event: " + event.info.code, "Information");
 					break;
 			}

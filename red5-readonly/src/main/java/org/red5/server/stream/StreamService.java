@@ -51,7 +51,6 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.util.ScopeUtils;
-import org.red5.server.mixer.GroupMixer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -632,10 +631,6 @@ public class StreamService implements IStreamService {
 					if (streamConn instanceof RTMPConnection) {
 						RTMPConnection rtmpConn = (RTMPConnection) streamConn;
 						rtmpConn.setPublisherStreamInfo(name, streamId);
-					}
-					//don't create for __mixed_all__ stream
-					if ( !name.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
-						GroupMixer.getInstance().createMixedStream(name);		
 					}
 				}
 			} catch (IOException e) {
