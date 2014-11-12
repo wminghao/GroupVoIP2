@@ -90,11 +90,11 @@ bool MixCoder::newInput( SmartPtr<SmartBuffer> inputBuf )
 SmartPtr<SmartBuffer> MixCoder::getOutput()
 {
     StreamType curStreamType = kUnknownStreamType;
-    u32 audioPts = 0; //min audio Pts as the final pts
+    u32 audioPts = 0; //max audio Pts as the final pts
     bool bIsAudioReady = flvSegInput_->isNextAudioStreamReady( audioPts );
 
-    u32 videoPts = 0;//min video Pts as the final pts
-    bool bIsVideoReady = bIsAudioReady?flvSegInput_->isNextVideoStreamReady( videoPts, audioPts ):false;
+    u32 videoPts = 0;//max video Pts as the final pts
+    bool bIsVideoReady = bIsAudioReady?flvSegInput_->isNextVideoStreamReady( videoPts ):false;
 
     if( bIsVideoReady && bIsAudioReady) {
         //audio and video are both ready.

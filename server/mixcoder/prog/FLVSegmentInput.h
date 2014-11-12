@@ -80,8 +80,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     bool readData(SmartPtr<SmartBuffer> input) { return segParser_.readData(input); }
 
     //detect whether the next stream is ready or not 
-    bool isNextVideoStreamReady(u32& minVideoTimestamp, u32 minAudioTimestamp);
-    bool isNextAudioStreamReady(u32& minAudioTimestamp);
+    bool isNextVideoStreamReady(u32& maxVideoTimestamp);
+    bool isNextAudioStreamReady(u32& maxAudioTimestamp);
 
     //check the status of a stream to see if it's online
     bool isStreamOnlineStarted(StreamType streamType, int index);
