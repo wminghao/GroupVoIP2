@@ -1,5 +1,10 @@
 package
 {
+	import com.wadedwalker.nativeExtension.telephone.CallStateEvent;
+	import com.wadedwalker.nativeExtension.telephone.DataActivityEvent;
+	import com.wadedwalker.nativeExtension.telephone.DataConnectionStateEvent;
+	import com.wadedwalker.nativeExtension.telephone.TelephoneManager;
+	
 	import flash.desktop.NativeApplication;
 	import flash.desktop.SystemIdleMode;
 	import flash.display.Screen;
@@ -14,6 +19,7 @@ package
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
+	
 	import mx.controls.Alert;
 	
 	public class airconf extends Sprite
@@ -50,6 +56,10 @@ package
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
 		
+		//handling telephone events
+		private var teleManager_:TelephoneManager = new TelephoneManager();
+		private var callState_:int = TelephoneManager.CALL_STATE_IDLE;
+		
 		public function airconf()
 		{
 			super();
@@ -70,12 +80,15 @@ package
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, handleKeys, false, 0, true);
+			
+			//telephone events
+			NativeApplication.nativeApplication.addEventListener(CallStateEvent.CALL_STATE_CHANGE, onCallStateChange);
 		}
 		
 		private function handleActivate(event:Event):void
 		{
 			logDebug("=>handleActivate.");
-			connectServer();
+			connectServer();	
 		}
 		
 		private function handleDeactivate(event:Event):void
@@ -84,6 +97,35 @@ package
 			disconnectServer();
 			//Calling exit sometimes causes air app to freeze, don't call it right now.
 			//NativeApplication.nativeApplication.exit();
+		}
+		
+		//handling incoming phone calls
+		private function onCallStateChange(event:CallStateEvent):void
+		{
+			switch ( event.callState ) {
+				case TelephoneManager.CALL_STATE_RINGING:
+				{
+					if( callState_ != TelephoneManager.CALL_STATE_RINGING ) {
+						logDebug("=>call ringing.");
+						callState_ = TelephoneManager.CALL_STATE_RINGING;
+						disconnectServer();
+					}
+					break;
+				}
+				case TelephoneManager.CALL_STATE_OFFHOOK:
+				{
+					logDebug("=>call offhook.");
+					//do nothing
+				}
+				case TelephoneManager.CALL_STATE_IDLE:
+				{
+					if( callState_ != TelephoneManager.CALL_STATE_IDLE ) {
+						logDebug("=>call hung up.");
+						callState_ = TelephoneManager.CALL_STATE_IDLE;
+						connectServer();
+					}
+				}				
+			}
 		}
 		
 		private function connectServer():void {
@@ -104,6 +146,7 @@ package
 			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 			connTimeoutTimer.start();	
 		}
+		
 		private function disconnectServer():void {
 			if( reconnTimer ) {
 				reconnTimer.stop();
