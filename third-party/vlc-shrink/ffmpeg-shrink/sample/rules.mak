@@ -37,10 +37,8 @@ FFMPEGCONF += --disable-encoders --disable-muxers
 endif
 
 #
-# Optional params by Veetle to prune off uneeded libs
+# Optional params to prune off uneeded libs
 # in ffmpeg to shrink libavcode,libavutil,libavformat down
-#
-# FIXME: Xun to add
 #
 VEETLE_FFMPEG_CONF_PRUNE_UNWANTED = \
     --disable-network \
