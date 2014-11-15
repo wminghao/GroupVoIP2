@@ -162,7 +162,9 @@ public class Application extends ApplicationAdapter implements
 	public void resultReceived(IPendingServiceCall call) {
 		log.info("Received result {} for {}", new Object[]{call.getResult(), call.getServiceMethodName()});
 	}
-	
+	/*
+	 * Server calling (flash) client events such as: onSongSelected, addStream, removeStream, initStream, etc.
+	 */
 	private void sendToClient(IConnection conn, String methodName, String param) {
 		if (conn instanceof IServiceCapableConnection) {
             ((IServiceCapableConnection) conn).invoke(methodName,
