@@ -375,7 +375,7 @@
 			<s:HorizontalLayout/>
 		</s:layout>
 		<s:Label id="lbl" width="100%" height="100%" fontSize="20" horizontalCenter="0"
-				 paddingLeft="10" paddingRight="5" paddingTop="5" text="Watch movies with friends"
+				 paddingLeft="10" paddingRight="5" paddingTop="5" text="Welcome to Howard's Room"
 				 verticalCenter="0"/>
 		<s:DropDownList id="movieList" width="200" height="25" change="movieList_changeHandler(event)"
 						color="#000000" dataProvider="{movieSet}" labelField="value"
