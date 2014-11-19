@@ -7,15 +7,8 @@ package
 	
 	import flash.desktop.NativeApplication;
 	import flash.desktop.SystemIdleMode;
-	import flash.display.Screen;
-	import flash.display.Sprite;
-	import flash.display.StageAlign;
-	import flash.display.StageOrientation;
-	import flash.display.StageScaleMode;
+	import flash.display.*;
 	import flash.events.*;
-	import flash.media.*;
-	import flash.net.*;
-	import flash.system.*;
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
@@ -162,6 +155,8 @@ package
 				trace(str);
 			}
 		}
+		
+		//delegate functions
 		public function getVideoWidth():int
 		{
 			return videoWidth;
