@@ -34,7 +34,7 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
             //audioBuckeTimestamp is the bucket under which the audio packet falls into. (strictly folow 33ms rule)
             double audioBucketTimestamp = nextBucketTimestamp; //strictly follow 33ms rule
             if( nextAudioTimestamp_[i] ) {
-                audioBucketTimestamp = lastBucketTimestamp_[i] + videoFrameIntervalInMs * ((int)(((double)nextAudioTimestamp_[i] - lastBucketTimestamp_[i])/videoFrameIntervalInMs)); 
+                audioBucketTimestamp = lastBucketTimestamp_[i] + ceil(videoFrameIntervalInMs * ((int)(((double)nextAudioTimestamp_[i] - lastBucketTimestamp_[i])/videoFrameIntervalInMs))); 
             }
 
             //nextLimitTimestamp is useful if audio is way ahead of video bucket.
@@ -334,7 +334,7 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
             if( MAX_VIDEO_QUEUE_SIZE <= videoQueue_[index].size())  {
-                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d,  lastBucketTimestamp_=%.2f\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index],  lastBucketTimestamp_[index]);
+                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d, lastBucketTimestamp_=%.2f, nextAudioTimestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index],  lastBucketTimestamp_[index], nextAudioTimestamp_[index]);
                 videoQueue_[index].clear();
             } 
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
