@@ -9,6 +9,7 @@
 #include "VideoDecoder.h"
 #include "AudioDecoder.h"
 #include "AudioTimestampMapper.h"
+#include "VideoTimestampMapper.h"
 #include "FLVSegmentParser.h"
 #include "FLVSegmentInputDelegate.h"
 #include <list>
@@ -61,6 +62,7 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
                 audioDecoder_[i] = NULL; //initialize it later
                 videoDecoder_[i] = NULL;
                 audioTsMapper_[i].setIndex(i);
+                videoTsMapper_[i].setIndex(i);
                 momentoBucketTimestamp_[i] = MAX_U32;
             }
             memcpy( &rawAudioSettings_, aRawSetting, sizeof(AudioStreamSetting) );
@@ -161,5 +163,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
 
     //current audio timestamp, mapping
     AudioTimestampMapper audioTsMapper_[ MAX_XCODING_INSTANCES ];
+
+    //current video timestamp mapping
+    VideoTimestampMapper videoTsMapper_[ MAX_XCODING_INSTANCES ];
 };
 #endif

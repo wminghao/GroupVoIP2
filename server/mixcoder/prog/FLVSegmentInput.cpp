@@ -6,7 +6,7 @@
 #include "AudioDecoderFactory.h"
 #include "AudioMixer.h"
 
-const u32 MAX_VIDEO_QUEUE_SIZE = 30; //max of 30 frames per queue size
+const u32 MAX_VIDEO_QUEUE_SIZE = 15; //max of 15 frames per queue size
 
 ////////////////////////////////////////////////////////////////
 // Audio is always continuous. Video can not be faster than audio.
@@ -334,9 +334,13 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         bool bIsValidFrame = videoDecoder_[index]->newAccessUnit(au, v); //decode here
         if( bIsValidFrame ) { //if decoded successfully(it can be an sps pps frame)
             if( MAX_VIDEO_QUEUE_SIZE <= videoQueue_[index].size())  {
-                LOG("------Cannot enqueue video frame, clear it. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d, lastBucketTimestamp_=%.2f, nextAudioTimestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index],  lastBucketTimestamp_[index], nextAudioTimestamp_[index]);
+                LOG("------Clear video queue. index=%d, queuesize=%d, pts=%d, videoInQueuePts=%d, nextVideoTimestamp=%d, lastBucketTimestamp_=%.2f, nextAudioTimestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, videoQueue_[index].front()->pts, nextVideoTimestamp_[index],  lastBucketTimestamp_[index], nextAudioTimestamp_[index]);
+                //adjust the pts here
+                videoTsMapper_[index].discardFrames( v->pts, videoQueue_[index].front()->pts );
                 videoQueue_[index].clear();
             } 
+            //get the new pts here
+            v->pts = videoTsMapper_[index].getNextTimestamp(v->pts);
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
             videoQueue_[index].push_back( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
@@ -438,6 +442,7 @@ void FLVSegmentInput::onStreamOffline(int index)
     delete( videoDecoder_[index] );
     videoDecoder_[index] = NULL; //initialize it later
     audioTsMapper_[index].reset();
+    videoTsMapper_[index].reset();
     nextAudioTimestamp_[index] = 0;
     nextVideoTimestamp_[index] = 0;
     momentoBucketTimestamp_[index] = MAX_U32;
