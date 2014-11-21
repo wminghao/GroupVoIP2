@@ -1,0 +1,16 @@
+<extension xmlns="http://ns.adobe.com/air/extension/3.2">
+	<id>com.wadedwalker.nativeExtension.telephone.TelephoneManager</id>
+	<versionNumber>1</versionNumber>
+	<platforms>
+		<platform name="Android-ARM">
+			<applicationDeployment>
+				<nativeLibrary>TelephoneManager.jar</nativeLibrary>
+				<initializer>com.wadedwalker.nativeExtension.telephone.TelephoneManager</initializer>
+				<finalizer>com.wadedwalker.nativeExtension.telephone.TelephoneManager</finalizer>
+			</applicationDeployment>
+		</platform>
+		<platform name="default">
+			<applicationDeployment/>
+		</platform>
+	</platforms>
+</extension>

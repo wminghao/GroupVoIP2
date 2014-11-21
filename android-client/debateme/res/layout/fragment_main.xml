@@ -26,15 +26,16 @@
         android:layout_below="@+id/Invite"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="86dp"
-        android:text="My Past Debates" />
+        android:text="View Past Debates" />
 
     <Button
         android:id="@+id/Room"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/MyVideo"
         android:layout_alignRight="@+id/MyVideo"
         android:layout_centerVertical="true"
-        android:text="Go To My Debate" />
+        android:text="Watch My Debate" />
 
     <Button
         android:id="@+id/Invite"

@@ -3,6 +3,7 @@ package com.vispar.debateme;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -10,13 +11,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.os.Build;
 
 public class MainActivity extends Activity {
 
-    final Button inviteFriends = (Button) findViewById(R.id.Invite);
-    final Button joinRoom = (Button) findViewById(R.id.Room);
-    final Button myVideos = (Button) findViewById(R.id.MyVideo);
+    protected static final String EXTRA_MESSAGE = "extra";
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,21 +25,6 @@ public class MainActivity extends Activity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-        inviteFriends.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Copy the link for now
-            }
-        });    
-        joinRoom.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Copy the link for now
-            }
-        });  
-        myVideos.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Copy the link for now
-            }
-        });  
     }
 
 
@@ -69,6 +52,10 @@ public class MainActivity extends Activity {
      */
     public static class PlaceholderFragment extends Fragment {
 
+		Button inviteFriends = null;
+        Button joinRoom = null;
+        Button myVideos = null;
+        
         public PlaceholderFragment() {
         }
 
@@ -76,6 +63,28 @@ public class MainActivity extends Activity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+            inviteFriends = (Button) rootView.findViewById(R.id.Invite);
+            joinRoom = (Button) rootView.findViewById(R.id.Room);
+            myVideos = (Button) rootView.findViewById(R.id.MyVideo);
+            inviteFriends.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // Copy the link for now
+                }
+            });    
+            joinRoom.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), AirConfActivity.class);
+                    String message = "rooms/howard"; //TODO
+                    intent.putExtra(EXTRA_MESSAGE, message);
+                    startActivity(intent);
+                }
+            });  
+            myVideos.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // Copy the link for now
+                }
+            });  
             return rootView;
         }
     }

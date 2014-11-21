@@ -7,10 +7,26 @@
     <uses-sdk
         android:minSdkVersion="14"
         android:targetSdkVersion="21" />
+    
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
+    <!--listen to incoming phone call event-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>-->
+    <!--The DISABLE_KEYGUARD and WAKE_LOCK permissions should be toggled together
+		in order to access AIR's SystemIdleMode APIs to umdim the screen-->
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!--The ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE permissions should be toggled
+		together in order to use AIR's NetworkInfo APIs-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/dm_logo"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
@@ -18,8 +34,22 @@
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".AirConfActivity"
+            android:label="@string/app_name" 
+          	android:windowSoftInputMode="stateHidden"  >
+            <intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+	            <category android:name="android.intent.category.DEFAULT" />
+	            <category android:name="android.intent.category.BROWSABLE" />
+	            <data android:scheme="http" />
+	            <data android:host="debate.me" />
+	            <data android:host="*.debate.me" />
+	            <data android:host="www.debate.me" />
+	            <data android:pathPrefix="/room" />
             </intent-filter>
         </activity>
     </application>
