@@ -2,7 +2,7 @@
 <actionScriptProperties analytics="false" mainApplicationPath="airconf.as" projectUUID="1455bb26-6f80-4bc0-aff5-f776c22ecc2e" version="10">
   <compiler additionalCompilerArguments="-locale en_US&#10;-swf-version=15&#10;-library-path=&quot;/Applications/Adobe Flash Builder 4.6/sdks/4.6.0/frameworks/locale/en_US&quot;" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath/>
-    <libraryPath defaultLinkType="0">
+    <libraryPath defaultLinkType="1">
       <libraryPathEntry kind="4" path="">
         <excludedEntries>
           <libraryPathEntry kind="1" linkType="1" path="${PROJECT_FRAMEWORKS}/locale/{locale}"/>
@@ -52,7 +52,7 @@
       <airSettings airCertificatePath="/Users/howard/GroupVoIP2/keystore/android/vispar.android.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes/>
         <anePaths>
-          <anePathEntry path="/Users/howard/GroupVoIP2/airconf/src/TelephoneManagerANE/TelephoneManager.ane"/>
+          <anePathEntry path="/Users/howard/GroupVoIP2/android-client/airconf/src/TelephoneManagerANE/TelephoneManager.ane"/>
         </anePaths>
       </airSettings>
       <actionScriptSettings version="1"/>

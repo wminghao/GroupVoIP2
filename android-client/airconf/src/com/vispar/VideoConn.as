@@ -63,6 +63,8 @@ package com.vispar
 			connTimeoutTimer = new Timer(4000);
 			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 			connTimeoutTimer.start();	
+			
+			logDebug("=>waiting!");
 		}
 		
 		public function disconnectServer():void {
