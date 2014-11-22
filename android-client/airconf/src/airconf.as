@@ -1,5 +1,7 @@
 package
 {
+	import com.vispar.*;
+	import com.vispar.ui.AlertBox;
 	import com.wadedwalker.nativeExtension.telephone.CallStateEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataActivityEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataConnectionStateEvent;
@@ -9,13 +11,10 @@ package
 	import flash.desktop.SystemIdleMode;
 	import flash.display.*;
 	import flash.events.*;
+	import flash.geom.Rectangle;
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
-	
-	import mx.controls.Alert;
-	
-	import com.vispar.*;
 	
 	public class airconf extends Sprite implements VideoConnDelegate
 	{		
@@ -34,6 +33,9 @@ package
 		
 		//vidconnection class
 		private var vidConn_:VideoConn = null;
+		
+		//whether to ignore back button or not
+		private var ignoreBack:Boolean = true;
 		
 		public function airconf()
 		{
@@ -74,9 +76,15 @@ package
 			logDebug("=>handleDeactivate.");
 			vidConn_.disconnectServer();
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.NORMAL;
-			//Calling exit sometimes causes air app to freeze, don't call it right now.
-			//NativeApplication.nativeApplication.exit();
 		}
+		
+		private function backClickHandler():void 
+		{
+			vidConn_.disconnectServer();
+			//Calling exit sometimes causes air app to freeze, don't call it right now.
+			NativeApplication.nativeApplication.exit();
+		};
+		
 		
 		//handling incoming phone calls
 		private function onCallStateChange(event:CallStateEvent):void
@@ -112,23 +120,10 @@ package
 			if( event.keyCode == Keyboard.BACK ||
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
+				
 				event.preventDefault();
-				
-				function backClickHandler(evt_obj:Object):void 
-				{
-					if (evt_obj.detail == Alert.OK) {
-						vidConn_.disconnectServer();
-					} else if (evt_obj.detail == Alert.CANCEL) {
-					}
-				};
-				
-				try {
-					// Display dialog box.
-					Alert.show("Do you want to exit?");
-					//Alert.show("Do you want to exit?", "Back button pressed", Alert.OK | Alert.CANCEL, null, backClickHandler);
-				}catch(e:Error) {
-					logDebug("---handleKeys Exception="+e.message + " id="+e.errorID + " name="+e.name);
-					logDebug("---stack trace =" + e.getStackTrace());
+				if( !ignoreBack ) {
+					backClickHandler();
 				}
 			}
 		}

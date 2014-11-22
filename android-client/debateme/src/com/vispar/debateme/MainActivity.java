@@ -1,8 +1,10 @@
 package com.vispar.debateme;
 
 import android.app.Activity;
-import android.app.ActionBar;
+//import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -60,7 +63,7 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+        public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -68,8 +71,12 @@ public class MainActivity extends Activity {
             joinRoom = (Button) rootView.findViewById(R.id.Room);
             myVideos = (Button) rootView.findViewById(R.id.MyVideo);
             inviteFriends.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    // Copy the link for now
+                @SuppressWarnings("deprecation")
+				public void onClick(View v) {
+                	// Copy EditCopy text to the ClipBoard
+                	ClipboardManager ClipMan = (ClipboardManager) container.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                	ClipMan.setText("http://debate.me/rooms/howard");
+                	Toast.makeText(v.getContext(), "You can invite your friends using the link, which is copied to clipboard", Toast.LENGTH_SHORT).show();
                 }
             });    
             joinRoom.setOnClickListener(new View.OnClickListener() {
