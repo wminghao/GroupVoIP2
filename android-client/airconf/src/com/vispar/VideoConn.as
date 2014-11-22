@@ -62,9 +62,7 @@ package com.vispar
 			logDebug("=>connect 2 server!");
 			connTimeoutTimer = new Timer(4000);
 			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
-			connTimeoutTimer.start();	
-			
-			logDebug("=>waiting!");
+			connTimeoutTimer.start();
 		}
 		
 		public function disconnectServer():void {

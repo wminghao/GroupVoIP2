@@ -35,7 +35,7 @@ package
 		private var vidConn_:VideoConn = null;
 		
 		//whether to ignore back button or not
-		private var ignoreBack:Boolean = true;
+		private var ignoreBack:Boolean = false;
 		
 		public function airconf()
 		{
@@ -121,9 +121,11 @@ package
 				event.keyCode == Keyboard.HOME ) {
 				logDebug("=>handleKeys.");
 				
-				event.preventDefault();
 				if( !ignoreBack ) {
 					backClickHandler();
+				} else {
+					//ignore the event
+					event.preventDefault();
 				}
 			}
 		}
