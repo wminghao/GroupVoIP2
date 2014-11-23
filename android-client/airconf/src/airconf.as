@@ -35,7 +35,7 @@ package
 		private var vidConn_:VideoConn = null;
 		
 		//whether to ignore back button or not
-		private var ignoreBack:Boolean = false;
+		private var ignoreBack:Boolean = true;
 		
 		public function airconf()
 		{
@@ -76,6 +76,9 @@ package
 			logDebug("=>handleDeactivate.");
 			vidConn_.disconnectServer();
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.NORMAL;
+			
+			//Calling exit sometimes causes air app to freeze, don't call it right now.
+			//NativeApplication.nativeApplication.exit();
 		}
 		
 		private function backClickHandler():void 

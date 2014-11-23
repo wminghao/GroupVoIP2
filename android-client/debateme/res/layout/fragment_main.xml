@@ -8,17 +8,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.vispar.debateme.MainActivity$PlaceholderFragment" >
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/Invite"
-        android:layout_alignParentTop="true"
-        android:layout_alignRight="@+id/Invite"
-        android:layout_marginTop="20dp"
-        android:text="Hello Howard"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
     <Button
         android:id="@+id/MyVideo"
         android:layout_width="wrap_content"
