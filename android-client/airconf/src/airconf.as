@@ -37,7 +37,7 @@ package
 		//whether to ignore back button or not
 		private var ignoreBack:Boolean = false;
 		//wheter deactivate indicates exit. (Home button)
-		private var deactivateExit:Boolean = false;
+		private var deactivateExit:Boolean = true;
 		
 		public function airconf()
 		{

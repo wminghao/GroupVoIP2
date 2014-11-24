@@ -6,8 +6,6 @@ import java.util.List;
 import android.app.Activity;
 //import android.app.ActionBar;
 import android.app.Fragment;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -78,7 +76,6 @@ public class MainActivity extends Activity {
             myVideos = (Button) rootView.findViewById(R.id.MyVideo);
             
             inviteFriends.setOnClickListener( new View.OnClickListener() {
-            	@SuppressWarnings("deprecation")
             	public void onClick(View v) {
 	           		 String msgToShare = "Join my discussion by clicking here: http://debate.me/rooms/howard";
 	           		 Intent intent = new Intent(Intent.ACTION_SEND);
@@ -117,8 +114,15 @@ public class MainActivity extends Activity {
 	           			 }
 	           			 targetedShareIntent.setPackage(packageName);
 	                     targetedShareIntents.add(targetedShareIntent);
-	
 	           		 }
+	           		 //add clipboard
+           			 Intent clipboardIntent = new Intent(android.content.Intent.ACTION_SEND);
+           			 clipboardIntent.setType("text/plain");
+           			 clipboardIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+           			 clipboardIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
+           			 clipboardIntent.setPackage(".ClipboardActivity");
+                     targetedShareIntents.add(clipboardIntent);
+	           		 
 	           		 if (targetedShareIntents.size() >0) {
 	           			 Intent chooserIntent = Intent.createChooser(targetedShareIntents.remove(0), getString(R.string.select_to_share));
 	           			 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedShareIntents.toArray(new Parcelable[]{}));
@@ -131,11 +135,6 @@ public class MainActivity extends Activity {
 	           	             );
 	                   	     toast.show();
 	           		 }
-
-                	// Copy EditCopy text to the ClipBoard
-                	ClipboardManager ClipMan = (ClipboardManager) container.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                	ClipMan.setText(msgToShare);
-                	Toast.makeText(v.getContext(), getString(R.string.clipboard_share), Toast.LENGTH_SHORT).show();
                 }
             });    
             joinRoom.setOnClickListener(new View.OnClickListener() {

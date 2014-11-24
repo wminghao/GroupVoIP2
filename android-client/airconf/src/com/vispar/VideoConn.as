@@ -117,7 +117,12 @@ package com.vispar
 		}
 		
 		private function onConnectionNetStatus(event:NetStatusEvent) : void {
-			connTimeoutTimer.stop(); //cancel the timeout timer
+			if( connTimeoutTimer ) {
+				connTimeoutTimer.stop(); //cancel the timeout timer
+			}
+			if( reconnTimer ) {
+				reconnTimer.stop();
+			}
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
