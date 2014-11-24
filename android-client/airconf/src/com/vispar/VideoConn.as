@@ -60,7 +60,7 @@ package com.vispar
 			netConn.client = this;
 			
 			logDebug("=>connect 2 server!");
-			connTimeoutTimer = new Timer(4000);
+			connTimeoutTimer = new Timer(4000, 1);
 			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 			connTimeoutTimer.start();
 		}
@@ -130,7 +130,7 @@ package com.vispar
 			} else {
 				logDebug("Unsuccessful Connection, reconnecting");
 				
-				reconnTimer = new Timer(3000);
+				reconnTimer = new Timer(3000, 1);
 				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 				reconnTimer.start();	
 			}

@@ -3,6 +3,8 @@ package com.vispar.debateme;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vispar.debateme.share.ClipboardActivity;
+
 import android.app.Activity;
 //import android.app.ActionBar;
 import android.app.Fragment;
@@ -116,11 +118,11 @@ public class MainActivity extends Activity {
 	                     targetedShareIntents.add(targetedShareIntent);
 	           		 }
 	           		 //add clipboard
-           			 Intent clipboardIntent = new Intent(android.content.Intent.ACTION_SEND);
+           			 Intent clipboardIntent = new Intent(getActivity(), ClipboardActivity.class);
            			 clipboardIntent.setType("text/plain");
            			 clipboardIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
            			 clipboardIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-           			 clipboardIntent.setPackage(".ClipboardActivity");
+           			 clipboardIntent.setPackage(".share.ClipboardActivity");
                      targetedShareIntents.add(clipboardIntent);
 	           		 
 	           		 if (targetedShareIntents.size() >0) {

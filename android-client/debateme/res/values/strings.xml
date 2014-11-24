@@ -6,5 +6,6 @@
     <string name="share_subject">Discussion share from Vispar</string>
     <string name="no_app_to_share">Nothing to share</string>
     <string name="select_to_share">Select an app to share</string>
+    <string name="copy_to_clipboard">Clipboard</string>
     <string name="clipboard_share">You can also invite your friends using the link, which is copied to clipboard</string>
 </resources>
