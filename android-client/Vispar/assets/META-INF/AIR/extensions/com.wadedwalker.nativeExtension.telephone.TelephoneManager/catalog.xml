@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding ="utf-8"?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+  <versions>
+    <swc version="1.2" />
+    <flash version="12.0" build="d537" platform="MAC" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="com/wadedwalker/nativeExtension/telephone/DataConnectionStateEvent" mod="1414248606000" >
+        <def id="com.wadedwalker.nativeExtension.telephone:DataConnectionStateEvent" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:Event" type="i" /> 
+      </script>
+      <script name="com/wadedwalker/nativeExtension/telephone/DataActivityEvent" mod="1414249318000" >
+        <def id="com.wadedwalker.nativeExtension.telephone:DataActivityEvent" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:Event" type="i" /> 
+      </script>
+      <script name="com/wadedwalker/nativeExtension/telephone/CallStateEvent" mod="1414249370000" >
+        <def id="com.wadedwalker.nativeExtension.telephone:CallStateEvent" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:Event" type="i" /> 
+      </script>
+      <script name="com/wadedwalker/nativeExtension/telephone/TelephoneManager" mod="1414311541000" >
+        <def id="com.wadedwalker.nativeExtension.telephone:TelephoneManager" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataActivityEvent" type="e" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:CallStateEvent" type="e" /> 
+        <dep id="flash.system:Capabilities" type="e" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataConnectionStateEvent" type="e" /> 
+        <dep id="flash.events:StatusEvent" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="Error" type="e" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataActivityEvent" type="s" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:CallStateEvent" type="s" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataConnectionStateEvent" type="s" /> 
+        <dep id="flash.events:StatusEvent" type="s" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="Error" type="s" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+      </script>
+      <script name="library_fla/MainTimeline" mod="1414313039518" >
+        <def id="library_fla:MainTimeline" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataActivityEvent" type="s" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:TelephoneManager" type="s" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:CallStateEvent" type="s" /> 
+        <dep id="com.wadedwalker.nativeExtension.telephone:DataConnectionStateEvent" type="s" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.display:MovieClip" type="i" /> 
+      </script>
+    </library>
+  </libraries>
+  <files>
+  </files>
+</swc>
