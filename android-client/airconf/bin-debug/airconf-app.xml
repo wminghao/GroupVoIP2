@@ -298,7 +298,7 @@
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
 
-<extensions>
+	<extensions>
         <extensionID>com.wadedwalker.nativeExtension.telephone.TelephoneManager</extensionID>
     </extensions>
 </application>

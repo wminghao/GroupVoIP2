@@ -209,7 +209,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
-    	           		 String msgToShare = "Join my discussion by clicking here: http://debate.me/rooms/howard";
+    	           		 String msgToShare = "Join my discussion by clicking here: http://www.vispar.com/rooms/howard";
     	           		 Intent intent = new Intent(Intent.ACTION_SEND);
     	           		 intent.setType("text/plain");
     	           		 List<Intent> targetedShareIntents = new ArrayList<Intent>();
@@ -220,7 +220,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
     	           			 String packageName = info.activityInfo.packageName;
     	           			 System.out.println("Package name: "+ packageName);
     	           			 Intent targetedShareIntent = new Intent(android.content.Intent.ACTION_SEND);
-    	       				 if (packageName.equals("com.facebook.katana")){
+    	           			 
+    	           			 if (packageName.equals("com.facebook.orca")){
+   	       					 	targetedShareIntent.setType("text/plain");
+   	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+   	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
+   	           			 	 } else if (packageName.equals("com.facebook.katana")){
     	       					 targetedShareIntent.setType("text/plain");
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);

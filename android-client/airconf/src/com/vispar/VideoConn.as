@@ -385,48 +385,5 @@ package com.vispar
 		public function removeStream(resp:Object):void {
 			removeElementFromStringVector(String(resp), publishedStreamArray);
 		}
-		
-		/*
-		private function songList_changeHandler(event:IndexChangeEvent):void	
-		{
-		if( publishDest != null && songList.selectedIndex != 0) {
-		status.text = "Song selected="+songList.selectedItem.value;
-		netConn.call("song.selectSong", null, songList.selectedItem.value);	
-		songList.selectedIndex = 0;
-		}
-		}
-		
-		public function songSelected(resp:Object):void	
-		{
-		var song:String = String(resp);
-		if( song != null) {
-		if( song == defaultSong ) {
-		status.text = "Song stopped.";
-		} else {
-		status.text = "Song playing="+song;
-		}
-		}
-		}
-		// Event handler function to display the scroll location.
-		private function detectVolume():void {
-		var volume:Number = volumeBar.value/volumeBar.maximum;
-		var micTransform:SoundTransform = mic.soundTransform;
-		status.text = "volume was set to be "+micTransform.volume+" will be set to "+volume;
-		micTransform.volume = volume;
-		mic.soundTransform = micTransform;
-		}
-		
-		private function volumeScroll():void {
-		detectVolume();
-		}
-		
-		protected function stopMusic_clickHandler(event:MouseEvent):void
-		{
-		if( publishDest != null) {
-		netConn.call("song.selectSong", null, defaultSong);	
-		songList.selectedIndex = 0;
-		}
-		}
-		*/
 	}
 }
