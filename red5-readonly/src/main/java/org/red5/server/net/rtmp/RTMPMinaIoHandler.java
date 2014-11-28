@@ -50,15 +50,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
 	protected ProtocolCodecFactory codecFactory;
 
-	//TODO move it out to GroupMixer
-	private boolean bShouldMix;
-	private boolean bLoadFromDisc; //read from a file instead
-	private boolean bSaveToDisc; //log input file to a disc
-	private boolean bGenKaraoke; //should use karaoke
-	private String outputFilePath;
-	private String inputFilePath;	
-	private String karaokeFilePath;
-
 	/** {@inheritDoc} */
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
@@ -77,12 +68,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		session.setAttribute(RTMPConnection.RTMP_SESSION_ID, conn.getSessionId());
 		// add the in-bound handshake
 		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
-		
+
 		//next creates the all-in-one RTMPMinaConnection
-		GroupMixer.getInstance().prepare(handler, bShouldMix, 
-										 bSaveToDisc, outputFilePath, 
-										 bLoadFromDisc, inputFilePath,
-										 bGenKaraoke, karaokeFilePath);
+		GroupMixer.getInstance().prepare(handler);
 	}
 
 	/** {@inheritDoc} */
@@ -288,62 +276,5 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
 	protected RTMPMinaConnection createRTMPMinaConnection() {
 		return (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class);
-	}
-	
-	/**
-	 * Setter for bShouldMix.
-	 *
-	 * @param tells GroupMixer's whether to mix or not
-	 */
-	public void setbShouldMix(boolean bShouldMix) {
-		this.bShouldMix = bShouldMix;
-	}	
-	/**
-	 * Setter for bLoadFromDisc.
-	 *
-	 * @param tells GroupMixer's process Pipe if load output from disc or not
-	 */
-	public void setbLoadFromDisc(boolean bLoadFromDisc) {
-		this.bLoadFromDisc = bLoadFromDisc;
-	}
-	/**
-	 * Setter for bSaveToDisc.
-	 *
-	 * @param tells GroupMixer's process Pipe if save input to disc or not
-	 */
-	public void setbSaveToDisc(boolean bSaveToDisc) {
-		this.bSaveToDisc = bSaveToDisc;
-	}	
-	/**
-	 * Setter for bGenKaraoke.
-	 *
-	 * @param tells GroupMixer's whether to gen karaoke or not
-	 */
-	public void setbGenKaraoke(boolean bGenKaraoke) {
-		this.bGenKaraoke = bGenKaraoke;
-	}	
-	/**
-	 * Setter for inputFilePath.
-	 *
-	 * @param tells GroupMixer's process Pipe input file path
-	 */
-	public void setinputFilePath(String inputFilePath) {
-		this.inputFilePath = inputFilePath;
-	}
-	/**
-	 * Setter for outputFilePath.
-	 *
-	 * @param tells GroupMixer's process Pipe output file path
-	 */
-	public void setoutputFilePath(String outputFilePath) {
-		this.outputFilePath = outputFilePath;
-	}
-	/**
-	 * Setter for karaokePath.
-	 *
-	 * @param tells GroupMixer's where is karaoke
-	 */
-	public void setkaraokeFilePath(String karaokeFilePath) {
-		this.karaokeFilePath = karaokeFilePath;
 	}
 }

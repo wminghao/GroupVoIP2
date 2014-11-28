@@ -45,6 +45,7 @@ import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.exception.ScopeShuttingDownException;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.mixer.GroupMixer;
 import org.red5.server.net.ICommand;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -346,7 +347,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									} else {
 										okayToConnect = conn.connect(scope);
 									}
-									if (okayToConnect) {
+									if (okayToConnect) {										
 										log.debug("Connected - {}", conn.getClient());
 										call.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {

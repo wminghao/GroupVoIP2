@@ -20,10 +20,14 @@ import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
 import org.slf4j.Logger;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.nio.ByteBuffer;
 
-public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Delegate {
+public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Delegate, ApplicationContextAware, DisposableBean {
 
     public static final String MIXED_STREAM_PREFIX = "__mixed__";
     public static final String ALL_IN_ONE_STREAM_NAME = "allinone";
@@ -46,22 +50,33 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     //special stream
     private KaraokeGenerator karaokeGen_ = null;
+  
+	//spring members from configuration
+	protected static ApplicationContext applicationContext;
+	
+	private boolean bShouldMix;
+	private boolean bLoadFromDisc; //read from a file instead
+	private boolean bSaveToDisc; //log input file to a disc
+	private boolean bGenKaraoke; //should use karaoke
+	private String outputFilePath;
+	private String inputFilePath;	
+	private String karaokeFilePath;
     
     private GroupMixer() {
     }
+    
+	@Override
+	public void destroy() throws Exception {
+	}
 	
     public static synchronized GroupMixer getInstance() {
         if(instance_ == null) {
-        	instance_ = new GroupMixer();
+        	instance_ = (GroupMixer) applicationContext.getBean("groupMixer");
         }
         return instance_;
     }
 
-    public void prepare(IRTMPHandler handler, 
-    					boolean bShouldMix, 
-    					boolean bSaveToDisc, String outputFilePath,
-    					boolean bLoadFromDisc, String inputFilePath,
-    					boolean bGenKaraoke, String karaokeFilePath)
+    public void prepare(IRTMPHandler handler)
 	{ 	
     	if( handler_ == null ) {
         	handler_ = handler;
@@ -478,5 +493,68 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
 	public void selectSong(String songName) {
 		karaokeGen_.selectSong(songName);
+	}
+	
+	/**
+	 * Setter for bShouldMix.
+	 *
+	 * @param tells GroupMixer's whether to mix or not
+	 */
+	public void setbShouldMix(boolean bShouldMix) {
+		this.bShouldMix = bShouldMix;
+	}	
+	/**
+	 * Setter for bLoadFromDisc.
+	 *
+	 * @param tells GroupMixer's process Pipe if load output from disc or not
+	 */
+	public void setbLoadFromDisc(boolean bLoadFromDisc) {
+		this.bLoadFromDisc = bLoadFromDisc;
+	}
+	/**
+	 * Setter for bSaveToDisc.
+	 *
+	 * @param tells GroupMixer's process Pipe if save input to disc or not
+	 */
+	public void setbSaveToDisc(boolean bSaveToDisc) {
+		this.bSaveToDisc = bSaveToDisc;
+	}	
+	/**
+	 * Setter for bGenKaraoke.
+	 *
+	 * @param tells GroupMixer's whether to gen karaoke or not
+	 */
+	public void setbGenKaraoke(boolean bGenKaraoke) {
+		this.bGenKaraoke = bGenKaraoke;
+	}	
+	/**
+	 * Setter for inputFilePath.
+	 *
+	 * @param tells GroupMixer's process Pipe input file path
+	 */
+	public void setinputFilePath(String inputFilePath) {
+		this.inputFilePath = inputFilePath;
+	}
+	/**
+	 * Setter for outputFilePath.
+	 *
+	 * @param tells GroupMixer's process Pipe output file path
+	 */
+	public void setoutputFilePath(String outputFilePath) {
+		this.outputFilePath = outputFilePath;
+	}
+	/**
+	 * Setter for karaokePath.
+	 *
+	 * @param tells GroupMixer's where is karaoke
+	 */
+	public void setkaraokeFilePath(String karaokeFilePath) {
+		this.karaokeFilePath = karaokeFilePath;
+	}
+	/*
+	 * Default spring applicationcontext
+	 */
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		GroupMixer.applicationContext = applicationContext;
 	}
 }
