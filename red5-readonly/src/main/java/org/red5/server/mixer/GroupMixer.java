@@ -55,12 +55,16 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	protected static ApplicationContext applicationContext;
 	
 	private boolean bShouldMix;
-	private boolean bLoadFromDisc; //read from a file instead
-	private boolean bSaveToDisc; //log input file to a disc
+	private boolean bLoadSegFromDisc; //read from a segment file instead
+	private boolean bSaveSegToDisc; //log input segment file to a disc
+	private boolean bSaveFlvToDisc; //log input segment file to a disc
 	private boolean bGenKaraoke; //should use karaoke
-	private String outputFilePath;
-	private String inputFilePath;	
+	private String outputSegPath;
+	private String outputFlvPath;
+	private String inputSegPath;	
 	private String karaokeFilePath;
+	
+	private FLVArchiver flvArchiver_;
     
     private GroupMixer() {
     }
@@ -82,11 +86,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	handler_ = handler;
     	    //starts process pipe
     	    if( bShouldMix ) {
-    	    	mixerPipe_ = new NativeProcessPipe(this, mixCoderBridge_, bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath);
+    	    	mixerPipe_ = new NativeProcessPipe(this, mixCoderBridge_, bSaveSegToDisc, outputSegPath, bLoadSegFromDisc, inputSegPath);
     	    }
     
     	    if( bGenKaraoke ) {
     	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
+    	    }
+    	    if( bSaveFlvToDisc ) {
+    	    	flvArchiver_ = new FLVArchiver(outputFlvPath);
     	    }
     	}
     	log.info("prepare AllInOneConn!");
@@ -128,6 +135,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    if( karaokeGen_!= null ) {
     		karaokeGen_.tryToStart();
     	}
+
+	    if( bSaveFlvToDisc ) {
+	    	flvArchiver_.startArchive();
+	    }
+	    
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
     }	
 
@@ -152,7 +164,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    if( karaokeGen_!= null ) {
 	    	deleteMixedStreamInternal(SPECIAL_STREAM_NAME);
 	    }
-	    
+
+	    if( bSaveFlvToDisc ) {
+	    	flvArchiver_.stopArchive();
+	    }
 	    //remove connection
 	    RTMPConnManager.getInstance().removeConnection(allInOneSessionId_);
 	    allInOneSessionId_ = null;
@@ -219,98 +234,104 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	int streamId = idLookupTable.lookupStreamId(mixerId);
     	//log.info("=====>onFrameParsed mixerId {} len {} streamName {}", mixerId, flvFrameLen, idLookupTable.lookupStreamName(mixerId) );
-    	onFrameGenerated( streamId, frame, flvFrameLen, false );
+    	onFrameGenerated( mixerId, streamId, frame, flvFrameLen, false );
     }
     
-    private void onFrameGenerated( int streamId, ByteBuffer frame, int flvFrameLen, boolean isKaraoke) {	
+    private void onFrameGenerated(int mixerId, int streamId, ByteBuffer frame, int flvFrameLen, boolean isKaraoke) {
     	if ( streamId != -1 ) {
-	    byte[] flvFrame = frame.array();
-	    int curIndex = 0;
-	    if(flvFrame[0] =='F' && flvFrame[1]=='L' && flvFrame[2] == 'V') {
-	    	curIndex+=13;
-	    }        		
-	    while( curIndex < flvFrameLen ) {
-		int msgType = flvFrame[curIndex];
-            	int msgSize = ((((int)flvFrame[curIndex+1])&0xff)<<16) | ((((int)flvFrame[curIndex+2])&0xff)<<8) | ((int)(flvFrame[curIndex+3])&0xff);
-            	int msgTimestamp = ((((int)flvFrame[curIndex+4])&0xff)<<16) | ((((int)flvFrame[curIndex+5])&0xff)<<8) | ((int)(flvFrame[curIndex+6])&0xff) | ((((int)flvFrame[curIndex+7])&0xff)<<24);
-		//log.info("=====>out message from {} 1stByte {} msgType {} curIndex={} flvFrameLen={} msgSize {} ts {} on thread: {}", streamId, flvFrame[curIndex+11], msgType, curIndex, flvFrameLen, msgSize, msgTimestamp, Thread.currentThread().getName());
-		curIndex += 11;
-        	
-		//RTMP Chunk Header
-		Header msgHeader = new Header();
-		msgHeader.setDataType((byte)msgType);//invoke is command, val=20
-		msgHeader.setChannelId(3); //channel TODO does it really matter since we consume it internally.
-		// see RTMPProtocolDecoder::decodePacket() 
-		// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-		msgHeader.setSize(msgSize);   //Chunk Data Length, a big enough buffersize
-		msgHeader.setStreamId(streamId);  //streamid
-		msgHeader.setTimerBase(0); //base+delta=timestamp
-		msgHeader.setTimerDelta(msgTimestamp);
-		msgHeader.setExtendedTimestamp(0); //extended timestamp
-        		
-        RTMPMinaConnection conn = getAllInOneConn();
-        switch(msgType) {
-		case Constants.TYPE_AUDIO_DATA:
-		    {
-			AudioData msgEvent = new AudioData();
-			msgEvent.setHeader(msgHeader);
-			msgEvent.setTimestamp(msgTimestamp);
-			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
-			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-            		
-			//send karaoke to mixer directly
-			if( isKaraoke ) {
-			    IoBuffer buf = msgEvent.getData();
-			    if( buf != null) {
-			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
-			    } else {
-			    	log.info("----------------onAudioData failed, streamId={}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
-			    }
-			}   
+    	    byte[] flvFrame = frame.array();
+    	    int curIndex = 0;
+    	    if(flvFrame[0] =='F' && flvFrame[1]=='L' && flvFrame[2] == 'V') {
+    	    	curIndex+=13;
+    	    }        		
 
-			Packet msg = new Packet(msgHeader, msgEvent);
-			conn.handleMessageReceived(msg);
-			//log.info("----------------onAudioData, streamId = {}, size={}", streamId, msgSize);         			
-			break;
-		    }
-		case Constants.TYPE_VIDEO_DATA:
-		    {
-			VideoData msgEvent = new VideoData();
-			msgEvent.setHeader(msgHeader);
-			msgEvent.setTimestamp(msgTimestamp);
-			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
-			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
-            		
-			//send Karaoke to mixer directly
-			if( isKaraoke ) {
-			    IoBuffer buf = msgEvent.getData();
-			    if( buf != null) {
-			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
-			    } else {
-			    	log.info("----------------onVideoData failed, streamId = {}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
-			    }
-			} 
-    		
-			Packet msg = new Packet(msgHeader, msgEvent);
-			conn.handleMessageReceived(msg);
-			//log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
-			break;
-		    }
-		    
-		case Constants.TYPE_STREAM_METADATA:
-		    {
-			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
-			msgEvent.setHeader(msgHeader);
-			msgEvent.setTimestamp(msgTimestamp);
-			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-			Packet msg = new Packet(msgHeader, msgEvent);
-			conn.handleMessageReceived(msg);
-			//log.info("----------------onCuePoint, streamId = {}, size={}", streamId, msgSize);
-			break;
-		    }
-            	}
-            	curIndex += (msgSize+4); //4 bytes unused
-	    }
+    	    if( bSaveFlvToDisc ) {
+    	    	if( mixerId == IdLookup.ALL_IN_ONE_STREAM_MIXER_ID ) {
+    	    		flvArchiver_.archiveData(frame, curIndex, flvFrameLen);
+    	    	}
+    	    }
+    	    while( curIndex < flvFrameLen ) {
+        		int msgType = flvFrame[curIndex];
+                int msgSize = ((((int)flvFrame[curIndex+1])&0xff)<<16) | ((((int)flvFrame[curIndex+2])&0xff)<<8) | ((int)(flvFrame[curIndex+3])&0xff);
+                int msgTimestamp = ((((int)flvFrame[curIndex+4])&0xff)<<16) | ((((int)flvFrame[curIndex+5])&0xff)<<8) | ((int)(flvFrame[curIndex+6])&0xff) | ((((int)flvFrame[curIndex+7])&0xff)<<24);
+        		//log.info("=====>out message from {} 1stByte {} msgType {} curIndex={} flvFrameLen={} msgSize {} ts {} on thread: {}", streamId, flvFrame[curIndex+11], msgType, curIndex, flvFrameLen, msgSize, msgTimestamp, Thread.currentThread().getName());
+        		curIndex += 11;
+                	
+        		//RTMP Chunk Header
+        		Header msgHeader = new Header();
+        		msgHeader.setDataType((byte)msgType);//invoke is command, val=20
+        		msgHeader.setChannelId(3); //channel TODO does it really matter since we consume it internally.
+        		// see RTMPProtocolDecoder::decodePacket() 
+        		// final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
+        		msgHeader.setSize(msgSize);   //Chunk Data Length, a big enough buffersize
+        		msgHeader.setStreamId(streamId);  //streamid
+        		msgHeader.setTimerBase(0); //base+delta=timestamp
+        		msgHeader.setTimerDelta(msgTimestamp);
+        		msgHeader.setExtendedTimestamp(0); //extended timestamp
+                		
+                RTMPMinaConnection conn = getAllInOneConn();
+                switch(msgType) {
+            		case Constants.TYPE_AUDIO_DATA:
+            		{
+            			AudioData msgEvent = new AudioData();
+            			msgEvent.setHeader(msgHeader);
+            			msgEvent.setTimestamp(msgTimestamp);
+            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
+            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
+                        		
+            			//send karaoke to mixer directly
+            			if( isKaraoke ) {
+            			    IoBuffer buf = msgEvent.getData();
+            			    if( buf != null) {
+            			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+            			    } else {
+            			    	log.info("----------------onAudioData failed, streamId={}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
+            			    }
+            			}   
+            
+            			Packet msg = new Packet(msgHeader, msgEvent);
+            			conn.handleMessageReceived(msg);
+            			//log.info("----------------onAudioData, streamId = {}, size={}", streamId, msgSize);         			
+            			break;
+            		}
+            		case Constants.TYPE_VIDEO_DATA:
+            		{
+            			VideoData msgEvent = new VideoData();
+            			msgEvent.setHeader(msgHeader);
+            			msgEvent.setTimestamp(msgTimestamp);
+            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
+            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
+                        		
+            			//send Karaoke to mixer directly
+            			if( isKaraoke ) {
+            			    IoBuffer buf = msgEvent.getData();
+            			    if( buf != null) {
+            			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+            			    } else {
+            			    	log.info("----------------onVideoData failed, streamId = {}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
+            			    }
+            			} 
+                		
+            			Packet msg = new Packet(msgHeader, msgEvent);
+            			conn.handleMessageReceived(msg);
+            			//log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
+            			break;
+            		}
+            		    
+            		case Constants.TYPE_STREAM_METADATA:
+            		{
+            			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
+            			msgEvent.setHeader(msgHeader);
+            			msgEvent.setTimestamp(msgTimestamp);
+            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
+            			Packet msg = new Packet(msgHeader, msgEvent);
+            			conn.handleMessageReceived(msg);
+            			//log.info("----------------onCuePoint, streamId = {}, size={}", streamId, msgSize);
+            			break;
+            		}
+                }
+                curIndex += (msgSize+4); //4 bytes unused
+    	    }
     	}
     }
     
@@ -482,8 +503,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	@Override
 	public void onKaraokeFrameParsed(ByteBuffer frame, int len) {
 		//either send it to the original stream or delayed stream.
-		int streamId = idLookupTable.lookupStreamId(SPECIAL_STREAM_NAME);
-		onFrameGenerated(streamId, frame, len, true);
+		onFrameGenerated(idLookupTable.lookupMixerId(SPECIAL_STREAM_NAME), 
+						 idLookupTable.lookupStreamId(SPECIAL_STREAM_NAME), 
+						 frame, len, true);
 	}
 
 	@Override
@@ -504,20 +526,28 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 		this.bShouldMix = bShouldMix;
 	}	
 	/**
-	 * Setter for bLoadFromDisc.
+	 * Setter for bLoadSegFromDisc.
 	 *
 	 * @param tells GroupMixer's process Pipe if load output from disc or not
 	 */
-	public void setbLoadFromDisc(boolean bLoadFromDisc) {
-		this.bLoadFromDisc = bLoadFromDisc;
+	public void setbLoadSegFromDisc(boolean bLoadSegFromDisc) {
+		this.bLoadSegFromDisc = bLoadSegFromDisc;
 	}
 	/**
-	 * Setter for bSaveToDisc.
+	 * Setter for bSaveSegToDisc.
 	 *
-	 * @param tells GroupMixer's process Pipe if save input to disc or not
+	 * @param tells GroupMixer's process Pipe if save seg to disc or not
 	 */
-	public void setbSaveToDisc(boolean bSaveToDisc) {
-		this.bSaveToDisc = bSaveToDisc;
+	public void setbSaveSegToDisc(boolean bSaveSegToDisc) {
+		this.bSaveSegToDisc = bSaveSegToDisc;
+	}	
+	/**
+	 * Setter for bSaveFlvToDisc.
+	 *
+	 * @param tells GroupMixer's process Pipe if save flv to disc or not
+	 */
+	public void setbSaveFlvToDisc(boolean bSaveFlvToDisc) {
+		this.bSaveFlvToDisc = bSaveFlvToDisc;
 	}	
 	/**
 	 * Setter for bGenKaraoke.
@@ -528,20 +558,28 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 		this.bGenKaraoke = bGenKaraoke;
 	}	
 	/**
-	 * Setter for inputFilePath.
+	 * Setter for inputSegPath.
 	 *
 	 * @param tells GroupMixer's process Pipe input file path
 	 */
-	public void setinputFilePath(String inputFilePath) {
-		this.inputFilePath = inputFilePath;
+	public void setinputSegPath(String inputSegPath) {
+		this.inputSegPath = inputSegPath;
 	}
 	/**
-	 * Setter for outputFilePath.
+	 * Setter for outputSegPath.
 	 *
 	 * @param tells GroupMixer's process Pipe output file path
 	 */
-	public void setoutputFilePath(String outputFilePath) {
-		this.outputFilePath = outputFilePath;
+	public void setoutputSegPath(String outputSegPath) {
+		this.outputSegPath = outputSegPath;
+	}	
+	/**
+	 * Setter for outputFlvPath.
+	 *
+	 * @param tells GroupMixer's process Pipe output file path
+	 */
+	public void setoutputFlvPath(String outputFlvPath) {
+		this.outputFlvPath = outputFlvPath;
 	}
 	/**
 	 * Setter for karaokePath.
