@@ -35,17 +35,21 @@ using namespace std;
 // 1) input tells it how many streams available.
 // 2) it parses data and put audio/video inside a queue sorted by timestamp
 // 3) for audio, there could be 2 cases
-//        a) frame drop(a.k.a. timestamp jump), 
-//        b) frames comes in at different speed. 
+//        a) frame drop from the source(a.k.a. timestamp jump), 
+//        b) frames comes in at different speed. (Bursty mode due to network fluactuation)
 //       After multiple experiments, 2 simple algorithms achieves the best result.
-//        a) trim the queue when a max threshold is reached, meaning data comes in a batch mode.
-//        b) fill with prev frame if a stream is missing a frame and other streams' queue size reaches a min threshold and the time interval between last pop and cur pop > 1 frame interval        
+//        a) Queue size is too big: trim the queue when a max threshold is reached, meaning data comes in a batch mode.
+//        b) Queue size is too small: fill the queue with an empty frame if 
+//           b.1) a stream is missing a frame and 
+//           b.2) other streams' queue size reaches a min threshold and 
+//           b.3) the time interval between last queue popout and current queue popout > 1 frame time interval        
 // 4) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
-//        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, (it's possible a stream having more than 1 video data output for a single frame)
-//        if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
+//        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, 
+//        a) if there is data, it's possible a stream having more than 1 video data output for a single frame.
+//        b) if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
 // 5) Clocks, there is a global timestamp, recording the unified clock of elapsed streams.
 //        In the beginning, timestamp must be adjusted to be the same as the global timestamp
-//          However, since each video stream is independent from each other, it should move its clock on its own.
+//          However, since each stream is independent from each other, it should move its clock on its own.
 //        Except for the case, where there is a jump in timestamp, which means the client is skipping data(both audio and video), 
 //          When that happens, the stream's timestamp is resynced with the global timestamp.
 ///////////////////////////////////
