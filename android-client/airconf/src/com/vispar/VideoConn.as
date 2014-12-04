@@ -127,12 +127,22 @@ package com.vispar
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				logDebug("NetConnection.Connect.Success!");
-			} else {
-				logDebug("Unsuccessful Connection, reconnecting");
+			} else if(event.info.code == "NetConnection.Connect.Failed" ||
+					  event.info.code == "NetConnection.Connect.IdleTimeout"){
+				logDebug("Connection code:"+event.info.code+", try reconnecting");
 				
 				reconnTimer = new Timer(3000, 1);
 				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 				reconnTimer.start();	
+			} else if(event.info.code == "NetConnection.Connect.Rejected" ||
+					  event.info.code == "NetConnection.Connect.AppShutdown") {
+				logDebug("Connection code:"+event.info.code+". Fatal error");
+				disconnectServer();
+				
+			} else if( event.info.code == "NetConnection.Connect.Closed"){
+				logDebug("Connection code:"+event.info.code+". Closed");
+			} else {
+				logDebug("Connection code:"+event.info.code+". Ignore event");
 			}
 		}
 		//TODO try 3 times and fail with an error
