@@ -69,20 +69,19 @@ package
 		}
 		
 		private function onInvoke(event:InvokeEvent):void
-		{
-			
-			logDebug("=>onInvoke="+event.arguments[0]);
-			logDebug("reason: " + event.reason);  
-			logDebug("arguments.length: " + event.arguments.length);  
-			if( event.arguments[0]!=null ) {
+		{	
+			//logDebug("=>onInvoke="+event.arguments[0]);
+			//logDebug("reason: " + event.reason);  
+			//logDebug("arguments.length: " + event.arguments.length);  
+			if( event.arguments.length > 0 && event.arguments[0]!=null ) {
 				var arg:String = event.arguments[0];
 				arg = arg.substr(arg.indexOf("//") + 2);
-				logDebug("=>arg="+arg);
+				//logDebug("=>arg="+arg);
 
 				var endIndex:int = arg.indexOf("/");
 				var typeStr:String = arg.substring(0, endIndex);
 				bIsLive_ = ( typeStr == "live");
-				logDebug("=>typeStr="+typeStr);				
+				//logDebug("=>typeStr="+typeStr);				
 			}
 			if( bIsLive_ ) {
 				vidInstance_ = new VideoConn(this, this);
