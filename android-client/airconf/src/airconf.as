@@ -16,7 +16,7 @@ package
 	import flash.ui.Keyboard;
 	import flash.utils.*;
 	
-	public class airconf extends Sprite implements VideoConnDelegate
+	public class airconf extends Sprite implements VideoContainerDelegate
 	{		
 		private var videoWidth:int = 640;
 		private var videoHeight:int = 480;
@@ -31,9 +31,10 @@ package
 		private var teleManager_:TelephoneManager = new TelephoneManager();
 		private var callState_:int = TelephoneManager.CALL_STATE_IDLE;
 		
-		//vidconnection class
-		private var vidConn_:VideoConn = null;
-		
+		//vidContainer class
+		private var vidInstance_:VideoContainer = null;
+		private var bIsLive_:Boolean = false;
+	
 		//whether to ignore back button or not
 		private var ignoreBack:Boolean = false;
 		//wheter deactivate indicates exit. (Home button)
@@ -42,8 +43,6 @@ package
 		public function airconf()
 		{
 			super();
-			
-			vidConn_ = new VideoConn(this, this);
 			
 			// support autoOrients
 			stage.align = StageAlign.TOP_LEFT;
@@ -57,6 +56,9 @@ package
 			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
 			screenX = (screenWidth*videoHeight - videoWidth * screenHeight) / (2*videoHeight);
 			
+			//invoke events for parameter passing.
+			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvoke);
+			
 			//register for back and home events
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, handleActivate, false, 0, true);
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, handleDeactivate, false, 0, true);
@@ -66,17 +68,39 @@ package
 			NativeApplication.nativeApplication.addEventListener(CallStateEvent.CALL_STATE_CHANGE, onCallStateChange);
 		}
 		
+		private function onInvoke(event:InvokeEvent):void
+		{	
+			//logDebug("=>onInvoke="+event.arguments[0]);
+			//logDebug("reason: " + event.reason);  
+			//logDebug("arguments.length: " + event.arguments.length);  
+			if( event.arguments.length > 0 && event.arguments[0]!=null ) {
+				var arg:String = event.arguments[0];
+				arg = arg.substr(arg.indexOf("//") + 2);
+				//logDebug("=>arg="+arg);
+
+				var endIndex:int = arg.indexOf("/");
+				var typeStr:String = arg.substring(0, endIndex);
+				bIsLive_ = ( typeStr == "live");
+				//logDebug("=>typeStr="+typeStr);				
+			}
+			if( bIsLive_ ) {
+				vidInstance_ = new VideoConn(this, this);
+			} else {
+				vidInstance_ = new VideoPlayer(this, this);				
+			}
+		}		
+		
 		private function handleActivate(event:Event):void
 		{
 			logDebug("=>handleActivate.");
-			vidConn_.connectServer();	
+			vidInstance_.connectServer();	
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
 		}
 		
 		private function handleDeactivate(event:Event):void
 		{
 			logDebug("=>handleDeactivate.");
-			vidConn_.disconnectServer();
+			vidInstance_.disconnectServer();
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.NORMAL;
 			
 			if ( deactivateExit ) {
@@ -87,7 +111,7 @@ package
 		
 		private function backClickHandler():void 
 		{
-			vidConn_.disconnectServer();
+			vidInstance_.disconnectServer();
 			//Calling exit sometimes causes air app to freeze, don't call it right now.
 			NativeApplication.nativeApplication.exit();
 		};
@@ -102,7 +126,7 @@ package
 					if( callState_ != TelephoneManager.CALL_STATE_RINGING ) {
 						logDebug("=>call ringing.");
 						callState_ = TelephoneManager.CALL_STATE_RINGING;
-						vidConn_.disconnectServer();
+						vidInstance_.disconnectServer();
 					}
 					break;
 				}
@@ -116,7 +140,7 @@ package
 					if( callState_ != TelephoneManager.CALL_STATE_IDLE ) {
 						logDebug("=>call hung up.");
 						callState_ = TelephoneManager.CALL_STATE_IDLE;
-						vidConn_.connectServer();
+						vidInstance_.connectServer();
 					}
 				}				
 			}
