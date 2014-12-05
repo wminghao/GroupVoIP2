@@ -7,7 +7,7 @@ package com.vispar
 	import flash.system.*;
 	import flash.utils.*;
 	
-	public class VideoConn
+	public class VideoConn extends VideoContainer
 	{
 		private var streamPub:NetStream = null; //must declare outside, otherwise, gc will recycle it.
 		private var streamView:NetStream = null; //must declare outside
@@ -32,22 +32,12 @@ package com.vispar
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
 		
-		//parent container
-		private var container_:Sprite = null;
-		
-		//delegate
-		private var delegate_:VideoConnDelegate = null;
-		
-		public function VideoConn(container:Sprite, delegate:VideoConnDelegate)
+		public function VideoConn(container:Sprite, delegate:VideoContainerDelegate)
 		{ 
-			this.container_ = container;
-			this.delegate_ = delegate;
-		}
-		private function logDebug(str:String):void {
-			delegate_.logDebug(str, true);
+			super(container, delegate);
 		}
 		
-		public function connectServer():void {
+		override public function connectServer():void {
 			if( netConn == null) {
 				logDebug(" null!");				
 			}			
@@ -65,7 +55,7 @@ package com.vispar
 			connTimeoutTimer.start();
 		}
 		
-		public function disconnectServer():void {
+		override public function disconnectServer():void {
 			if( reconnTimer ) {
 				reconnTimer.stop();
 			}
@@ -128,7 +118,8 @@ package com.vispar
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				logDebug("NetConnection.Connect.Success!");
 			} else if(event.info.code == "NetConnection.Connect.Failed" ||
-					  event.info.code == "NetConnection.Connect.IdleTimeout"){
+					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
+					  event.info.code == "NetConnection.Connect.Closed"){
 				logDebug("Connection code:"+event.info.code+", try reconnecting");
 				
 				reconnTimer = new Timer(3000, 1);
@@ -138,9 +129,6 @@ package com.vispar
 					  event.info.code == "NetConnection.Connect.AppShutdown") {
 				logDebug("Connection code:"+event.info.code+". Fatal error");
 				disconnectServer();
-				
-			} else if( event.info.code == "NetConnection.Connect.Closed"){
-				logDebug("Connection code:"+event.info.code+". Closed");
 			} else {
 				logDebug("Connection code:"+event.info.code+". Ignore event");
 			}

@@ -53,7 +53,7 @@
     
     if( _mediaplayer.media == nil ) {
         /* create a media object and give it to the player */
-        _mediaplayer.media = [VLCMedia mediaWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"rtmp://%@/vod/vispar_videos/archive", self.ipAddr]]];
+        _mediaplayer.media = [VLCMedia mediaWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"rtmp://%@/vod/archive", self.ipAddr]]];
     }
     
     if (_mediaplayer.isPlaying) {

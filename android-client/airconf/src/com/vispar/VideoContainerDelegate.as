@@ -1,6 +1,6 @@
 package com.vispar
 {
-	public interface VideoConnDelegate
+	public interface VideoContainerDelegate
 	{
 		function logDebug(str:String, showInTextField:Boolean = true):void;
 		

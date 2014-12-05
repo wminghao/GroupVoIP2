@@ -45,6 +45,7 @@
           	android:windowSoftInputMode="stateHidden"  
           	android:screenOrientation="landscape" >
             <intent-filter>
+        		<action android:name="android.intent.action.SEND" /> 
 				<action android:name="android.intent.action.VIEW" />
 	            <category android:name="android.intent.category.DEFAULT" />
 	            <category android:name="android.intent.category.BROWSABLE" />
@@ -53,6 +54,13 @@
 	            <data android:host="*.vispar.com" />
 	            <data android:host="www.vispar.com" />
 	            <data android:pathPrefix="/room" />
+            </intent-filter>
+            <intent-filter>        
+		        <action android:name="android.intent.action.SEND" /> 
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="vispar.player"/>
             </intent-filter>
         </activity>
 	    <activity

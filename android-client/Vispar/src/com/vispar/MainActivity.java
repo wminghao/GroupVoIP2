@@ -17,23 +17,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.support.v13.app.FragmentPagerAdapter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class MainActivity extends Activity implements ActionBar.TabListener {
-
-    protected static final String EXTRA_MESSAGE = "extra";
     
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -277,14 +274,20 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String message = "rooms/howard"; //TODO
-                        intent.putExtra(EXTRA_MESSAGE, message);
+                        String url = "vispar.player://live/rooms/howard/now"; //TODO
+                        Uri data = Uri.parse(url);
+                        intent.setData(data);
                         startActivity(intent);
                     }
                 });  
                 myVideos.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
-                        // Copy the link for now
+                    	//TODO an activity to list all archived videos
+                        Intent intent = new Intent(getActivity(), AirConfActivity.class);
+                        String url = "vispar.player://vod/rooms/howard/1234567890";//TODO archive ID
+                        Uri data = Uri.parse(url);
+                        intent.setData(data);
+                        startActivity(intent);
                     }
                 });
             } else {
