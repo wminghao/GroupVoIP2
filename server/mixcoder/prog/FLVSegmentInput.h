@@ -38,14 +38,13 @@ using namespace std;
 //        a) frame drop from the source(a.k.a. timestamp jump), 
 //        b) frames comes in at different speed. (Bursty mode due to network fluactuation)
 //       After multiple experiments, 2 simple algorithms achieves the best result.
-//        a) Queue size is too big: trim the queue when a max threshold is reached, meaning data comes in a batch mode.
-//        b) Queue size is too small: fill the queue with an empty frame if 
-//           b.1) a stream is missing a frame and 
-//           b.2) other streams' queue size reaches a min threshold and 
-//           b.3) the time interval between last queue popout and current queue popout > 1 frame time interval        
+//        a) an input stream's queue size is too big: trim the queue when a max threshold is reached, meaning data comes in a batch mode.
+//        b) an input stream's queue size is 0: fill the queue with an empty frame if 
+//           b.1) other streams' queue size reaches a min threshold and 
+//           b.2) the time interval between last queue popout and current queue popout > 1 frame time interval        
 // 4) for video, there could be frame drop, if the TARGET framerate is 30 fps, (timestamp diff is no bigger than 33.33 ms)
 //        Every 33.33ms, video data pops out as well, whether there is data or not in the queue, 
-//        a) if there is data, it's possible a stream having more than 1 video data output for a single frame.
+//        a) if there is data, pop any frames within the next bucket. (it's possible a stream having more than 1 video data output for a single frame.)
 //        b) if there is no data, mixer will reuse the previous frame to mix it, if there is no previous frame(in the beginning), it will fill with blank.
 // 5) Clocks, there is a global timestamp, recording the unified clock of elapsed streams.
 //        In the beginning, timestamp must be adjusted to be the same as the global timestamp
