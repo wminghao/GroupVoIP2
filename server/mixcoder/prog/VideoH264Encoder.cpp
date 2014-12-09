@@ -91,11 +91,11 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 
         x264_picture_t outPic;
         x264_nal_t *nals;
-        int i_nal;
+        int numNalus;
         int payloadSize;    
 
-        payloadSize = x264_encoder_encode(x264Ctx_, &nals, &i_nal, &x264Pic_, &outPic );
-        if( payloadSize >= 5 && i_nal == 1) {
+        payloadSize = x264_encoder_encode(x264Ctx_, &nals, &numNalus, &x264Pic_, &outPic );
+        if( payloadSize >= 5 && numNalus == 1) {
             ASSERT(nals[0].i_payload == payloadSize);
 
             /*
@@ -108,10 +108,10 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
             *bIsKeyFrame = ((nals[0].p_payload[4] & 0x1f)==5);
             frameOutputCnt_++;
 
-            //LOG("===h264 cnt=%d len=%d, isKeyframe=%d!\r\n", frameOutputCnt_, payloadSize, *bIsKeyFrame);
+            //LOG("===h264 cnt=%d len=%d nals[0].i_payload=%d isKeyframe=%d!\r\n", frameOutputCnt_, payloadSize, nals[0].i_payload, *bIsKeyFrame);
             result = new SmartBuffer( nals[0].i_payload, nals[0].p_payload );
         } else {
-            LOG("!!!h264 encode error!");
+            LOG("===h264 encode error!!!");
         }
     }
     return result;
