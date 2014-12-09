@@ -51,6 +51,7 @@ public final class R {
         public static final int copy_to_clipboard=0x7f050009;
         public static final int hello_world=0x7f050004;
         public static final int invite_friends=0x7f05000b;
+        public static final int invite_session_message=0x7f05000e;
         public static final int no_app_to_share=0x7f050007;
         public static final int select_to_share=0x7f050008;
         public static final int share_subject=0x7f050006;

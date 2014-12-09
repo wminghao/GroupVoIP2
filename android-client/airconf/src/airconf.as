@@ -33,7 +33,6 @@ package
 		
 		//vidContainer class
 		private var vidInstance_:VideoContainer = null;
-		private var bIsLive_:Boolean = false;
 	
 		//whether to ignore back button or not
 		private var ignoreBack:Boolean = false;
@@ -70,23 +69,24 @@ package
 		
 		private function onInvoke(event:InvokeEvent):void
 		{	
-			//logDebug("=>onInvoke="+event.arguments[0]);
+			var bIsArchive:Boolean = false;
 			//logDebug("reason: " + event.reason);  
 			//logDebug("arguments.length: " + event.arguments.length);  
 			if( event.arguments.length > 0 && event.arguments[0]!=null ) {
+				logDebug("=>onInvoke="+event.arguments[0]);
 				var arg:String = event.arguments[0];
 				arg = arg.substr(arg.indexOf("//") + 2);
 				//logDebug("=>arg="+arg);
 
 				var endIndex:int = arg.indexOf("/");
 				var typeStr:String = arg.substring(0, endIndex);
-				bIsLive_ = ( typeStr == "live");
+				bIsArchive = ( typeStr == "vod");
 				//logDebug("=>typeStr="+typeStr);				
 			}
-			if( bIsLive_ ) {
+			if( bIsArchive ) {
+				vidInstance_ = new VideoPlayer(this, this);
+			} else {				
 				vidInstance_ = new VideoConn(this, this);
-			} else {
-				vidInstance_ = new VideoPlayer(this, this);				
 			}
 		}		
 		

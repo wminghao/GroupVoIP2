@@ -28,4 +28,10 @@ public class AirConfActivity extends AppEntry {
 		}
 		super.onCreate(arg0);
 	}
+	
+	@Override
+	public void onStop() {
+		System.out.println("AirConfActivity exited.");		
+		super.onStop();
+	}
 }

@@ -206,7 +206,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
-    	           		 String msgToShare = "Join my discussion by clicking here: http://www.vispar.com/rooms/howard";
+    	           		 String msgToShare = R.string.invite_session_message + "http://www.vispar.com/rooms/howard"; //TODO
     	           		 Intent intent = new Intent(Intent.ACTION_SEND);
     	           		 intent.setType("text/plain");
     	           		 List<Intent> targetedShareIntents = new ArrayList<Intent>();
@@ -296,4 +296,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             return rootView;
         }
     }
+
+	@Override
+	public void onStop() {
+		System.out.println("MainActivity exited.");	
+		super.onStop();
+	}
 }

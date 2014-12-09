@@ -15,4 +15,5 @@
     <string name="invite_friends">Invite Friends</string>
     <string name="start_session">Start a Session</string>
     <string name="view_past_sessions">View Past Sessions</string>
+    <string name="invite_session_message">Join my Vispar session by clicking here: </string>
 </resources>
