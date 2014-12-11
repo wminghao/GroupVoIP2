@@ -93,10 +93,10 @@
 			private function onMicStatus(evt:StatusEvent):void {
 				switch (evt.code) {
 					case "Microphone.Unmuted":
-						//Alert.show("Camera Access Has Been Granted!", "Information");
+						//Alert.show("Microphone Access Has Been Granted!", "Information");
 						break;
 					case "Microphone.Muted":
-						Alert.show("Camera Access Has Been Denied!", "Information");
+						Alert.show("Microphone Access Has Been Denied!", "Information");
 						break;
 				}
 			}
@@ -138,42 +138,46 @@
 				}
 				var camera:Camera = Camera.getCamera();	     
 				mic = Microphone.getMicrophone();
-				camera.addEventListener(StatusEvent.STATUS, onCameraStatus) ;
-				mic.addEventListener(StatusEvent.STATUS, onMicStatus);
-				if (camera == null) {
-					Security.showSettings(SecurityPanel.CAMERA) ;
-				} else{
-					camera.setMode(videoWidth*2, videoHeight*2, 30); //640*480 30 fps
-					camera.setQuality(16384*2,0); //0% quality, 16kBytes/sec bw limitation
-					
-					streamPub = new NetStream(connectionPub);
-					var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
-					h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
-					streamPub.videoStreamSettings = h264settings; 
-					streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-					streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-					streamPub.attachCamera(camera);
-					streamPub.publish(publishDest, "live");
-					
-					var video:Video = new Video();
-					video.attachCamera(camera) ;
-					container.addChild(video);
-					video.width = videoWidth;
-					video.height = videoHeight;
-					video.x = video.y = 0;
-					video.visible = true;
-					
-					mic.setSilenceLevel(0,200);
-					//Speex settings
-					mic.encodeQuality = 10; //best quality
-					mic.codec = SoundCodec.SPEEX; 
-					mic.framesPerPacket = 1; //20ms per frame, instead of 40ms per frame
-					
-					mic.setLoopBack(false);
-					mic.setUseEchoSuppression(false);
-					//detectVolume();
-					streamPub.attachAudio(mic);
-					//Alert.show("camera width="+camera.width);
+				if( mic != null ) {
+					mic.addEventListener(StatusEvent.STATUS, onMicStatus);
+					if (camera == null) {
+						Security.showSettings(SecurityPanel.CAMERA);
+					} else{
+						camera.addEventListener(StatusEvent.STATUS, onCameraStatus) ;
+						camera.setMode(videoWidth*2, videoHeight*2, 30); //640*480 30 fps
+						camera.setQuality(16384*2,0); //0% quality, 16kBytes/sec bw limitation
+						
+						streamPub = new NetStream(connectionPub);
+						var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
+						h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
+						streamPub.videoStreamSettings = h264settings; 
+						streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+						streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+						streamPub.attachCamera(camera);
+						streamPub.publish(publishDest, "live");
+						
+						var video:Video = new Video();
+						video.attachCamera(camera) ;
+						container.addChild(video);
+						video.width = videoWidth;
+						video.height = videoHeight;
+						video.x = video.y = 0;
+						video.visible = true;
+						
+						mic.setSilenceLevel(0,200);
+						//Speex settings
+						mic.encodeQuality = 10; //best quality
+						mic.codec = SoundCodec.SPEEX; 
+						mic.framesPerPacket = 1; //20ms per frame, instead of 40ms per frame
+						
+						mic.setLoopBack(false);
+						mic.setUseEchoSuppression(false);
+						//detectVolume();
+						streamPub.attachAudio(mic);
+						//Alert.show("camera width="+camera.width);
+					}
+				} else {
+					Alert.show("Unable to locate microphone, cannot continue the session!", "Information");
 				}
 			}
 			private function netStatusHandler(event:NetStatusEvent):void {
