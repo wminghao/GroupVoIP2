@@ -206,7 +206,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
-    	           		 String msgToShare = R.string.invite_session_message + "http://www.vispar.com/rooms/howard"; //TODO
+    	           		 String msgToShare = getString(R.string.invite_session_message) + " http://www.vispar.com/rooms/howard"; //TODO
     	           		 Intent intent = new Intent(Intent.ACTION_SEND);
     	           		 intent.setType("text/plain");
     	           		 List<Intent> targetedShareIntents = new ArrayList<Intent>();

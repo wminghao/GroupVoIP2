@@ -17,6 +17,7 @@
 		891E21B01A3A553700E54C33 /* VisparTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 891E21AF1A3A553700E54C33 /* VisparTests.m */; };
 		891E21C01A3A656000E54C33 /* FollowViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 891E21BF1A3A656000E54C33 /* FollowViewController.m */; };
 		891E21C41A3A7CBE00E54C33 /* ios in Resources */ = {isa = PBXBuildFile; fileRef = 891E21C31A3A7CBE00E54C33 /* ios */; };
+		89BE7BAB1A3B7FD70018254E /* VideoConfViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 89BE7BAA1A3B7FD70018254E /* VideoConfViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,8 @@
 		891E21BE1A3A656000E54C33 /* FollowViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FollowViewController.h; sourceTree = "<group>"; };
 		891E21BF1A3A656000E54C33 /* FollowViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FollowViewController.m; sourceTree = "<group>"; };
 		891E21C31A3A7CBE00E54C33 /* ios */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ios; sourceTree = "<group>"; };
+		89BE7BA91A3B7FD70018254E /* VideoConfViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoConfViewController.h; sourceTree = "<group>"; };
+		89BE7BAA1A3B7FD70018254E /* VideoConfViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoConfViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +94,8 @@
 		891E218F1A3A553600E54C33 /* Vispar */ = {
 			isa = PBXGroup;
 			children = (
+				89BE7BA91A3B7FD70018254E /* VideoConfViewController.h */,
+				89BE7BAA1A3B7FD70018254E /* VideoConfViewController.m */,
 				891E21941A3A553600E54C33 /* AppDelegate.h */,
 				891E21951A3A553600E54C33 /* AppDelegate.m */,
 				891E21971A3A553600E54C33 /* MySessionsViewController.h */,
@@ -245,6 +250,7 @@
 				891E21961A3A553600E54C33 /* AppDelegate.m in Sources */,
 				891E21C01A3A656000E54C33 /* FollowViewController.m in Sources */,
 				891E21991A3A553600E54C33 /* MySessionsViewController.m in Sources */,
+				89BE7BAB1A3B7FD70018254E /* VideoConfViewController.m in Sources */,
 				891E21931A3A553600E54C33 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -438,6 +444,7 @@
 				891E21B51A3A553700E54C33 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		891E21B61A3A553700E54C33 /* Build configuration list for PBXNativeTarget "VisparTests" */ = {
 			isa = XCConfigurationList;
@@ -446,6 +453,7 @@
 				891E21B81A3A553700E54C33 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

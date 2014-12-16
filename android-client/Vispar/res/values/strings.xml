@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Vispar</string>
-    <string name="MySessions">My Sessions</string>
+    <string name="MySessions">Meet</string>
     <string name="Explore">Explore</string>
     <string name="Follow">Follow</string>
     <string name="hello_world">Hello world!</string>

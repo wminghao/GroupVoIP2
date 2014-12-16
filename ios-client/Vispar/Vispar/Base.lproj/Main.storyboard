@@ -23,7 +23,7 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="onInviteFriends:" destination="9pv-A4-QxB" eventType="touchUpInside" id="aGv-LN-aSY"/>
+                                    <segue destination="JQF-2A-krI" kind="show" id="Kcr-Wk-JKp"/>
                                 </connections>
                             </button>
                             <button opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FRH-xi-ugc">
@@ -32,9 +32,6 @@
                                 <state key="normal" title="View Past Sessions">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="onViewPastSessions:" destination="9pv-A4-QxB" eventType="touchUpInside" id="aON-Tv-MFh"/>
-                                </connections>
                             </button>
                             <button opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hqW-gH-rGu">
                                 <rect key="frame" x="211" y="242" width="173" height="30"/>
@@ -42,9 +39,6 @@
                                 <state key="normal" title="Join a Session">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="onStartASession:" destination="9pv-A4-QxB" eventType="touchUpInside" id="BMQ-uC-hJU"/>
-                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -59,6 +53,28 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1562" y="-320"/>
+        </scene>
+        <!--Live Session-->
+        <scene sceneID="Dgd-0X-g8j">
+            <objects>
+                <viewController id="klj-fH-q99" customClass="VideoConfViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="CHp-0o-rVG"/>
+                        <viewControllerLayoutGuide type="bottom" id="18C-35-COf"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="VXQ-Ks-dLn">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="Live Session" id="0tF-2x-fTV">
+                        <barButtonItem key="backBarButtonItem" title="Back" id="1Xy-0c-h3M"/>
+                    </navigationItem>
+                    <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="tYD-tU-Olf" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3082" y="-398"/>
         </scene>
         <!--Vispar-->
         <scene sceneID="wg7-f3-ORb">
@@ -195,6 +211,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XbL-UD-4Jb" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="750" y="1026"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="cEe-aC-hWJ">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="JQF-2A-krI" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="wYc-XR-EUD">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="klj-fH-q99" kind="relationship" relationship="rootViewController" id="l9j-ci-Ix8"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="LY2-Pv-nFE" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2270" y="-398"/>
         </scene>
     </scenes>
     <resources>

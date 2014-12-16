@@ -19,19 +19,6 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 
-
-- (IBAction)onInviteFriends:(id)sender {
-    NSLog(@"----onInviteFriends----");
-}
-
-- (IBAction)onStartASession:(id)sender {
-    NSLog(@"----onStartASession----");
-}
-
-- (IBAction)onViewPastSessions:(id)sender {
-    NSLog(@"----onViewPastSessions----");
-}
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
