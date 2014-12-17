@@ -74,6 +74,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
             memset(nextVideoTimestamp_, 0, sizeof(u32)*MAX_XCODING_INSTANCES);
             memset(lastBucketTimestamp_, 0, sizeof(double)*MAX_XCODING_INSTANCES);
             memset(hasStarted_, 0, sizeof(u32)* MAX_XCODING_INSTANCES );
+
+            framesMaxGapInMs_ = (rawAudioSettings_.acid == kAAC)?AAC_FRAME_MAX_GAP_IN_MS:MP3_FRAME_MAX_GAP_IN_MS;
         }
     virtual ~FLVSegmentInput() {
         for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
@@ -169,5 +171,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
 
     //current video timestamp mapping
     VideoTimestampMapper videoTsMapper_[ MAX_XCODING_INSTANCES ];
+
+    //framesMaxGapInMs
+    u64 framesMaxGapInMs_;
 };
 #endif

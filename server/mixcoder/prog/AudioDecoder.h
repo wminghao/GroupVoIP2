@@ -14,7 +14,7 @@
 class AudioDecoder
 {
  public:
-    AudioDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType):resampler_(NULL) {
+    AudioDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType, AudioCodecId outputCodecId):resampler_(NULL) {
         setting_.acid = codecType;
         setting_.ar = audioRate;
         setting_.as = audioSize;
@@ -22,7 +22,8 @@ class AudioDecoder
         setting_.ap = 0;
         
         hasFirstFrameDecoded_ = false;
-        streamId_ = streamId;       
+        streamId_ = streamId;
+        outputCodecId_ = outputCodecId;
     }
     virtual ~AudioDecoder() {
         delete( resampler_ );
@@ -34,27 +35,27 @@ class AudioDecoder
 
     bool hasFirstFrameDecoded(){ return hasFirstFrameDecoded_; }
     
-    //get the next batch of mp3 1152 samples
-    bool isNextRawMp3FrameReady() {
+    //get the next batch of frame
+    bool isNextRawFrameReady() {
         if( resampler_ ) {
-            return resampler_->isNextRawMp3FrameReady();
+            return resampler_->isNextRawFrameReady();
         }
         return false;
     }
 
     //return a buffer, must be freed outside
-    SmartPtr<SmartBuffer>  getNextRawMp3Frame(bool& bIsStereo) {
+    SmartPtr<SmartBuffer>  getNextRawFrame(bool& bIsStereo) {
         SmartPtr<SmartBuffer> result;
         if( resampler_ ) {
-            result = resampler_->getNextRawMp3Frame(bIsStereo);
+            result = resampler_->getNextRawFrame(bIsStereo);
         }
         return result;
     }
-    //return previous raw mp3 frame
-    SmartPtr<SmartBuffer> getPrevRawMp3Frame(bool& bIsStereo) {
+    //return previous raw frame
+    SmartPtr<SmartBuffer> getPrevRawFrame(bool& bIsStereo) {
         SmartPtr<SmartBuffer> result;
         if( resampler_ ) {
-            result = resampler_->getPrevRawMp3Frame(bIsStereo);
+            result = resampler_->getPrevRawFrame(bIsStereo);
         }
         return result;
     }
@@ -80,7 +81,7 @@ class AudioDecoder
     //send it to resampler
     void resampleFrame(AudioStreamSetting* aRawSetting, int sampleSize, u8* outputFrame) {
         if( !resampler_ ) {
-            resampler_ = new AudioResampler( getFreq(setting_.ar), getNumChannels(setting_.at), getFreq(aRawSetting->ar), getNumChannels(aRawSetting->at));
+            resampler_ = new AudioResampler( getFreq(setting_.ar), getNumChannels(setting_.at), getFreq(aRawSetting->ar), getNumChannels(aRawSetting->at), outputCodecId_);
         }
         if( resampler_ ) {
             resampler_->resample(outputFrame, sampleSize);
@@ -96,5 +97,7 @@ class AudioDecoder
     int sampleSize_;
 
     AudioResampler* resampler_;    
+
+    AudioCodecId outputCodecId_;
 };
 #endif

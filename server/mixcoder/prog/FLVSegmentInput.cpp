@@ -179,8 +179,6 @@ void FLVSegmentInput::printQueueSize()
     }
 }
 
-const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
-
 //////////////////////////////////////////////////////////////////////////////
 //The algorithm to catch up for real time mixing
 //  When too many audio frames queued up for a stream happens, 
@@ -265,12 +263,12 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
                     //move forward only if enough time has elapsed since last popout, otherwise, give it a pause
                     bool enoughTimeElapsed = true;
                     u64 elpasedTimeInMs = (getEpocTime() - lastAudioPopoutTime_ );
-                    if( lastAudioPopoutTime_ && elpasedTimeInMs < MP3_FRAME_MAX_GAP_IN_MS) {
+                    if( lastAudioPopoutTime_ && elpasedTimeInMs < framesMaxGapInMs_) {
                         enoughTimeElapsed = false;
                     }
                     //Needs to push more than 1 frames b/c gap coudl be too wide.
                     if( enoughTimeElapsed ) {
-                        int numOfFramesInserted = ceil(((double)elpasedTimeInMs)/MP3_FRAME_INTERVAL_IN_MS);
+                        int numOfFramesInserted = ceil(((double)elpasedTimeInMs)/framesMaxGapInMs_);
                         for( int j = 0; j < numOfFramesInserted; j++ ) {
                             //case 1, a frame arrives too late and will come in batch mode afterwards
                             //case 2, a timestamp jump, meaning there are missing frames.
@@ -278,8 +276,8 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
                             bool bIsStereo = false;
                             u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
                             //Don't duplicate the previous frame, but use a blank frame instead
-                            //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
-                            SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawMp3Frame(bIsStereo);
+                            //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
+                            SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
                             a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
                             a->bIsStereo = bIsStereo;
                             a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
@@ -347,11 +345,11 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         }
     } else if ( au->st == kAudioStreamType ) {
         if( !audioDecoder_[index] )  {
-            audioDecoder_[index] = AudioDecoderFactory::CreateAudioDecoder(au, index);
+            audioDecoder_[index] = AudioDecoderFactory::CreateAudioDecoder(au, index, rawAudioSettings_.acid);
         } else {
             if( !AudioDecoderFactory::isSameDecoder(au, audioDecoder_[index]->getAudioInputSetting()) ) {
                 delete(audioDecoder_[index]);
-                audioDecoder_[index] = AudioDecoderFactory::CreateAudioDecoder(au, index);
+                audioDecoder_[index] = AudioDecoderFactory::CreateAudioDecoder(au, index, rawAudioSettings_.acid);
                 //LOG("-----------brand new audio, different setting!!!!!\r\n");
             }
         }
@@ -359,11 +357,11 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
         audioDecoder_[index]->newAccessUnit(au, &rawAudioSettings_); //decode here
 
         bool hasAnyDataPoppedOut = false;
-        //read a couple of 1152 samples/frame here
-        while(audioDecoder_[index]->isNextRawMp3FrameReady() ) {
+        //read a couple of mp3/aac samples/frame here
+        while(audioDecoder_[index]->isNextRawFrameReady() ) {
             SmartPtr<AudioRawData> a = new AudioRawData();
             bool bIsStereo = false;
-            a->rawAudioFrame_ = audioDecoder_[index]->getNextRawMp3Frame(bIsStereo);
+            a->rawAudioFrame_ = audioDecoder_[index]->getNextRawFrame(bIsStereo);
             a->bIsStereo = bIsStereo;
             a->pts = audioTsMapper_[index].getNextTimestamp( origPts ); 
             //LOG("-----------After resampling, pts=%d to %d, isStereo=%d\r\n", au->pts, a->pts, a->bIsStereo);

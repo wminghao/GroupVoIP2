@@ -13,7 +13,7 @@ extern "C" {
 class AudioFfmpegDecoder:public AudioDecoder
 {
  public:    
-    AudioFfmpegDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType):AudioDecoder(streamId, codecType, audioRate, audioSize, audioType) {}
+ AudioFfmpegDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType, AudioCodecId outputCodecId):AudioDecoder(streamId, codecType, audioRate, audioSize, audioType, outputCodecId) {}
     virtual ~AudioFfmpegDecoder();
     //send it to the decoder
     virtual void newAccessUnit( SmartPtr<AccessUnit> au, AudioStreamSetting* rawAudioSetting);

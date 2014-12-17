@@ -12,7 +12,7 @@ class AudioSpeexDecoder:public AudioDecoder
 {
  public:
     //speex settings is always, 16khz, mono, 16bits audio
-    AudioSpeexDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType):AudioDecoder(streamId, codecType, audioRate, audioSize, audioType) { 
+    AudioSpeexDecoder(int streamId, AudioCodecId codecType, AudioRate audioRate, AudioSize audioSize, AudioType audioType, AudioCodecId outputCodecId):AudioDecoder(streamId, codecType, audioRate, audioSize, audioType, outputCodecId) { 
         /*codec structure*/
         speex_bits_init(&bits_);
         /*Create a new decoder state in wideband mode, 16khz*/

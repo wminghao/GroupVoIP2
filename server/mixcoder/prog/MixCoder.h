@@ -28,8 +28,8 @@ class VideoMixer;
 class MixCoder: public FLVSegmentInputDelegate
 {
  public:
-    MixCoder(VideoCodecId codecId, int vBitrate, int width, int height,
-             int aBitrate, int frequency);
+    MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
+             AudioCodecId aCodecId, int aBitrate, int frequency);
     virtual ~MixCoder();
     
     /* returns false if we hit some badness, true if OK */
@@ -45,9 +45,6 @@ class MixCoder: public FLVSegmentInputDelegate
     virtual void onStreamEnded(int streamId);
 
  private:
-    //audio uses speex or mp3
-    bool bUseSpeex_;
-
     //output settings
     int vBitrate_;
     int vWidth_;

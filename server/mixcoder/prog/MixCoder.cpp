@@ -18,34 +18,31 @@
 #include "fwk/log.h"
 #include "fwk/Units.h"
 
-MixCoder::MixCoder(VideoCodecId codecId, int vBitrate, int width, int height, 
-                   int aBitrate, int frequency) : bUseSpeex_(false),
+MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height, 
+                   AudioCodecId aCodecId, int aBitrate, int frequency) : 
                                                   vBitrate_(vBitrate),
                                                   vWidth_(width),
                                                   vHeight_(height),
                                                   aBitrate_(aBitrate),
                                                   aFrequency_(frequency)
 {
-    VideoStreamSetting vOutputSetting = { kAVCVideoPacket, vWidth_, vHeight_ }; 
-    AudioStreamSetting aOutputSetting = { kMP3, getAudioRate(44100), kSndStereo, kSnd16Bit, 0 };
+    VideoStreamSetting vOutputSetting = { vCodecId, vWidth_, vHeight_ }; 
+    AudioStreamSetting aOutputSetting = { aCodecId, getAudioRate(44100), kSndStereo, kSnd16Bit, 0 };
 
     flvSegInput_ = new FLVSegmentInput( this, 30, &aOutputSetting ); //end result 30 fps
                                          
-    switch( codecId ) {
+    switch( vCodecId ) {
        case kH263VideoPacket: 
        case kVP6VideoPacket: {
-           vOutputSetting.vcid = codecId;
-           videoEncoder_ = new VideoFfmpegEncoder( &vOutputSetting, vBitrate_, codecId );
+           videoEncoder_ = new VideoFfmpegEncoder( &vOutputSetting, vBitrate_, vCodecId );
            break;
        }
        case kVP8VideoPacket: {
-           vOutputSetting.vcid = kVP8VideoPacket;
            videoEncoder_ = new VideoVp8Encoder( &vOutputSetting, vBitrate_ );
            break;
        }
        case kAVCVideoPacket: 
        default: {
-           //vOutputSetting.vcid = kAVCVideoPacket;
            videoEncoder_ = new VideoH264Encoder( &vOutputSetting, vBitrate_ );
            break;
        }
@@ -54,15 +51,22 @@ MixCoder::MixCoder(VideoCodecId codecId, int vBitrate, int width, int height,
 
     videoMixer_ = new VideoMixer(&vOutputSetting);
 
-    if( bUseSpeex_ ) {
-        aOutputSetting.acid = kSpeex;
-    } //otherwise, it's 44.1kHz mp3 audio
-
     for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
-        if( bUseSpeex_ ) {
-            audioEncoder_[i] = new AudioSpeexEncoder( &aOutputSetting, aBitrate_ );
-        } else {
-            audioEncoder_[i] = new AudioMp3Encoder( &aOutputSetting, aBitrate_ );
+        switch( aCodecId ) {
+            case kSpeex:{
+                audioEncoder_[i] = new AudioSpeexEncoder( &aOutputSetting, aBitrate_ );
+                break;
+            } 
+            case kMP3:{
+                audioEncoder_[i] = new AudioMp3Encoder( &aOutputSetting, aBitrate_ );
+                break;
+            }
+            case kAAC:
+            default:{
+                //TODO
+                //audioEncoder_[i] = new AudioAACEncoder( &aOutputSetting, aBitrate_ );
+                break;
+            }
         }
         audioMixer_[i] = new AudioMixer();
     }
