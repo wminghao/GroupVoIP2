@@ -14,6 +14,11 @@ class AudioSpeexEncoder:public AudioEncoder
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) ;
  private:
     SpeexBits bits_;
+
+    //audio encoder
+    void* encoder_;
+    char encodedBits_[MAX_ENCODED_BYTES];
+    int frameSize_;
 };
 
 #endif

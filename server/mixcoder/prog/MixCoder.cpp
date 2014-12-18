@@ -10,6 +10,7 @@
 #include "FLVSegmentOutput.h"
 #include "AudioSpeexEncoder.h"
 #include "AudioMp3Encoder.h"
+#include "AudioFfmpegEncoder.h"
 #include "VideoFfmpegEncoder.h"
 #include "VideoVp8Encoder.h"
 #include "VideoH264Encoder.h"
@@ -63,8 +64,7 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
             }
             case kAAC:
             default:{
-                //TODO
-                //audioEncoder_[i] = new AudioAACEncoder( &aOutputSetting, aBitrate_ );
+                audioEncoder_[i] = new AudioFfmpegEncoder( &aOutputSetting, aBitrate_ );
                 break;
             }
         }

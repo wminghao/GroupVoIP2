@@ -16,6 +16,9 @@ class AudioMp3Encoder:public AudioEncoder
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) ;
  private:
     lame_global_flags * lgf_;
+    //audio encoder
+    void* encoder_;
+    char encodedBits_[MAX_ENCODED_BYTES];
 };
 
 #endif

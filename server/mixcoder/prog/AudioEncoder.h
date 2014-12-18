@@ -21,13 +21,7 @@ class AudioEncoder
  protected:
     //output settings
     AudioStreamSetting outputSetting_;
-    int aBitrate_;
-    
-    //audio encoder
-    void* encoder_;
-    int frameSize_;
-    
-    char encodedBits_[MAX_ENCODED_BYTES];
+    int aBitrate_;    
 };
 
 #endif
