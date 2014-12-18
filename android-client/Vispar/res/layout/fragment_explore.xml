@@ -1,7 +1,144 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ExpandableListView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><TableLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-    
 
-</ExpandableListView>
+    <TableRow
+        android:id="@+id/tableRow1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Debate: Pro-life vs. Pro-Choice" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView1"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://blogs.baruch.cuny.edu/groupdebate/files/2013/10/pro-choice-vs-pro-life1.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Debate: Traditional Energy vs. Green-Energy" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView2"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://www.renewableenergyworld.com/assets/images/story/2013/5/20/body-0-1369078470933.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+		<TextView
+            android:id="@+id/textView3"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Debate: Boxer vs. Brief" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView3"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://freshlyeducatedmen.com/wp-content/uploads/2010/04/nm_boxers_briefs_090616_main.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+		<TextView
+            android:id="@+id/textView4"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Dialog: Meet with TanYuanYuan" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView4"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://i.ytimg.com/vi/ojXQ0IKepQM/maxresdefault.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+		
+		<TextView
+            android:id="@+id/textView5"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Dialog: Talk about Internet of Things" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView5"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://upload.wikimedia.org/wikipedia/commons/a/ab/Internet_of_Things.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+		<TextView
+            android:id="@+id/textView6"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Discussion: Lord of rings story" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView6"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://www.bestcasinosonline.org/casino-blog/wp-content/uploads/2010/10/lotr.jpg"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+				<TextView
+            android:id="@+id/textView7"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Discussion: Math 101" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView7"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://cdn.marketplaceimages.windowsphone.com/v8/images/756f9fb1-8891-4622-ad57-91f3421b2eb5?imageType=ws_icon_large"
+		   />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+		<TextView
+            android:id="@+id/textView8"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="Discussion: Picasso's painting" />
+		<com.blundell.tut.LoaderImageView
+		   android:id="@+id/loaderImageView8"
+		   android:layout_width="180dp"
+		   android:layout_height="80dp"
+		   image="http://cp91279.biography.com/1000509261001/1000509261001_1912696506001_TDIH-Picasso-Born-RETRY.jpg"
+		   />
+    </TableRow>
+=
+
+</TableLayout>

@@ -290,8 +290,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                         startActivity(intent);
                     }
                 });
-            } else {
+            } else if(  selection == 2) {
             	rootView = inflater.inflate(R.layout.fragment_explore, container, false);
+            } else {
+            	rootView = inflater.inflate(R.layout.fragment_follow, container, false);
             }
             return rootView;
         }
