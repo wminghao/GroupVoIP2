@@ -121,7 +121,8 @@ package com.vispar
 					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
 					  event.info.code == "NetConnection.Connect.Closed"){
 				logDebug("Connection code:"+event.info.code+", try reconnecting");
-				
+				disconnectServer(); //disconnect to free up resources
+				//then reconnect
 				reconnTimer = new Timer(3000, 1);
 				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 				reconnTimer.start();	
