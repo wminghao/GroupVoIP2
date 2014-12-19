@@ -18,8 +18,8 @@ extern "C" {
 const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
 const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
 
-//each aac frame, contains 960 samples
-#define AAC_FRAME_SAMPLE_SIZE 960
+//each aac frame, contains 1024 samples
+#define AAC_FRAME_SAMPLE_SIZE 1024
 #define AAC_SAMPLE_PER_SEC 44100
 const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
 const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
