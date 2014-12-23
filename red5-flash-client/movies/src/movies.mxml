@@ -44,6 +44,7 @@
 				]
 			);
 			
+			//TODO, populate the list automatically			
 			[Bindable]
 			private var movieSet:ArrayCollection = new ArrayCollection(
 				[   
@@ -52,7 +53,9 @@
 					{value:"Forrest Gump", code:"Forrest Gump"},
 					{value:"Spiderman", code:"Spiderman"},	
 					{value:"Fire Truck", code:"Fire Truck"},
-					{value:"World of Warcraft", code:"World of Warcraft"},		
+					{value:"World of Warcraft", code:"World of Warcraft"},
+					{value:"Picasso top 20 paintings", code:"Picasso top 20 paintings"},
+					{value:"College Algebra", code:"College Algebra"}		
 				]
 			);
 			private var publishDest:String = null;
