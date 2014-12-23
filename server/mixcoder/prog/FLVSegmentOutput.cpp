@@ -16,6 +16,11 @@ FLVSegmentOutput::~FLVSegmentOutput() {
     }
 }
 
+void FLVSegmentOutput::saveAudioHeader( SmartPtr<SmartBuffer> audioHeader, int i )
+{
+    output_[i]->saveAudioHeader(audioHeader);
+}
+
 void FLVSegmentOutput::saveVideoHeader( SmartPtr<SmartBuffer> videoHeader )
 {
     for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {

@@ -11,6 +11,7 @@ class AudioFaacEncoder:public AudioEncoder
     AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitrate);
     virtual ~AudioFaacEncoder();
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) ;
+    virtual SmartPtr<SmartBuffer> genAudioHeader();
  private:
     u64 nMaxOutputBytes_;
     faacEncHandle hEncoder_;

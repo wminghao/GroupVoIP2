@@ -23,10 +23,18 @@ class FLVOutput
     SmartPtr<SmartBuffer> packageCuePoint( VideoRect* videoRect, u32 ts );
 
     //save video header
-    void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader ) { videoHeader_ = videoHeader; }
+    void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader ) { 
+        if( videoHeader_ == SmartPtr<SmartBuffer>(NULL)) {
+            videoHeader_ = videoHeader; 
+        }
+    }
 
     //save audio header
-    void saveAudioHeader( SmartPtr<SmartBuffer> audioHeader ) { audioHeader_ = audioHeader; }
+    void saveAudioHeader( SmartPtr<SmartBuffer> audioHeader ) { 
+        if( audioHeader_ == SmartPtr<SmartBuffer>(NULL)) {
+            audioHeader_ = audioHeader; 
+        }
+    }
 
     //onStreamEnded
     void onStreamEnded() { flvHeaderSent_ = false; videoHeaderSent_ = false; audioHeaderSent_= ( audioSetting_.acid != kAAC); }

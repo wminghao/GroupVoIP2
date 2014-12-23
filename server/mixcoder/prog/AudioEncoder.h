@@ -18,6 +18,7 @@ class AudioEncoder
     }
     virtual ~AudioEncoder(){}
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) = 0;
+    virtual SmartPtr<SmartBuffer> genAudioHeader() { return NULL; }
  protected:
     //output settings
     AudioStreamSetting outputSetting_;

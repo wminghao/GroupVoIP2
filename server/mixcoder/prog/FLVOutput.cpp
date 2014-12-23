@@ -148,6 +148,7 @@ SmartPtr<SmartBuffer> FLVOutput::newAudioHeader(u32 ts)
             data[10] = 0;
             
             data[11] = audioAacTagByte;
+            data[12] = 0; //AAC Sequence header, additional header
                         
             if ( audioPacketLen > 0 ) {
                 memcpy(&data[fixedFlvHeaderLen+1+additionalHeader], audioHeader_->data(), audioPacketLen);
@@ -159,7 +160,7 @@ SmartPtr<SmartBuffer> FLVOutput::newAudioHeader(u32 ts)
             data[tl+2] = (u8)((tl>>8)&0xff);  
             data[tl+3] = (u8)(tl&0xff);  
             
-            //LOG("====>audio header len=%d, audioDataLen=%d, ts=%d, acid=0x%x\n", tl, audioDataLen, ts, audioSetting_.acid);
+            LOG("====>audio header len=%d, audioDataLen=%d, ts=%d, acid=0x%x\n", tl, audioDataLen, ts, audioSetting_.acid);
             return result;
         }    
     } 
@@ -360,7 +361,7 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
         data[11] = audioMp3TagByte;
     } else if( audioSetting_.acid == kAAC ) {
         data[11] = audioAacTagByte;
-        data[12] = 0x1; //real data
+        data[12] = 0x1; //AAC real data
         indexOfData++;
     } else {
         data[11] = audioSpeexTagByte;

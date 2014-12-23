@@ -30,7 +30,7 @@ class FLVSegmentOutput
     bool packageCuePoint( int streamId, VideoRect* videoRect, u32 ts );
 
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader );
-
+    void saveAudioHeader( SmartPtr<SmartBuffer> audioHeader, int i );
     void onStreamEnded(int streamId);
 
  private:
