@@ -43,6 +43,7 @@ const u8 flvHeader[] = {
 };
 
 const u8 audioSpeexTagByte = 0xbe; //speex
+const u8 audioAacTagByte = 0xaf; //aac
 const u8 audioMp316kTagByte = 0xfe; //16khzmp3
 const u8 audioMp3TagByte = 0x2f; //44.1khzmp3
 
@@ -110,6 +111,55 @@ SmartPtr<SmartBuffer> FLVOutput::newVideoHeader(u32 ts)
             data[tl+3] = (u8)(tl&0xff);  
             
             //LOG("====>video header len=%d, videoDataLen=%d, ts=%d, vcid=0x%x\n", tl, videoDataLen, ts, videoSetting_.vcid);
+            return result;
+        }    
+    } 
+    return NULL;
+}
+
+SmartPtr<SmartBuffer> FLVOutput::newAudioHeader(u32 ts)
+{
+    //only for aac audio
+    if( audioSetting_.acid == kAAC ) {
+        if( !audioHeaderSent_ ) {
+            audioHeaderSent_  = true;
+            //build audio header
+            u32 additionalHeader = 1; 
+            u32 audioPacketLen = audioHeader_->dataLength();
+            u32 audioDataLen = audioPacketLen + 1 + additionalHeader;
+            SmartPtr<SmartBuffer> result = new SmartBuffer( fixedFlvHeaderLen + audioDataLen + 4 );
+            u8* data = result->data();
+            
+            //frame tag
+            data[0] = (u8)kAudioStreamType;
+            //frame data length
+            data[1] = (u8)((audioDataLen>>16)&0xff);
+            data[2] = (u8)((audioDataLen>>8)&0xff);
+            data[3] = (u8)(audioDataLen&0xff);
+            //frame time stamp
+            data[4] = (u8)((ts>>16)&0xff);
+            data[5] = (u8)((ts>>8)&0xff);
+            data[6] = (u8)(ts&0xff);
+            //frame time stamp extend
+            data[7] = (u8)((ts>>24)&0xff);
+            //frame reserved
+            data[8] = 0;
+            data[9] = 0;
+            data[10] = 0;
+            
+            data[11] = audioAacTagByte;
+                        
+            if ( audioPacketLen > 0 ) {
+                memcpy(&data[fixedFlvHeaderLen+1+additionalHeader], audioHeader_->data(), audioPacketLen);
+            }
+            //prev tag size
+            int tl = fixedFlvHeaderLen + audioDataLen;
+            data[tl] = (u8)((tl>>24)&0xff);
+            data[tl+1] = (u8)((tl>>16)&0xff);  
+            data[tl+2] = (u8)((tl>>8)&0xff);  
+            data[tl+3] = (u8)(tl&0xff);  
+            
+            //LOG("====>audio header len=%d, audioDataLen=%d, ts=%d, acid=0x%x\n", tl, audioDataLen, ts, audioSetting_.acid);
             return result;
         }    
     } 
@@ -276,7 +326,8 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
 
 SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPacket, u32 ts)
 {
-    u32 audioDataLen = audioPacket->dataLength()+1;
+    u32 additionalHeader = (audioSetting_.acid == kAAC)?1:0;
+    u32 audioDataLen = audioPacket->dataLength() + 1 + additionalHeader;
     SmartPtr<SmartBuffer> audioFrame = new SmartBuffer(fixedFlvHeaderLen + audioDataLen + 4);
     u8* data = audioFrame->data();
 
@@ -302,16 +353,21 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
     //frame data begin
     //{
     //
+    u32 indexOfData = 12;
     if( audioSetting_.acid == kMP316kHz ) {
         data[11] = audioMp316kTagByte;
     } else if( audioSetting_.acid == kMP3 ) {
         data[11] = audioMp3TagByte;
+    } else if( audioSetting_.acid == kAAC ) {
+        data[11] = audioAacTagByte;
+        data[12] = 0x1; //real data
+        indexOfData++;
     } else {
         data[11] = audioSpeexTagByte;
     }
 
     if( audioDataLen > 1 ) {
-        memcpy(&data[12], audioPacket->data(), audioPacket->dataLength());
+        memcpy(&data[indexOfData], audioPacket->data(), audioPacket->dataLength());
     }
     //prev tag size
     int tl = fixedFlvHeaderLen + audioDataLen;
@@ -321,10 +377,42 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
     data[tl+3] = (u8)(tl&0xff);
 
     //LOG("====>audio frame len=%d, audioDataLen=%d ts=%d\n", tl, audioDataLen, ts);
-    if( !flvHeaderSent_ ) {
-        flvHeaderSent_  = true;
-        return combine2SmartBuffers(newFlvHeader(), audioFrame);
+    if( audioSetting_.acid == kAAC ) {
+        if( !flvHeaderSent_ ) {
+            SmartPtr<SmartBuffer> flvHeader = newFlvHeader();
+            u32 totalLen = flvHeader->dataLength() + audioFrame->dataLength();
+
+            SmartPtr<SmartBuffer> aacHeader = newAudioHeader( ts );
+            if( aacHeader ) {
+                totalLen += aacHeader->dataLength();
+            }
+
+            SmartPtr<SmartBuffer> result = new SmartBuffer(totalLen);
+            u8* data = result->data();
+            memcpy(data, flvHeader->data(), flvHeader->dataLength());
+            u32 offset = flvHeader->dataLength();
+            if( aacHeader ) {
+                memcpy(data + offset, aacHeader->data(), aacHeader->dataLength());
+                offset += aacHeader->dataLength();
+            }
+            memcpy(data + offset, audioFrame->data(), audioFrame->dataLength());
+
+            flvHeaderSent_  = true;
+            return result;
+        } else {
+            SmartPtr<SmartBuffer> aacHeader = newAudioHeader( ts );
+            if( aacHeader ) {
+                return combine2SmartBuffers(aacHeader, audioFrame);
+            } else {
+                return audioFrame;
+            }
+        }
     } else {
-        return audioFrame;
+        if( !flvHeaderSent_ ) {
+            flvHeaderSent_  = true;
+            return combine2SmartBuffers(newFlvHeader(), audioFrame);
+        } else {
+            return audioFrame;
+        }
     }
 }

@@ -12,6 +12,9 @@ class FLVOutput
         {
             memcpy(&videoSetting_, videoSetting, sizeof(VideoStreamSetting));
             memcpy(&audioSetting_, audioSetting, sizeof(AudioStreamSetting));
+            
+            //if it's aac, needs to send header
+            audioHeaderSent_ = ( audioSetting->acid != kAAC);
         }
 
     //streamId and totalStream tells the flv format where is the video located inside the video output
@@ -22,11 +25,15 @@ class FLVOutput
     //save video header
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader ) { videoHeader_ = videoHeader; }
 
+    //save audio header
+    void saveAudioHeader( SmartPtr<SmartBuffer> audioHeader ) { audioHeader_ = audioHeader; }
+
     //onStreamEnded
-    void onStreamEnded() { flvHeaderSent_ = false; videoHeaderSent_ = false; }
+    void onStreamEnded() { flvHeaderSent_ = false; videoHeaderSent_ = false; audioHeaderSent_= ( audioSetting_.acid != kAAC); }
  private:
     SmartPtr<SmartBuffer> newFlvHeader();
     SmartPtr<SmartBuffer> newVideoHeader(u32 ts);
+    SmartPtr<SmartBuffer> newAudioHeader(u32 ts);
 
     VideoStreamSetting videoSetting_;
     AudioStreamSetting audioSetting_;
@@ -34,8 +41,11 @@ class FLVOutput
     bool flvHeaderSent_;
     
     bool videoHeaderSent_;
+    bool audioHeaderSent_;
 
     SmartPtr<SmartBuffer> videoHeader_;
+
+    SmartPtr<SmartBuffer> audioHeader_;
 };
 
 #endif
