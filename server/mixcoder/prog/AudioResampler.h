@@ -12,6 +12,9 @@ extern "C" {
 #include "fwk/Units.h"
 #include "CodecInfo.h"
 
+//each speex frame, contains 320 samples
+#define SPEEX_FRAME_SAMPLE_SIZE 320
+
 //each mp3 frame, contains 1152 samples
 #define MP3_FRAME_SAMPLE_SIZE 1152
 #define MP3_SAMPLE_PER_SEC 44100
@@ -60,6 +63,8 @@ class AudioResampler
     //return a smartbuffer
     SmartPtr<SmartBuffer> getNextRawFrame(bool& bIsStereo);
     SmartPtr<SmartBuffer> getPrevRawFrame(bool& bIsStereo);
+
+    static u32 getSamplesPerFrame(AudioCodecId outputCodecId) { return ( outputCodecId == kAAC)? AAC_FRAME_SAMPLE_SIZE:MP3_FRAME_SAMPLE_SIZE; }
 
     //bool isStereo() { return (inputChannels_ == 2); }
 

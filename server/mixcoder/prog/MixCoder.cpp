@@ -223,7 +223,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
                         if( rawAudioData_[i] && rawAudioData_[i]->bIsValid && kMobileStreamSource == rawAudioData_[i]->ss) {
                             //LOG("----------------------------totalAudioStreams = %d, mobileStream index=%d\n", totalStreams, i );
-                            SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[i]->mixStreams(rawAudioData_, MP3_FRAME_SAMPLE_SIZE, totalStreams, i);
+                            SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[i]->mixStreams(rawAudioData_, flvSegInput_->getSamplesPerFrame(), totalStreams, i);
                             SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[i]->encodeAFrame(rawFrameMixed);
                             if ( encodedFrame ) {
                                 SmartPtr<SmartBuffer> audioHeader = audioEncoder_[i]->genAudioHeader();
@@ -236,7 +236,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     }
                 }
                 //for all in stream
-                SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[MAX_XCODING_INSTANCES]->mixStreams(rawAudioData_, MP3_FRAME_SAMPLE_SIZE, totalStreams, MAX_U32);
+                SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[MAX_XCODING_INSTANCES]->mixStreams(rawAudioData_, flvSegInput_->getSamplesPerFrame(), totalStreams, MAX_U32);
                 SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame(rawFrameMixed);
                 if ( encodedFrame ) {
                     SmartPtr<SmartBuffer> audioHeader = audioEncoder_[MAX_XCODING_INSTANCES]->genAudioHeader();

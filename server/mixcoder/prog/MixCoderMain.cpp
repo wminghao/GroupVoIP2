@@ -110,7 +110,7 @@ int main( int argc, char** argv ) {
     
     VideoCodecId videoCodecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
     AudioCodecId audioCodecOutputId = kAAC; //kMP3
-
+    
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( videoCodecOutputId != kVP8VideoPacket ) {
         videoBitrate = 300; //300kbps

@@ -102,6 +102,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     SmartPtr<AudioRawData> getNextAudioFrame(u32 index); //return at most 1 frame
     SmartPtr<VideoRawData> getNextVideoFrame(u32 index); // can return more than 1 frames
 
+    u32 getSamplesPerFrame() { return AudioResampler::getSamplesPerFrame( rawAudioSettings_.acid ); }
+
  private:
     bool isNextVideoFrameSpsPps(u32 index, u32& timestamp);
 

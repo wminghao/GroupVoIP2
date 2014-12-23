@@ -23,7 +23,11 @@ AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitra
             if( bIsOpened_ ) {
                 maxBuf_ = new SmartBuffer( nMaxOutputBytes_) ;
             }
-            LOG("Faac encoder created. nInputSamples=%ld, nMaxOutputBytes=%ld.", nInputSamples, nMaxOutputBytes_ );
+            ASSERT( nInputSamples/getNumChannels( outputSetting->at ) == AAC_FRAME_SAMPLE_SIZE );
+            LOG( "Faac encoder created. freq=%d, channels=%d, sampleSize=%ld, nMaxOutputBytes=%ld.", 
+                 getFreq( outputSetting->ar ), 
+                 getNumChannels( outputSetting->at ), 
+                 nInputSamples/getNumChannels( outputSetting->at ), nMaxOutputBytes_ );
         } else {
             LOG("FAILED to find Faac encoder, FAILING." );
         }
@@ -95,8 +99,9 @@ SmartPtr<SmartBuffer> AudioFaacEncoder::encodeAFrame(SmartPtr<SmartBuffer> input
 {
     SmartPtr<SmartBuffer> result = NULL;
     if( bIsOpened_ ) {
-        u64 nInputSamples = input->dataLength()/(sizeof(short)*getNumChannels( outputSetting_.at ));
-
+        u64 nInputSamples = input->dataLength()/sizeof(short);
+        ASSERT( nInputSamples/getNumChannels( outputSetting_.at ) == AAC_FRAME_SAMPLE_SIZE );        
+        
         int nRet = faacEncEncode(hEncoder_, (int*)input->data(), nInputSamples, maxBuf_->data(), nMaxOutputBytes_);
         if( nRet > 0) {
             result = new SmartBuffer( nRet, maxBuf_->data() );

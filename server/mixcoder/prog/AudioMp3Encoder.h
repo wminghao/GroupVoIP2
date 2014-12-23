@@ -6,6 +6,8 @@
 struct lame_global_struct;
 typedef struct lame_global_struct lame_global_flags;
 
+#define MAX_MP3_ENCODED_BYTES MP3_FRAME_SAMPLE_SIZE*sizeof(short)*2 //max size 
+
 //Speex encoder implementation
 class AudioMp3Encoder:public AudioEncoder
 {
@@ -18,7 +20,7 @@ class AudioMp3Encoder:public AudioEncoder
     lame_global_flags * lgf_;
     //audio encoder
     void* encoder_;
-    char encodedBits_[MAX_ENCODED_BYTES];
+    char encodedBits_[MAX_MP3_ENCODED_BYTES];
 };
 
 #endif

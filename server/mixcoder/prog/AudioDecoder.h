@@ -59,6 +59,7 @@ class AudioDecoder
         }
         return result;
     }
+
     //indicate if it's stereo or not
     /*
     bool isStereo() {
