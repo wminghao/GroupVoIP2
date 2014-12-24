@@ -22,6 +22,8 @@ const char* MIXER_PROCESS_LOCATION = "dummy";//"/usr/bin/dummy";
 const char* MIXER_PROCESS_LOCATION = "mix_coder";//"/usr/bin/mix_coder";
 #endif
 
+const char* LD_LIBRARY_PATH = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:.";
+
 void killChild() {
     OUTPUT( "MixCoderBridge exiting." );
     //kill(childPid_, SIGKILL);
@@ -55,15 +57,30 @@ pid_t ProcessPipe::open()
         return -1;
     }
     char **arguments;
-    std::vector<char *> strings;
-    strings.push_back( strdup( MIXER_PROCESS_LOCATION ) );
-    //strings.push_back( strdup( more arg ) );
-    size_t arrayLen = strings.size() + 1;
-    arguments = new char *[ arrayLen ];
-    for ( size_t i = 0 ; i < arrayLen - 1 ; ++i ) {
-        arguments[i] = strings[i];
+    {
+        std::vector<char *> strings;
+        strings.push_back( strdup( MIXER_PROCESS_LOCATION ) );
+        //strings.push_back( strdup( more arg ) );
+        size_t arrayLen = strings.size() + 1;
+        arguments = new char *[ arrayLen ];
+        for ( size_t i = 0 ; i < arrayLen - 1 ; ++i ) {
+            arguments[i] = strings[i];
+        }
+        arguments[ arrayLen - 1 ] = NULL;
     }
-    arguments[ arrayLen - 1 ] = NULL;
+
+    char **env;
+    {
+        std::vector<char *> stringsEnv;
+        stringsEnv.push_back( strdup( LD_LIBRARY_PATH ) );
+        size_t arrayLenEnv = stringsEnv.size() + 1;
+        env = new char *[ arrayLenEnv ];
+        for ( size_t i = 0 ; i < arrayLenEnv - 1 ; ++i ) {
+            env[i] = stringsEnv[i];
+            //OUTPUT("env[%d]=%s", i, env[i]);
+        }
+        env[ arrayLenEnv - 1 ] = NULL;
+    }
     
     pid_t rval = fork();
     
@@ -93,6 +110,8 @@ pid_t ProcessPipe::open()
         }
         */
 
+        //somehow execve does not work, have to change /etc/ld.so.conf.d/
+        //if( -1 == execve( MIXER_PROCESS_LOCATION, arguments, env ) ) {
         if( -1 == execvp( MIXER_PROCESS_LOCATION, arguments ) ) {
             assert(0);
             OUTPUT("Fatal error: EXECLP FAILED, error=%d?!\n", errno);
@@ -106,6 +125,7 @@ pid_t ProcessPipe::open()
         OUTPUT("----Launching process=%s, pid=%d", MIXER_PROCESS_LOCATION, rval);
     }    
     delete [] arguments;
+    delete [] env;
     
     return rval;
 }

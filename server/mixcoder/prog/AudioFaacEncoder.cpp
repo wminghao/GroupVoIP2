@@ -16,6 +16,7 @@ AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitra
             pConfiguration = faacEncGetCurrentConfiguration(hEncoder_);
             pConfiguration->inputFormat = FAAC_INPUT_16BIT;
             pConfiguration->aacObjectType = FF_PROFILE_AAC_LOW;
+            pConfiguration->bitRate = aBitrate*1000/getNumChannels( outputSetting->at );
 
             // (2.2) Set encoding configuration
             int nRet = faacEncSetConfiguration(hEncoder_, pConfiguration);
@@ -24,10 +25,11 @@ AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitra
                 maxBuf_ = new SmartBuffer( nMaxOutputBytes_) ;
             }
             ASSERT( nInputSamples/getNumChannels( outputSetting->at ) == AAC_FRAME_SAMPLE_SIZE );
-            LOG( "Faac encoder created. freq=%d, channels=%d, sampleSize=%ld, nMaxOutputBytes=%ld.", 
+            LOG( "Faac encoder created. freq=%d, channels=%d, sampleSize=%ld, nMaxOutputBytes=%ld, bitrate=%d.", 
                  getFreq( outputSetting->ar ), 
                  getNumChannels( outputSetting->at ), 
-                 nInputSamples/getNumChannels( outputSetting->at ), nMaxOutputBytes_ );
+                 nInputSamples/getNumChannels( outputSetting->at ), nMaxOutputBytes_,
+                 pConfiguration->bitRate);
         } else {
             LOG("FAILED to find Faac encoder, FAILING." );
         }
@@ -105,7 +107,7 @@ SmartPtr<SmartBuffer> AudioFaacEncoder::encodeAFrame(SmartPtr<SmartBuffer> input
         int nRet = faacEncEncode(hEncoder_, (int*)input->data(), nInputSamples, maxBuf_->data(), nMaxOutputBytes_);
         if( nRet > 0) {
             result = new SmartBuffer( nRet, maxBuf_->data() );
-            LOG( "SUCCESS encode audio faac frame, size=%d\n", nRet);
+            //LOG( "SUCCESS encode audio faac frame, size=%d\n", nRet);
         } else {
             LOG( "FAILED to encode audio faac frame\n");
         }
