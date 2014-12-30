@@ -64,7 +64,7 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
             for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++) {
                 audioDecoder_[i] = NULL; //initialize it later
                 videoDecoder_[i] = NULL;
-                audioTsMapper_[i].setIndex(i);
+                audioTsMapper_[i].setInfo(i, rawAudioSettings_.acid == kMP3);
                 videoTsMapper_[i].setIndex(i);
                 momentoBucketTimestamp_[i] = MAX_U32;
             }

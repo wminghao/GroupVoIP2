@@ -92,7 +92,7 @@ SmartPtr<SmartBuffer> AudioFaacEncoder::encodeAFrame(SmartPtr<SmartBuffer> input
         int nRet = faacEncEncode(hEncoder_, (int*)input->data(), nInputSamples, maxBuf_->data(), maxBuf_->dataLength());
         if( nRet > 0) {
             result = new SmartBuffer( nRet, maxBuf_->data() );
-            LOG( "SUCCESS encode audio faac frame, size=%d, nInputSamples = %d\n", nRet, nInputSamples);
+            //LOG( "SUCCESS encode audio faac frame, size=%d, nInputSamples = %d\n", nRet, nInputSamples);
             /*
             int enc_result = faacEncEncode(hEncoder_, NULL, 0, maxBuf_->data()+nRet, maxBuf_->dataLength()-nRet);
             if (enc_result > 0) {
