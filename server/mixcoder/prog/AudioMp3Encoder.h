@@ -12,7 +12,6 @@ typedef struct lame_global_struct lame_global_flags;
 class AudioMp3Encoder:public AudioEncoder
 {
  public:
-    //always encode in speex or mp3
     AudioMp3Encoder(AudioStreamSetting* outputSetting, int aBitrate);
     virtual ~AudioMp3Encoder();
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) ;

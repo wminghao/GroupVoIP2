@@ -15,7 +15,7 @@ class AudioMixer
 {
  public:
     AudioMixer() {}
-    //do the mixing, for now, always mix n streams into 1 mp3 stream
+    //do the mixing, for now, always mix n streams into 1 stream
     SmartPtr<SmartBuffer> mixStreams(SmartPtr<AudioRawData>* rawData,
                                      int sampleSize,
                                      int totalStreams,

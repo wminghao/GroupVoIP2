@@ -58,7 +58,7 @@ class AudioResampler
     //return success or failure
     bool resample(u8* inputData, u32 sampleSize);
 
-    //get the next batch of mp3 1152 samples
+    //get the next batch of frames
     bool isNextRawFrameReady();
     //return a smartbuffer
     SmartPtr<SmartBuffer> getNextRawFrame(bool& bIsStereo);
@@ -103,7 +103,7 @@ class AudioResampler
     int outputFreq_;
     int outputChannels_;
 
-    //linked list of mp3 raw frame of 1152 samples or aac of 960 samples
+    //linked list of mp3 raw frame of 1152 samples or aac of 1024 samples
     std::list<SmartPtr<SmartBuffer> > audioFrameList_; // integer list
     short resampleShortRemaining_[MAX_FRAME_SAMPLE_SIZE * 2]; //save reamining data from the previous read
     u32 remainingSampleCnt_;

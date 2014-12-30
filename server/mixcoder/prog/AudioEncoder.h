@@ -10,7 +10,7 @@
 class AudioEncoder
 {
  public:
-    //always encode in speex or mp3
+    //always encode in speex or mp3 or aac
     AudioEncoder(AudioStreamSetting* outputSetting, int aBitrate):aBitrate_(aBitrate) {
         memcpy(&outputSetting_, outputSetting, sizeof(AudioStreamSetting));
     }

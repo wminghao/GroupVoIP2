@@ -19,7 +19,6 @@ class FLVOutput;
 class FLVSegmentOutput
 {
  public:
-    //vp8 video + mp3 audio
     FLVSegmentOutput(VideoStreamSetting* videoSetting, AudioStreamSetting* audioSetting);
     ~FLVSegmentOutput();
 

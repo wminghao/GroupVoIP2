@@ -109,7 +109,7 @@ int main( int argc, char** argv ) {
     //LOG("---rlmit, open file limit cur=%d, limit max=%d", limit2.rlim_cur, limit2.rlim_max);
     
     VideoCodecId videoCodecOutputId = kAVCVideoPacket; //kH263VideoPacket;//kAVCVideoPacket;//kVP6VideoPacket;//
-    AudioCodecId audioCodecOutputId = kMP3;//kAAC; //kMP3
+    AudioCodecId audioCodecOutputId = kAAC; //kMP3
     
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( videoCodecOutputId != kVP8VideoPacket ) {
