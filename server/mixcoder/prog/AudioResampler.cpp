@@ -38,7 +38,7 @@ bool AudioResampler::resample(u8* inputData, u32 sampleSize)
                                   sampleCount * inputChannels_ );
     }
 
-    LOG("=============Start iteration, inputChannels_=%d, sampleSize=%d!!!", inputChannels_, sampleSize);
+    //LOG("=============Start iteration, inputChannels_=%d, sampleSize=%d!!!", inputChannels_, sampleSize);
     //push the samples into an linked list
     u32 sampleSkip = 0;
     u32 fullFrameTotalBytes = samplesPerFrame_ * sizeof(short) * inputChannels_;
@@ -58,27 +58,27 @@ bool AudioResampler::resample(u8* inputData, u32 sampleSize)
             memcpy(rawFrameData + remainingBytes, (u8*)(resampleShortBufOut_ + sampleSkip * inputChannels_), samplesToCopyFromOutBuf * sizeof(short) * inputChannels_);
             audioFrameList_.push_back( rawFrame );
 
-            LOG("======got a whole-part frame before, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d, samplesToCopyFromOutBuf=%d===\r\n", 
-                sampleCount, sampleSkip, remainingSampleCnt_, samplesToCopyFromOutBuf);            
+            //LOG("======got a whole-part frame before, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d, samplesToCopyFromOutBuf=%d===\r\n", 
+            //    sampleCount, sampleSkip, remainingSampleCnt_, samplesToCopyFromOutBuf);            
 
             sampleSkip += samplesToCopyFromOutBuf;
             sampleCount -= samplesToCopyFromOutBuf;
             remainingSampleCnt_ = 0;
             
-            LOG("======got a whole-part frame after, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d, samplesToCopyFromOutBuf=%d===\r\n", 
-                sampleCount, sampleSkip, remainingSampleCnt_, samplesToCopyFromOutBuf);
+            //LOG("======got a whole-part frame after, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d, samplesToCopyFromOutBuf=%d===\r\n", 
+            //    sampleCount, sampleSkip, remainingSampleCnt_, samplesToCopyFromOutBuf);
         } else {
             memcpy((u8*)resampleShortRemaining_+remainingBytes, (u8*)(resampleShortBufOut_ + sampleSkip * inputChannels_), sampleCount * sizeof(short) * inputChannels_);
-            LOG("======got residual before, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d===\r\n", 
-                sampleCount, sampleSkip, remainingSampleCnt_);
+            //LOG("======got residual before, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d===\r\n", 
+            //    sampleCount, sampleSkip, remainingSampleCnt_);
             remainingSampleCnt_ += sampleCount;
             sampleCount = 0;
             sampleSkip += sampleCount;
-            LOG("======got residual after, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d===\r\n", 
-                sampleCount, sampleSkip, remainingSampleCnt_);     
+            //LOG("======got residual after, sampleCount=%d, sampleSkip=%d, remainingSampleCnt_=%d===\r\n", 
+            //    sampleCount, sampleSkip, remainingSampleCnt_);     
         }
     }
-    LOG("=============End iteration!!!");
+    //LOG("=============End iteration!!!");
     return true;
 }
 
@@ -93,8 +93,8 @@ SmartPtr<SmartBuffer> AudioResampler::getNextRawFrame(bool& bIsStereo)
     SmartPtr<SmartBuffer> res;
     if( audioFrameList_.size() > 0 ) {
         bIsStereo = (inputChannels_ == 2);
-        res = audioFrameList_.back();
-        audioFrameList_.pop_back();
+        res = audioFrameList_.front();
+        audioFrameList_.pop_front();
         prevBuf_ = res;
     }
     return res;
