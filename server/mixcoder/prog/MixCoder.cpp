@@ -28,7 +28,7 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
                                                   aFrequency_(frequency)
 {
     VideoStreamSetting vOutputSetting = { vCodecId, vWidth_, vHeight_ }; 
-    AudioStreamSetting aOutputSetting = { aCodecId, getAudioRate(44100), kSndStereo, kSnd16Bit, 0 };
+    AudioStreamSetting aOutputSetting = { aCodecId, getAudioRate(44100), kSndStereo, kSnd16Bit, 0, (StreamSource)0, 0 };
 
     flvSegInput_ = new FLVSegmentInput( this, 30, &aOutputSetting ); //end result 30 fps
                                          
