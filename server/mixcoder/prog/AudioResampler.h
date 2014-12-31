@@ -27,8 +27,6 @@ const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
 const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
 const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
 
-const int MAX_FRAME_SAMPLE_SIZE = MAX(AAC_FRAME_SAMPLE_SIZE, MP3_FRAME_SAMPLE_SIZE);
-
 //an audio resampler from ffmpeg
 class AudioResampler
 {
@@ -105,7 +103,7 @@ class AudioResampler
 
     //linked list of mp3 raw frame of 1152 samples or aac of 1024 samples
     std::list<SmartPtr<SmartBuffer> > audioFrameList_; // integer list
-    short resampleShortRemaining_[MAX_FRAME_SAMPLE_SIZE * 2]; //save reamining data from the previous read
+    short resampleShortRemaining_[44100 * 2]; //save reamining data from the previous read, stereo
     u32 remainingSampleCnt_;
 
     //frame size
