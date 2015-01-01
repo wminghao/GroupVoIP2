@@ -16,6 +16,7 @@ class AudioFaacEncoder:public AudioEncoder
     u64 nMaxOutputBytes_;
     faacEncHandle hEncoder_;
     bool bIsOpened_;
+    bool bIsStarted_; //get rif of aac 3 frame dealy in the beginning
     SmartPtr<SmartBuffer> maxBuf_;
 };
 #endif //__AUDIO_FAAC_ENCODER__

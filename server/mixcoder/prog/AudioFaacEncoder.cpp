@@ -2,7 +2,7 @@
 #include "fwk/Units.h"
 #include <libavcodec/avcodec.h>
 
-AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitrate):AudioEncoder(outputSetting, aBitrate), hEncoder_(NULL), bIsOpened_(false)
+AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitrate):AudioEncoder(outputSetting, aBitrate), hEncoder_(NULL), bIsOpened_(false), bIsStarted_(false)
 {
     if( outputSetting->acid == kAAC ) {
         u64 nInputSamples = 0;
@@ -88,11 +88,24 @@ SmartPtr<SmartBuffer> AudioFaacEncoder::encodeAFrame(SmartPtr<SmartBuffer> input
     if( bIsOpened_ ) {
         u64 nInputSamples = input->dataLength()/sizeof(short);
         ASSERT( nInputSamples/getNumChannels( outputSetting_.at ) == AAC_FRAME_SAMPLE_SIZE );
+
+        if( !bIsStarted_ ) {
+            SmartPtr<SmartBuffer> temp = new SmartBuffer( input->dataLength() );
+            memset(temp->data(), 0, input->dataLength() );
+            //insert 3 silence frame to pump out data asap
+            int total = faacEncEncode(hEncoder_, (int*)temp->data(), nInputSamples, maxBuf_->data(), maxBuf_->dataLength());
+            ASSERT( total == 0 );
+            total = faacEncEncode(hEncoder_, (int*)temp->data(), nInputSamples, maxBuf_->data(), maxBuf_->dataLength());
+            ASSERT( total == 0 );
+            total = faacEncEncode(hEncoder_, (int*)temp->data(), nInputSamples, maxBuf_->data(), maxBuf_->dataLength());
+            ASSERT( total == 0 );
+            bIsStarted_ = true;
+        }
         
         int nRet = faacEncEncode(hEncoder_, (int*)input->data(), nInputSamples, maxBuf_->data(), maxBuf_->dataLength());
         if( nRet > 0) {
             result = new SmartBuffer( nRet, maxBuf_->data() );
-            //LOG( "SUCCESS encode audio faac frame, size=%d, nInputSamples = %d\n", nRet, nInputSamples);
+            LOG( "SUCCESS encode audio faac frame, size=%d, nInputSamples = %d\n", nRet, nInputSamples);
             /*
             int enc_result = faacEncEncode(hEncoder_, NULL, 0, maxBuf_->data()+nRet, maxBuf_->dataLength()-nRet);
             if (enc_result > 0) {
