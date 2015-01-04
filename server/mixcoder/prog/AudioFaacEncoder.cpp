@@ -30,11 +30,12 @@ AudioFaacEncoder::AudioFaacEncoder(AudioStreamSetting* outputSetting, int aBitra
                 maxBuf_ = new SmartBuffer( nMaxOutputBytes_ ) ;
             }
             ASSERT( nInputSamples/getNumChannels( outputSetting->at ) == AAC_FRAME_SAMPLE_SIZE );
-            LOG( "Faac encoder created. freq=%d, channels=%d, sampleSize=%ld, nMaxOutputBytes=%ld, bitrate=%d.", 
+            LOG( "Faac encoder created. freq=%d, channels=%d, sampleSize=%ld, nMaxOutputBytes=%ld, bitrate=%d. AOT=%d", 
                  getFreq( outputSetting->ar ), 
                  getNumChannels( outputSetting->at ), 
                  nInputSamples/getNumChannels( outputSetting->at ), nMaxOutputBytes_,
-                 pConfiguration->bitRate);
+                 pConfiguration->bitRate,
+                 LOW);
         } else {
             LOG("FAILED to find Faac encoder, FAILING." );
         }

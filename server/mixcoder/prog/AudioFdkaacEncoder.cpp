@@ -7,27 +7,34 @@ AudioFdkaacEncoder::AudioFdkaacEncoder(AudioStreamSetting* outputSetting, int aB
 {
     if( outputSetting->acid == kAAC ) {
         if( aacEncOpen(&hEncoder_, 0, getNumChannels( outputSetting->at ) ) == AACENC_OK) {
+            int aotMode = AOT_AAC_LC; // or 23 for low delay mode
+            int bitrateMode = 0;
+            if( aotMode == 23 ) {
+                bitrateMode = 8;
+            }
             //low delay mode = 23, does not play. AOT_AAC_LC plays fine in VLC.
-            if (aacEncoder_SetParam(hEncoder_, AACENC_AOT, AOT_AAC_LC) != AACENC_OK) {
+            if (aacEncoder_SetParam(hEncoder_, AACENC_AOT, aotMode) != AACENC_OK) {
                 LOG( "Unable to set the AOT\n");
             }
             if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATE, aBitrate*1000) != AACENC_OK) {
                 LOG( "Unable to set the VBR bitrate mode\n");
             }
-            /*
-              Only works for LD mode
-            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATEMODE, 8) != AACENC_OK) {
+            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATEMODE, bitrateMode) != AACENC_OK) {
                 LOG( "Unable to set the VBR bitrate mode\n");
             }
-            */
             if (aacEncoder_SetParam(hEncoder_, AACENC_SAMPLERATE, getFreq( outputSetting->ar )) != AACENC_OK) {
                 LOG( "Unable to set the sample rate\n");
             }
             if (aacEncoder_SetParam(hEncoder_, AACENC_CHANNELMODE, getNumChannels( outputSetting->at )) != AACENC_OK) {
                 LOG( "Unable to set the channel mode\n");
             }
-            if (aacEncoder_SetParam(hEncoder_, AACENC_CHANNELORDER, 0) != AACENC_OK) {
+            if (aacEncoder_SetParam(hEncoder_, AACENC_CHANNELORDER, 0 ) != AACENC_OK) {
                 LOG( "Unable to set the wav channel order\n");
+            }
+            //Make sure we set the transport type as 0: raw access units. 
+            //Flash does not understand ADTS or other types of transport.
+            if (aacEncoder_SetParam(hEncoder_, AACENC_TRANSMUX, 0 ) != AACENC_OK) {
+                LOG( "Unable to set the transport type\n");
             }
             AACENC_ERROR error2;
             if ((error2 = aacEncEncode(hEncoder_, NULL, NULL, NULL, NULL)) != AACENC_OK) {
@@ -36,9 +43,10 @@ AudioFdkaacEncoder::AudioFdkaacEncoder(AudioStreamSetting* outputSetting, int aB
             AACENC_InfoStruct encInfo;
             if (aacEncInfo(hEncoder_, &encInfo) == AACENC_OK) {
                 maxBuf_ = new SmartBuffer( MAX_FDKAAC_ENCODED_BYTES ); //max buffer
-                LOG( "Fdkaac encoder created. freq=%d, channels=%d", 
+                LOG( "Fdkaac encoder created. freq=%d, channels=%d, AOT_AAC_LC=%d", 
                      getFreq( outputSetting->ar ), 
-                     getNumChannels( outputSetting->at ));
+                     getNumChannels( outputSetting->at ),
+                     AOT_AAC_LC );
                 bIsOpened_ = true;
             } else {
                 LOG("aacEncInfo error");
