@@ -15,6 +15,7 @@ videoDecoderObj = env.Object('prog/VideoDecoder.cpp', CCFLAGS=mixCoderCflags )
 audioSpeexEncoderObj = env.Object('prog/AudioSpeexEncoder.cpp', CCFLAGS=mixCoderCflags )
 audioFfmpegEncoderObj = env.Object('prog/AudioFfmpegEncoder.cpp', CCFLAGS=mixCoderCflags )
 audioFaacEncoderObj = env.Object('prog/AudioFaacEncoder.cpp', CCFLAGS=mixCoderCflags )
+audioFdkaacEncoderObj = env.Object('prog/AudioFdkaacEncoder.cpp', CCFLAGS=mixCoderCflags )
 audioMp3EncoderObj = env.Object('prog/AudioMp3Encoder.cpp', CCFLAGS=mixCoderCflags )
 videoVp8EncoderObj = env.Object('prog/VideoVp8Encoder.cpp', CCFLAGS=mixCoderCflags )
 videoFfmpegEncoderObj = env.Object('prog/VideoFfmpegEncoder.cpp', CCFLAGS=mixCoderCflags )
@@ -46,6 +47,7 @@ env.Program( mixCoderProg,
                audioMp3EncoderObj,
                audioFfmpegEncoderObj,
                audioFaacEncoderObj,
+       	       audioFdkaacEncoderObj,	
 	       videoFfmpegEncoderObj,
 	       videoVp8EncoderObj,
 	       videoH264EncoderObj,	
@@ -58,7 +60,7 @@ env.Program( mixCoderProg,
 	       flvSegmentInputObj,
 	       flvSegmentOutputObj,	
 	       mainObj],	
-	       LIBS=['pthread', 'mp3lame', 'avformat', 'avcodec', 'avutil', 'swscale', 'samplerate', 'speex', 'vpx', 'x264', 'faac'], 
+	       LIBS=['pthread', 'mp3lame', 'avformat', 'avcodec', 'avutil', 'swscale', 'samplerate', 'speex', 'vpx', 'x264', 'faac', 'fdk-aac'], 
 	       LIBPATH = ['/usr/lib', '/usr/local/lib'],
 	       CCFLAGS=mixCoderCflags)
 
