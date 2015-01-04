@@ -128,7 +128,7 @@ SmartPtr<SmartBuffer> AudioFdkaacEncoder::encodeAFrame(SmartPtr<SmartBuffer> inp
                                        &outargs);;
         if( outargs.numOutBytes > 0 ) {
             result = new SmartBuffer( outargs.numOutBytes, maxBuf_->data() );
-            LOG( "SUCCESS encode audio fdkaac frame, size=%d, nInputSamples = %d\n", outargs.numOutBytes, nInputSamples);
+            //LOG( "SUCCESS encode audio fdkaac frame, size=%d, nInputSamples = %d\n", outargs.numOutBytes, nInputSamples);
         } else {
             LOG( "FAILED to encode audio fdkaac frame\n");
         }
