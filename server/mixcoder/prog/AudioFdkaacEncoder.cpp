@@ -16,7 +16,7 @@ AudioFdkaacEncoder::AudioFdkaacEncoder(AudioStreamSetting* outputSetting, int aB
             if (aacEncoder_SetParam(hEncoder_, AACENC_AOT, aotMode) != AACENC_OK) {
                 LOG( "Unable to set the AOT\n");
             }
-            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATE, aBitrate*(1000/getNumChannels( outputSetting->at ))) != AACENC_OK) {
+            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATE, aBitrate*1000) != AACENC_OK) {
                 LOG( "Unable to set the VBR bitrate mode\n");
             }
             if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATEMODE, bitrateMode) != AACENC_OK) {

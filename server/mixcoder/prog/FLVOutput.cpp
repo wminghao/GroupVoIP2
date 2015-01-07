@@ -110,7 +110,7 @@ SmartPtr<SmartBuffer> FLVOutput::newVideoHeader(u32 ts)
             data[tl+2] = (u8)((tl>>8)&0xff);  
             data[tl+3] = (u8)(tl&0xff);  
             
-            //LOG("====>video header len=%d, videoDataLen=%d, ts=%d, vcid=0x%x\n", tl, videoDataLen, ts, videoSetting_.vcid);
+            //LOG("====>h264 video header len=%d, videoDataLen=%d, ts=%d, vcid=0x%x\n", tl, videoDataLen, ts, videoSetting_.vcid);
             return result;
         }    
     } 
@@ -241,6 +241,7 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
 
     //if it's keyframe, inject spspps for each frame
     if( bIsKeyFrame ) {
+        //minor issue, injecting this header causing VLC to spit out false error message, ignore VLC errors.
         videoHeaderSent_ = false;
     }
 
