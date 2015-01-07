@@ -7,16 +7,16 @@ AudioFdkaacEncoder::AudioFdkaacEncoder(AudioStreamSetting* outputSetting, int aB
 {
     if( outputSetting->acid == kAAC ) {
         if( aacEncOpen(&hEncoder_, 0, getNumChannels( outputSetting->at ) ) == AACENC_OK) {
-            int aotMode = AOT_AAC_LC; // or 23 for low delay mode
+            int aotMode = AOT_AAC_LC; // AOT_AAC_LC = 2 for low complexity or AOT_ER_AAC_LD = 23 for low delay mode
             int bitrateMode = 0;
-            if( aotMode == 23 ) {
+            if( aotMode == AOT_ER_AAC_LD ) {
                 bitrateMode = 8;
             }
             //low delay mode = 23, does not play. AOT_AAC_LC plays fine in VLC.
             if (aacEncoder_SetParam(hEncoder_, AACENC_AOT, aotMode) != AACENC_OK) {
                 LOG( "Unable to set the AOT\n");
             }
-            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATE, aBitrate*1000) != AACENC_OK) {
+            if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATE, aBitrate*(1000/getNumChannels( outputSetting->at ))) != AACENC_OK) {
                 LOG( "Unable to set the VBR bitrate mode\n");
             }
             if (aacEncoder_SetParam(hEncoder_, AACENC_BITRATEMODE, bitrateMode) != AACENC_OK) {
@@ -43,7 +43,8 @@ AudioFdkaacEncoder::AudioFdkaacEncoder(AudioStreamSetting* outputSetting, int aB
             AACENC_InfoStruct encInfo;
             if (aacEncInfo(hEncoder_, &encInfo) == AACENC_OK) {
                 maxBuf_ = new SmartBuffer( MAX_FDKAAC_ENCODED_BYTES ); //max buffer
-                LOG( "Fdkaac encoder created. freq=%d, channels=%d, AOT_AAC_LC=%d", 
+                LOG( "Fdkaac encoder created. bitrate=%d, freq=%d, channels=%d, AOT_AAC_LC=%d", 
+                     aBitrate*1000,
                      getFreq( outputSetting->ar ), 
                      getNumChannels( outputSetting->at ),
                      AOT_AAC_LC );
@@ -73,7 +74,7 @@ AudioFdkaacEncoder::~AudioFdkaacEncoder()
 //Also http://wiki.multimedia.cx/?title=Understanding_AAC
 SmartPtr<SmartBuffer> AudioFdkaacEncoder::genAudioHeader()
 { 
-    u8 objectType = AOT_AAC_LC; //LC mode, not LD mode
+    u8 objectType = AOT_AAC_LC; // AOT_AAC_LC = LC mode, not LD mode AOT_ER_AAC_LD
     u8 frequencyIndex = 4; //always 44100
     u8 channelConfig = 2;//2 channels: front-left, front-right
     u8 otherConfig = 0; //1024 samples/frame
