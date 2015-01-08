@@ -118,7 +118,7 @@ int main( int argc, char** argv ) {
     int videoWidth = 640;
     int videoHeight = 480;
 
-    int audioBitrate = 32; //32kbps
+    int audioBitrate = 64; //64kbps minimum quality
     int audioFrequency = 16000;
     
     MixCoder* mixCoder = new MixCoder(videoCodecOutputId, videoBitrate, videoWidth, videoHeight, audioCodecOutputId, audioBitrate, audioFrequency);

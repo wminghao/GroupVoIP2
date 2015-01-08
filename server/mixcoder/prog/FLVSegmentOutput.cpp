@@ -4,10 +4,17 @@
 #include "fwk/log.h"
 
 FLVSegmentOutput::FLVSegmentOutput(VideoStreamSetting* videoSetting, AudioStreamSetting* audioSetting) {
-    for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
+    for( u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         output_[i] = new FLVOutput(videoSetting, audioSetting);
         outputBuffer_[i] = NULL;
     }
+#ifdef FORCE_AAC_ALL_IN_ONE
+    //all-in-one frame must be AAC encoding
+    audioSetting->acid = kAAC;
+#endif //FORCE_AAC_ALL_IN_ONE
+
+    output_[MAX_XCODING_INSTANCES] = new FLVOutput(videoSetting, audioSetting);
+    outputBuffer_[MAX_XCODING_INSTANCES] = NULL;
 }
     
 FLVSegmentOutput::~FLVSegmentOutput() {

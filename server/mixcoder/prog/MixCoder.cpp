@@ -15,6 +15,7 @@
 #include "VideoFfmpegEncoder.h"
 #include "VideoVp8Encoder.h"
 #include "VideoH264Encoder.h"
+#include "AudioSpitter.h"
 #include "AudioMixer.h"
 #include "VideoMixer.h"
 #include "fwk/log.h"
@@ -31,7 +32,11 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
     VideoStreamSetting vOutputSetting = { vCodecId, vWidth_, vHeight_ }; 
     AudioStreamSetting aOutputSetting = { aCodecId, getAudioRate(44100), kSndStereo, kSnd16Bit, 0, (StreamSource)0, 0 };
 
+    //flv input
     flvSegInput_ = new FLVSegmentInput( this, 30, &aOutputSetting ); //end result 30 fps
+
+    //flv output
+    flvSegOutput_ = new FLVSegmentOutput( &vOutputSetting, &aOutputSetting );
                                          
     switch( vCodecId ) {
        case kH263VideoPacket: 
@@ -53,7 +58,7 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
 
     videoMixer_ = new VideoMixer(&vOutputSetting);
 
-    for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
+    for( u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
         switch( aCodecId ) {
             case kSpeex:{
                 audioEncoder_[i] = new AudioSpeexEncoder( &aOutputSetting, aBitrate_ );
@@ -74,7 +79,21 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
         }
         audioMixer_[i] = new AudioMixer();
     }
-    flvSegOutput_ = new FLVSegmentOutput( &vOutputSetting, &aOutputSetting );
+#ifdef FORCE_AAC_ALL_IN_ONE
+    //
+    //the all-in-one audio encoder must be AAC instead of mp3, 
+    //since many video players cannot playback offline hardware decoded H264+Mp3 video.
+    //for example, air for android cannot play h264+mp3 not in real-time mode. Meaning they use hw decoding.
+    //
+    aOutputSetting.acid = kAAC;
+    //audio spitter does the conversion
+    audioSpitter_ = new AudioSpitter( flvSegInput_->getSamplesPerFrame(), getNumChannels(aOutputSetting.at) );
+    audioEncoder_[MAX_XCODING_INSTANCES] = new AudioFdkaacEncoder( &aOutputSetting, aBitrate_ );
+#else 
+    audioEncoder_[MAX_XCODING_INSTANCES] = new AudioMp3Encoder( &aOutputSetting, aBitrate_ );
+#endif //FORCE_AAC_ALL_IN_ONE
+    
+    audioMixer_[MAX_XCODING_INSTANCES] = new AudioMixer();
 }
 
 MixCoder::~MixCoder() {
@@ -241,7 +260,27 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                 }
                 //for all in stream
                 SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_[MAX_XCODING_INSTANCES]->mixStreams(rawAudioData_, flvSegInput_->getSamplesPerFrame(), totalStreams, MAX_U32);
-                SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame(rawFrameMixed);
+
+#ifdef FORCE_AAC_ALL_IN_ONE
+                bool extra = audioSpitter_->swallow( rawFrameMixed, audioPts );
+                u32 outputPts = 0;
+                SmartPtr<SmartBuffer> rawOutput = audioSpitter_->spit(outputPts);
+                SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame(rawOutput);
+                if ( encodedFrame ) {
+                    SmartPtr<SmartBuffer> audioHeader = audioEncoder_[MAX_XCODING_INSTANCES]->genAudioHeader();
+                    if( audioHeader ) {
+                        flvSegOutput_->saveAudioHeader( audioHeader, MAX_XCODING_INSTANCES );
+                    }
+                    flvSegOutput_->packageAudioFrame(encodedFrame, outputPts, MAX_XCODING_INSTANCES);
+                }
+                //for the extra packet.
+                if( extra ) {
+                    rawOutput = audioSpitter_->spit(outputPts);
+                    encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame(rawOutput);
+                    flvSegOutput_->packageAudioFrame(encodedFrame, outputPts, MAX_XCODING_INSTANCES);
+                } 
+#else //FORCE_AAC_ALL_IN_ONE
+                SmartPtr<SmartBuffer> encodedFrame = audioEncoder_[MAX_XCODING_INSTANCES]->encodeAFrame( rawFrameMixed );
                 if ( encodedFrame ) {
                     SmartPtr<SmartBuffer> audioHeader = audioEncoder_[MAX_XCODING_INSTANCES]->genAudioHeader();
                     if( audioHeader ) {
@@ -249,6 +288,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     }
                     flvSegOutput_->packageAudioFrame(encodedFrame, audioPts, MAX_XCODING_INSTANCES);
                 }
+#endif //FORCE_AAC_ALL_IN_ONE
                 resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams();
             }
         }

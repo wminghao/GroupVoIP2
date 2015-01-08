@@ -12,21 +12,6 @@ extern "C" {
 #include "fwk/Units.h"
 #include "CodecInfo.h"
 
-//each speex frame, contains 320 samples
-#define SPEEX_FRAME_SAMPLE_SIZE 320
-
-//each mp3 frame, contains 1152 samples
-#define MP3_FRAME_SAMPLE_SIZE 1152
-#define MP3_SAMPLE_PER_SEC 44100
-const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
-const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
-
-//each aac frame, contains 1024 samples
-#define AAC_FRAME_SAMPLE_SIZE 1024
-#define AAC_SAMPLE_PER_SEC 44100
-const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
-const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
-
 //an audio resampler from ffmpeg
 class AudioResampler
 {

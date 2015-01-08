@@ -17,6 +17,7 @@ audioFfmpegEncoderObj = env.Object('prog/AudioFfmpegEncoder.cpp', CCFLAGS=mixCod
 audioFaacEncoderObj = env.Object('prog/AudioFaacEncoder.cpp', CCFLAGS=mixCoderCflags )
 audioFdkaacEncoderObj = env.Object('prog/AudioFdkaacEncoder.cpp', CCFLAGS=mixCoderCflags )
 audioMp3EncoderObj = env.Object('prog/AudioMp3Encoder.cpp', CCFLAGS=mixCoderCflags )
+audioSpitterObj = env.Object('prog/AudioSpitter.cpp', CCFLAGS=mixCoderCflags )
 videoVp8EncoderObj = env.Object('prog/VideoVp8Encoder.cpp', CCFLAGS=mixCoderCflags )
 videoFfmpegEncoderObj = env.Object('prog/VideoFfmpegEncoder.cpp', CCFLAGS=mixCoderCflags )
 videoH264EncoderObj = env.Object('prog/VideoH264Encoder.cpp', CCFLAGS=mixCoderCflags )
@@ -48,6 +49,7 @@ env.Program( mixCoderProg,
                audioFfmpegEncoderObj,
                audioFaacEncoderObj,
        	       audioFdkaacEncoderObj,	
+	       audioSpitterObj,
 	       videoFfmpegEncoderObj,
 	       videoVp8EncoderObj,
 	       videoH264EncoderObj,	
