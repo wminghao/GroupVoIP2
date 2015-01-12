@@ -9,6 +9,24 @@ const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
 const u32 MAX_XCODING_INSTANCES = 32;
 const double videoFrameIntervalInMs = (double)1000 /(double)OUTPUT_VIDEO_FRAME_RATE;
 
+//each speex frame, contains 320 samples
+#define SPEEX_FRAME_SAMPLE_SIZE 320
+
+//each mp3 frame, contains 1152 samples
+#define MP3_FRAME_SAMPLE_SIZE 1152
+#define MP3_SAMPLE_PER_SEC 44100
+const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
+const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
+
+//each aac frame, contains 1024 samples
+#define AAC_FRAME_SAMPLE_SIZE 1024
+#define AAC_SAMPLE_PER_SEC 44100
+const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
+const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
+
+//Force AAC encoding for all-in-one stream
+#define FORCE_AAC_ALL_IN_ONE
+
 typedef  enum VideoLayout {
     kEvenLayout, //evenly distribute streams across the screen
     kMainLayout //main window + many small window layout

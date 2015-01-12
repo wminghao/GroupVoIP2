@@ -6,18 +6,17 @@
 #include "CodecInfo.h"
 #include "AudioResampler.h"
 
-#define MAX_ENCODED_BYTES MP3_FRAME_SAMPLE_SIZE*sizeof(short)*2 //max size 
-
 //audio encoder implementation
 class AudioEncoder
 {
  public:
-    //always encode in speex or mp3
+    //always encode in speex or mp3 or aac
     AudioEncoder(AudioStreamSetting* outputSetting, int aBitrate):aBitrate_(aBitrate) {
         memcpy(&outputSetting_, outputSetting, sizeof(AudioStreamSetting));
     }
     virtual ~AudioEncoder(){}
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input) = 0;
+    virtual SmartPtr<SmartBuffer> genAudioHeader() { return NULL; }
  protected:
     //output settings
     AudioStreamSetting outputSetting_;

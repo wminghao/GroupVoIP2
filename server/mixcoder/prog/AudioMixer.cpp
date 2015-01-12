@@ -86,10 +86,10 @@ void AudioMixer::mixOneStreams(SmartPtr<AudioRawData>* rawData,
                                short* valShort,
                                int sampleSize)
 {
-    //fprintf(stderr, "--------one index=%d, len=%ld, isStereo=%d\r\n", oneIndex, rawData[oneIndex]->rawAudioFrame_->dataLength(), rawData[oneIndex]->bIsStereo );
+    //LOG("--------one index=%d, len=%ld, isStereo=%d\r\n", oneIndex, rawData[oneIndex]->rawAudioFrame_->dataLength(), rawData[oneIndex]->bIsStereo );
 
     if( rawData[oneIndex]->bIsStereo ) {
-        memcpy((u8*)valShort, rawData[oneIndex]->rawAudioFrame_->data(), sampleSize*sizeof(short)*2);        
+        memcpy((u8*)valShort, rawData[oneIndex]->rawAudioFrame_->data(), sampleSize*sizeof(short)*2);
     } else {
         int j = sampleSize*2-1;
         int i = sampleSize-1;
@@ -230,8 +230,6 @@ void AudioMixer::findIndexes(SmartPtr<AudioRawData>* rawData,
         }
     } 
 }
-
-
 
 //do the mixing, for now, always mix n speex streams into 1 speex stream
 SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,

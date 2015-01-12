@@ -292,7 +292,7 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
                         //printQueueSize();
                         bCannotPopout = false;
                     } else {
-                        //LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, elpasedTimeInMs, MP3_FRAME_MAX_GAP_IN_MS);
+                        //LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, elpasedTimeInMs, framesMaxGapInMs_);
                     }
                 }
 
@@ -358,7 +358,7 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
 
         bool hasAnyDataPoppedOut = false;
         //read a couple of mp3/aac samples/frame here
-        while(audioDecoder_[index]->isNextRawFrameReady() ) {
+        while( audioDecoder_[index]->isNextRawFrameReady() ) {
             SmartPtr<AudioRawData> a = new AudioRawData();
             bool bIsStereo = false;
             a->rawAudioFrame_ = audioDecoder_[index]->getNextRawFrame(bIsStereo);

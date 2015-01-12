@@ -12,20 +12,6 @@ extern "C" {
 #include "fwk/Units.h"
 #include "CodecInfo.h"
 
-//each mp3 frame, contains 1152 samples
-#define MP3_FRAME_SAMPLE_SIZE 1152
-#define MP3_SAMPLE_PER_SEC 44100
-const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
-const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
-
-//each aac frame, contains 1024 samples
-#define AAC_FRAME_SAMPLE_SIZE 1024
-#define AAC_SAMPLE_PER_SEC 44100
-const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
-const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
-
-const int MAX_FRAME_SAMPLE_SIZE = MAX(AAC_FRAME_SAMPLE_SIZE, MP3_FRAME_SAMPLE_SIZE);
-
 //an audio resampler from ffmpeg
 class AudioResampler
 {
@@ -55,11 +41,13 @@ class AudioResampler
     //return success or failure
     bool resample(u8* inputData, u32 sampleSize);
 
-    //get the next batch of mp3 1152 samples
+    //get the next batch of frames
     bool isNextRawFrameReady();
     //return a smartbuffer
     SmartPtr<SmartBuffer> getNextRawFrame(bool& bIsStereo);
     SmartPtr<SmartBuffer> getPrevRawFrame(bool& bIsStereo);
+
+    static u32 getSamplesPerFrame(AudioCodecId outputCodecId) { return ( outputCodecId == kAAC)? AAC_FRAME_SAMPLE_SIZE:MP3_FRAME_SAMPLE_SIZE; }
 
     //bool isStereo() { return (inputChannels_ == 2); }
 
@@ -98,9 +86,9 @@ class AudioResampler
     int outputFreq_;
     int outputChannels_;
 
-    //linked list of mp3 raw frame of 1152 samples or aac of 960 samples
+    //linked list of mp3 raw frame of 1152 samples or aac of 1024 samples
     std::list<SmartPtr<SmartBuffer> > audioFrameList_; // integer list
-    short resampleShortRemaining_[MAX_FRAME_SAMPLE_SIZE * 2]; //save reamining data from the previous read
+    short resampleShortRemaining_[44100 * 2]; //save reamining data from the previous read, stereo
     u32 remainingSampleCnt_;
 
     //frame size

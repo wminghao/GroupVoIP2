@@ -100,6 +100,7 @@ SmartPtr<SmartBuffer> VideoH264Encoder::encodeAFrame(SmartPtr<SmartBuffer> input
 
             /*
             //Replace 00 00 00 01 with NAL length in big endian
+            //No need, it's already replaced.
             nals[0].p_payload[0] = (payloadSize-4) >> 24;
             nals[0].p_payload[1] = ((payloadSize-4) >> 16) & 0xff;
             nals[0].p_payload[2] = ((payloadSize-4) >> 8) & 0xff;
@@ -127,9 +128,9 @@ SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
     x264_encoder_headers( x264Ctx_, &nals, &nalCnt );
     for( int i = 0; i < nalCnt; i++ ) {
         if( nals[i].i_type == NAL_SPS ) {
-            sps= new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
+            sps = new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
         } else if (nals[i].i_type == NAL_PPS ) {
-            pps= new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
+            pps = new SmartBuffer( nals[i].i_payload-4, nals[i].p_payload+4 );
         }
     }
     if( sps && pps ) {
@@ -162,7 +163,7 @@ SmartPtr<SmartBuffer> VideoH264Encoder::genVideoHeaderPrivate()
         data[10+spsLen] = (u8)(ppsLen & 0xFF);
         memcpy(&data[11+spsLen], pps->data(), ppsLen);
 
-        //LOG("===h264 built spspps, sps1stbyte=0x%x, pps1stbyte=0x%x, spsLen=%d, ppsLen=%d, len = %d\r\n", data[8], data[11+spsLen], spsLen, ppsLen, (spsLen+ppsLen+11));
+        LOG("===h264 built spspps, sps1stbyte=0x%x, pps1stbyte=0x%x, spsLen=%d, ppsLen=%d, len = %d\r\n", data[8], data[11+spsLen], spsLen, ppsLen, (spsLen+ppsLen+11));
     }
     return header;
 }

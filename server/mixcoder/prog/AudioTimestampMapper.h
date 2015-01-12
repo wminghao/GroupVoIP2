@@ -9,11 +9,14 @@
 class AudioTimestampMapper
 {
  public:
-    AudioTimestampMapper() : startingTimestamp_(MAX_U32), cnt_(0), curTimestamp_(MAX_U32), index_(0) {}
+    AudioTimestampMapper() : startingTimestamp_(MAX_U32), cnt_(0), curTimestamp_(MAX_U32), index_(0) {
+
+    }
     ~AudioTimestampMapper() {}
     
-    void setIndex(u32 index) {
+    void setInfo(u32 index, bool bIsMp3) {
         index_ = index;
+        frameInterval_= bIsMp3?MP3_FRAME_INTERVAL_IN_MS:AAC_FRAME_INTERVAL_IN_MS;
     }
 
     void reset() {
@@ -45,12 +48,13 @@ class AudioTimestampMapper
         }
         curTimestamp_ = ts;
 
-        double tsD = startingTimestamp_ + cnt_ * MP3_FRAME_INTERVAL_IN_MS;
+        double tsD = startingTimestamp_ + cnt_ * frameInterval_;
         cnt_++;
         return (u32)tsD;    
     }
 
  private:
+    double frameInterval_;
     double startingTimestamp_;
     double cnt_;
 

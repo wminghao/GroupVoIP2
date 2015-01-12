@@ -19,7 +19,6 @@ class FLVOutput;
 class FLVSegmentOutput
 {
  public:
-    //vp8 video + mp3 audio
     FLVSegmentOutput(VideoStreamSetting* videoSetting, AudioStreamSetting* audioSetting);
     ~FLVSegmentOutput();
 
@@ -30,7 +29,7 @@ class FLVSegmentOutput
     bool packageCuePoint( int streamId, VideoRect* videoRect, u32 ts );
 
     void saveVideoHeader( SmartPtr<SmartBuffer> videoHeader );
-
+    void saveAudioHeader( SmartPtr<SmartBuffer> audioHeader, int i );
     void onStreamEnded(int streamId);
 
  private:

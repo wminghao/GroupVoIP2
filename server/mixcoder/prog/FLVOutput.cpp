@@ -15,7 +15,7 @@ const u8 flvHeader[] = {
     0x00,0x08,0x64,0x75,0x72,0x61,0x74,0x69,0x6f,0x6e, //duration
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, //0.00
     0x00,0x0C,0x61,0x75,0x64,0x69,0x6F,0x63,0x6F,0x64,0x65,0x63,0x69,0x64, //audiocodecid
-    0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,0x00, //speex = 11(0x4026000000000000), 16kmp3 = 15(0x402e000000000000), mp3 = 2(0x4000000000000000)
+    0x00,0x40,0x24,0x00,0x00,0x00,0x00,0x00,0x00, //speex = 11(0x4026000000000000), 16kmp3 = 15(0x402e000000000000), mp3 = 2(0x4000000000000000), aac = 10(0x4024000000000000)
     0x00,0x0D,0x61,0x75,0x64,0x69,0x6F,0x64,0x61,0x74,0x61,0x72,0x61,0x74,0x65,//audiodatarate
     0x00,0x40,0x3B,0xCC,0xCC,0xCC,0xCC,0xCC,0xCD,
     0x00,0x0F,0x61,0x75,0x64,0x69,0x6F,0x73,0x61,0x6D,0x70,0x6C,0x65,0x72,0x61,0x74,0x65, //audiosamplerate
@@ -110,7 +110,7 @@ SmartPtr<SmartBuffer> FLVOutput::newVideoHeader(u32 ts)
             data[tl+2] = (u8)((tl>>8)&0xff);  
             data[tl+3] = (u8)(tl&0xff);  
             
-            //LOG("====>video header len=%d, videoDataLen=%d, ts=%d, vcid=0x%x\n", tl, videoDataLen, ts, videoSetting_.vcid);
+            //LOG("====>h264 video header len=%d, videoDataLen=%d, ts=%d, vcid=0x%x\n", tl, videoDataLen, ts, videoSetting_.vcid);
             return result;
         }    
     } 
@@ -148,6 +148,7 @@ SmartPtr<SmartBuffer> FLVOutput::newAudioHeader(u32 ts)
             data[10] = 0;
             
             data[11] = audioAacTagByte;
+            data[12] = kAACSeqHeader; //AAC Sequence header, additional header
                         
             if ( audioPacketLen > 0 ) {
                 memcpy(&data[fixedFlvHeaderLen+1+additionalHeader], audioHeader_->data(), audioPacketLen);
@@ -159,7 +160,7 @@ SmartPtr<SmartBuffer> FLVOutput::newAudioHeader(u32 ts)
             data[tl+2] = (u8)((tl>>8)&0xff);  
             data[tl+3] = (u8)(tl&0xff);  
             
-            //LOG("====>audio header len=%d, audioDataLen=%d, ts=%d, acid=0x%x\n", tl, audioDataLen, ts, audioSetting_.acid);
+            LOG("====>audio header len=%d, audioDataLen=%d, ts=%d, acid=0x%x\n", tl, audioDataLen, ts, audioSetting_.acid);
             return result;
         }    
     } 
@@ -240,6 +241,7 @@ SmartPtr<SmartBuffer> FLVOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPa
 
     //if it's keyframe, inject spspps for each frame
     if( bIsKeyFrame ) {
+        //minor issue, injecting this header causing VLC to spit out false error message, ignore VLC errors.
         videoHeaderSent_ = false;
     }
 
@@ -360,7 +362,7 @@ SmartPtr<SmartBuffer> FLVOutput::packageAudioFrame(SmartPtr<SmartBuffer> audioPa
         data[11] = audioMp3TagByte;
     } else if( audioSetting_.acid == kAAC ) {
         data[11] = audioAacTagByte;
-        data[12] = 0x1; //real data
+        data[12] = kAACRaw; //AAC real data
         indexOfData++;
     } else {
         data[11] = audioSpeexTagByte;
