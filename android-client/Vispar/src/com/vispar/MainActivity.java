@@ -142,7 +142,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 3; //4 by adding follow
         }
 
         @Override
@@ -152,9 +152,13 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 case 0:
                     return getString(R.string.MySessions).toUpperCase(l);
                 case 1:
-                    return getString(R.string.Explore).toUpperCase(l);
+                    return getString(R.string.Schedule).toUpperCase(l);
                 case 2:
+                    return getString(R.string.Explore).toUpperCase(l);
+                    /*
+                case 3:
                     return getString(R.string.Follow).toUpperCase(l);
+                    */
             }
             return null;
         }
@@ -222,16 +226,27 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
    	       					 	targetedShareIntent.setType("text/plain");
    	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
    	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-   	           			 	 } else if (packageName.equals("com.facebook.katana")){
+   	           			 	 } else/* if (packageName.equals("com.facebook.katana")){
     	       					 targetedShareIntent.setType("text/plain");
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-    	           			 } else if (packageName.equals("com.twitter.android") || packageName.endsWith("twitter")) {
+    	           			 } else*/ if (packageName.equals("com.twitter.android") || packageName.endsWith("twitter")) {
     	           				 targetedShareIntent.setType("text/plain");
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
     	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-    	           			 }
-    	           			 else if (packageName.endsWith(".gm") || packageName.endsWith("gmail")){
+    	           			 } else if (packageName.equals("com.viber.voip")) {
+    	           				 targetedShareIntent.setType("text/plain");
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
+    	           			 } else if (packageName.equals("com.groupme.android")) {
+    	           				 targetedShareIntent.setType("text/plain");
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
+    	           			 } else if (packageName.equals("kik.android")) {
+    	           				 targetedShareIntent.setType("text/plain");
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+    	           				 targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
+    	           			 } else if (packageName.endsWith(".gm") || packageName.endsWith("gmail")){
     	           			 	 targetedShareIntent.setType("text/plain");
     	           				 targetedShareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
     	           				 targetedShareIntent.putExtra(Intent.EXTRA_TEXT, msgToShare);
@@ -291,6 +306,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                     }
                 });
             } else if(  selection == 2) {
+            	rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
+            } else if(  selection == 3) {
             	rootView = inflater.inflate(R.layout.fragment_explore, container, false);
             } else {
             	rootView = inflater.inflate(R.layout.fragment_follow, container, false);

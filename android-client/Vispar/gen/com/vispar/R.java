@@ -26,62 +26,87 @@ public final class R {
         public static final int ic_launcher=0x7f020001;
     }
     public static final class id {
-        public static final int Invite=0x7f08001b;
-        public static final int MyVideo=0x7f08001a;
-        public static final int Room=0x7f08001c;
-        public static final int action_settings=0x7f08001d;
-        public static final int loaderImageView1=0x7f080003;
-        public static final int loaderImageView2=0x7f080006;
-        public static final int loaderImageView3=0x7f080009;
-        public static final int loaderImageView4=0x7f08000c;
-        public static final int loaderImageView5=0x7f08000f;
-        public static final int loaderImageView6=0x7f080012;
-        public static final int loaderImageView7=0x7f080015;
-        public static final int loaderImageView8=0x7f080018;
+        public static final int Invite=0x7f08002b;
+        public static final int InviteSchedule=0x7f08002d;
+        public static final int MyVideo=0x7f08002a;
+        public static final int Room=0x7f08002c;
+        public static final int StartSchedule=0x7f08002f;
+        public static final int ViewSchedule=0x7f08002e;
+        public static final int action_settings=0x7f080030;
+        public static final int loaderImageView1=0x7f080005;
+        public static final int loaderImageView2=0x7f08000a;
+        public static final int loaderImageView3=0x7f08000f;
+        public static final int loaderImageView4=0x7f080014;
+        public static final int loaderImageView5=0x7f080019;
+        public static final int loaderImageView6=0x7f08001e;
+        public static final int loaderImageView7=0x7f080023;
+        public static final int loaderImageView8=0x7f080028;
         public static final int pager=0x7f080000;
-        public static final int section_label=0x7f080019;
+        public static final int section_label=0x7f080029;
         public static final int tableRow1=0x7f080001;
-        public static final int tableRow2=0x7f080004;
-        public static final int tableRow3=0x7f080007;
-        public static final int tableRow4=0x7f08000a;
-        public static final int tableRow5=0x7f08000d;
-        public static final int tableRow6=0x7f080010;
-        public static final int tableRow7=0x7f080013;
-        public static final int tableRow8=0x7f080016;
+        public static final int tableRow2=0x7f080006;
+        public static final int tableRow3=0x7f08000b;
+        public static final int tableRow4=0x7f080010;
+        public static final int tableRow5=0x7f080015;
+        public static final int tableRow6=0x7f08001a;
+        public static final int tableRow7=0x7f08001f;
+        public static final int tableRow8=0x7f080024;
         public static final int textView1=0x7f080002;
-        public static final int textView2=0x7f080005;
-        public static final int textView3=0x7f080008;
-        public static final int textView4=0x7f08000b;
-        public static final int textView5=0x7f08000e;
-        public static final int textView6=0x7f080011;
-        public static final int textView7=0x7f080014;
-        public static final int textView8=0x7f080017;
+        public static final int textView1_1=0x7f080003;
+        public static final int textView1_2=0x7f080004;
+        public static final int textView2=0x7f080007;
+        public static final int textView2_1=0x7f080008;
+        public static final int textView2_2=0x7f080009;
+        public static final int textView3=0x7f08000c;
+        public static final int textView3_1=0x7f08000d;
+        public static final int textView3_2=0x7f08000e;
+        public static final int textView4=0x7f080011;
+        public static final int textView4_1=0x7f080012;
+        public static final int textView4_2=0x7f080013;
+        public static final int textView5=0x7f080016;
+        public static final int textView5_1=0x7f080017;
+        public static final int textView5_2=0x7f080018;
+        public static final int textView6=0x7f08001b;
+        public static final int textView6_1=0x7f08001c;
+        public static final int textView6_2=0x7f08001d;
+        public static final int textView7=0x7f080020;
+        public static final int textView7_1=0x7f080021;
+        public static final int textView7_2=0x7f080022;
+        public static final int textView8=0x7f080025;
+        public static final int textView8_1=0x7f080026;
+        public static final int textView8_2=0x7f080027;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
         public static final int fragment_explore=0x7f030001;
         public static final int fragment_follow=0x7f030002;
         public static final int fragment_main=0x7f030003;
+        public static final int fragment_schedule=0x7f030004;
     }
     public static final class menu {
         public static final int main=0x7f070000;
     }
     public static final class string {
-        public static final int Explore=0x7f050002;
-        public static final int Follow=0x7f050003;
+        public static final int Explore=0x7f050003;
+        public static final int Follow=0x7f050004;
         public static final int MySessions=0x7f050001;
-        public static final int action_settings=0x7f050005;
+        public static final int Schedule=0x7f050002;
+        public static final int action_settings=0x7f050006;
         public static final int app_name=0x7f050000;
-        public static final int clipboard_share=0x7f05000a;
-        public static final int copy_to_clipboard=0x7f050009;
-        public static final int hello_world=0x7f050004;
-        public static final int invite_friends=0x7f05000b;
-        public static final int invite_session_message=0x7f05000e;
-        public static final int no_app_to_share=0x7f050007;
-        public static final int select_to_share=0x7f050008;
-        public static final int share_subject=0x7f050006;
-        public static final int start_session=0x7f05000c;
-        public static final int view_past_sessions=0x7f05000d;
+        public static final int clipboard_share=0x7f05000b;
+        public static final int copy_to_clipboard=0x7f05000a;
+        public static final int hello_world=0x7f050005;
+        public static final int invite_friends=0x7f05000c;
+        public static final int invite_schedules=0x7f050012;
+        public static final int invite_session_message=0x7f050013;
+        public static final int modify_schedules=0x7f050011;
+        public static final int no_app_to_share=0x7f050008;
+        public static final int select_to_share=0x7f050009;
+        public static final int share_subject=0x7f050007;
+        public static final int start_event=0x7f05000d;
+        public static final int start_schedules=0x7f05000f;
+        public static final int view_past_events=0x7f05000e;
+        public static final int view_schedules=0x7f050010;
     }
     public static final class style {
         /** 
@@ -110,5 +135,11 @@ public final class R {
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f060001;
+        public static final int BlueText=0x7f060005;
+        /**  text font 
+         */
+        public static final int CodeFont=0x7f060002;
+        public static final int GreenText=0x7f060003;
+        public static final int RedText=0x7f060004;
     }
 }
