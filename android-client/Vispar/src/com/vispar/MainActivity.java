@@ -7,6 +7,7 @@ import java.util.Locale;
 import com.vispar.mysessions.AirConfActivity;
 import com.vispar.R;
 import com.vispar.share.ClipboardActivity;
+import com.vispar.schedule.ViewEventActivity;
 
 import android.app.Activity;
 import android.app.ActionBar;
@@ -172,6 +173,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 		Button inviteFriends = null;
         Button joinRoom = null;
         Button myVideos = null;
+
+		Button inviteEvent = null;
+        Button viewEvent = null;
+        Button startEvent = null;
         
         /**
          * The fragment argument representing the section number for this
@@ -307,6 +312,19 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 });
             } else if(  selection == 2) {
             	rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
+
+            	viewEvent = (Button) rootView.findViewById(R.id.ViewEvent);
+            	viewEvent.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getActivity(), ViewEventActivity.class);
+                        String url = ""; //TODO
+                        Uri data = Uri.parse(url);
+                        intent.setData(data);
+                        startActivity(intent);
+                    }
+                });  
+            	startEvent = (Button) rootView.findViewById(R.id.StartEvent);
+            	inviteEvent = (Button) rootView.findViewById(R.id.InviteEvent);
             } else if(  selection == 3) {
             	rootView = inflater.inflate(R.layout.fragment_explore, container, false);
             } else {

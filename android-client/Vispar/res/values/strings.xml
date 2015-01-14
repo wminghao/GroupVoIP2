@@ -21,4 +21,6 @@
     <string name="modify_schedules">Modify</string>
     <string name="invite_schedules">Invite An Scheduled Event</string>
     <string name="invite_session_message">Join my Vispar session by clicking here: </string>
+    <string name="event_is_public">Public</string>
+    
 </resources>
