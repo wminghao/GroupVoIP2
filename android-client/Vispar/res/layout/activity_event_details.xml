@@ -7,40 +7,32 @@
     <TextView
         android:id="@+id/organizer"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
+        android:layout_height="wrap_content"/>
     <TextView
         android:id="@+id/eventTitle"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />    
+        android:layout_height="wrap_content"/>    
     <TextView
         android:id="@+id/eventStartTime"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:layout_height="wrap_content"/>
     <TextView
         android:id="@+id/eventEndTime"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:layout_height="wrap_content"/>
     <TextView
         android:id="@+id/eventDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Large Text"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 	<com.blundell.tut.LoaderImageView
 		   android:id="@+id/loaderImageView1"
 		   android:layout_width="180dp"
 		   android:layout_height="80dp"
-		   image="http://www.grey-hare.co.uk/wp-content/uploads/2012/09/Event-management.png" 
-		   />
+		   image="http://cp91279.biography.com/1000509261001/1000509261001_1912696506001_TDIH-Picasso-Born-RETRY.jpg"/>
     <CheckBox
         android:id="@+id/isPublic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/event_is_public" />
-
 </LinearLayout>

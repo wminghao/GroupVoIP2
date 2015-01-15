@@ -8,7 +8,7 @@
     <string name="Follow">Follow</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-	<string name="share_subject">Discussion share from Vispar</string>
+    <string name="share_subject">Discussion share from Vispar</string>
     <string name="no_app_to_share">Nothing to share</string>
     <string name="select_to_share">Select an app to share</string>
     <string name="copy_to_clipboard">Clipboard</string>
@@ -21,6 +21,19 @@
     <string name="modify_schedules">Modify</string>
     <string name="invite_schedules">Invite An Scheduled Event</string>
     <string name="invite_session_message">Join my Vispar session by clicking here: </string>
+    <string name="invite_event_message">Book my Vispar event by clicking here: </string>
     <string name="event_is_public">Public</string>
+    <string name="title_activity_start_event">Start A Event</string>
+    <string name="title_activity_view_event">View A Event</string>
     
+    <string name="event_title">Title</string>
+    <string name="event_description">Description</string>
+    <string name="event_start_time">Start Time</string>
+    <string name="event_end_time">End Time</string>
+    <string name="event_privacy">Privacy</string>
+    <string name="event_public">Public</string>
+    <string name="event_private">Private</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

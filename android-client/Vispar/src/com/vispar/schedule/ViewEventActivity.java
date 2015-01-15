@@ -33,7 +33,7 @@ public class ViewEventActivity extends Activity {
 	
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    	View inflatedView = View.inflate(this, R.layout.event_details, null);
+    	View inflatedView = View.inflate(this, R.layout.activity_event_details, null);
     	setContentView(inflatedView);
     	organizer = (TextView) inflatedView.findViewById(R.id.organizer);
     	eventTitle = (TextView) inflatedView.findViewById(R.id.eventTitle);
@@ -93,8 +93,8 @@ public class ViewEventActivity extends Activity {
 	        organizer.setText("Howard Wang"); //TODO
 	        eventTitle.setText(et);
 	        eventDescription.setText(ed);
-	        eventStartTime.setText(es);
-	        eventEndTime.setText(ee);
+	        eventStartTime.setText(es.replace('T', ' ').replaceAll(".000Z", ""));
+	        eventEndTime.setText(ee.replace('T', ' ').replaceAll(".000Z", ""));
 	        isPublic.setChecked(pc);
     	}
     }
