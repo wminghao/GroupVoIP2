@@ -35,4 +35,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/event_is_public" />
+
+    <Button
+        android:id="@+id/inviteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@+string/invite_schedules" />
+
 </LinearLayout>

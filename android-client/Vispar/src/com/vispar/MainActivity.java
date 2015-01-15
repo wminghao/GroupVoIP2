@@ -210,7 +210,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
     	           		 String msgToShare = getString(R.string.invite_session_message) + " http://www.vispar.com/rooms/howard"; //TODO
-    	           		 ShareSheet.share(container, PlaceholderFragment.this, v, msgToShare, false);
+    	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, false);
                     }
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
@@ -260,7 +260,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 	public void onClick(View v) {
     	           		 String msgToShare = getString(R.string.invite_event_message) + 
     	           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
-    	           		 ShareSheet.share(container, PlaceholderFragment.this, v, msgToShare, true);
+    	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, true);
                     }
                 });
             } else if(  selection == 1) {

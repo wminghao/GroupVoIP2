@@ -13,11 +13,15 @@ import org.json.JSONObject;
 
 import com.vispar.R;
 import com.vispar.VisparApplication;
+import com.vispar.MainActivity.PlaceholderFragment;
+import com.vispar.share.ShareSheet;
 
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -28,6 +32,7 @@ public class ViewEventActivity extends Activity {
 	TextView eventStartTime;
 	TextView eventEndTime;
 	CheckBox isPublic;
+	Button inviteButton;
 	AsyncTask<String, Void, Boolean> loadEvents;
 	String urlForViewEvents = "http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewevent/";
 	
@@ -41,6 +46,16 @@ public class ViewEventActivity extends Activity {
     	eventStartTime = (TextView) inflatedView.findViewById(R.id.eventStartTime);
     	eventEndTime = (TextView) inflatedView.findViewById(R.id.eventEndTime);
     	isPublic = (CheckBox) inflatedView.findViewById(R.id.isPublic);
+    	inviteButton = (Button)inflatedView.findViewById(R.id.inviteButton);
+
+    	inviteButton.setOnClickListener( new View.OnClickListener() {
+        	public void onClick(View v) {
+        		final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content)).getChildAt(0);
+           		 String msgToShare = getString(R.string.invite_event_message) + 
+           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
+           		 ShareSheet.share(viewGroup, ViewEventActivity.this, v, msgToShare, true);
+            }
+        });
     	urlForViewEvents += "1"; //TODO organizer Id
     	loadEvents = new JSONAsyncTask().execute(urlForViewEvents);
     }

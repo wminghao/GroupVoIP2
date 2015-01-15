@@ -3,6 +3,7 @@ package com.vispar.share;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,7 +16,7 @@ import android.widget.Toast;
 import com.vispar.R;
 
 public class ShareSheet {
-	static public void share(final ViewGroup container, Fragment frag, View view, String msgToShare, boolean allowFacebook) {
+	static public void share(final ViewGroup container, Activity frag, View view, String msgToShare, boolean allowFacebook) {
 		Intent intent = new Intent(Intent.ACTION_SEND);
   		 intent.setType("text/plain");
   		 List<Intent> targetedShareIntents = new ArrayList<Intent>();
@@ -77,7 +78,7 @@ public class ShareSheet {
   			 targetedShareIntents.add(targetedShareIntent);
   		 }
   		 //add clipboard
-		 Intent clipboardIntent = new Intent(frag.getActivity(), ClipboardActivity.class);
+		 Intent clipboardIntent = new Intent(frag, ClipboardActivity.class);
 		 clipboardIntent.setType("text/plain");
 		 clipboardIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, frag.getString(R.string.share_subject));
 		 clipboardIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
