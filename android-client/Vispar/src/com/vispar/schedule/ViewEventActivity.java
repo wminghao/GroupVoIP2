@@ -108,8 +108,12 @@ public class ViewEventActivity extends Activity {
 	        organizer.setText("Howard Wang"); //TODO
 	        eventTitle.setText(et);
 	        eventDescription.setText(ed);
-	        eventStartTime.setText(es.replace('T', ' ').replaceAll(".000Z", ""));
-	        eventEndTime.setText(ee.replace('T', ' ').replaceAll(".000Z", ""));
+	        if( es != null ) {
+	        	eventStartTime.setText(es.replace('T', ' ').replaceAll(".000Z", ""));
+	        }
+	        if( ee != null ) {
+	        	eventEndTime.setText(ee.replace('T', ' ').replaceAll(".000Z", ""));
+	        }
 	        isPublic.setChecked(pc);
     	}
     }
