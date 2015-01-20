@@ -201,7 +201,9 @@ public class VisparApp extends ApplicationAdapter implements
 	 */
     public void onSongPlaying(String songName) {
     	super.onSongPlaying(songName);
-        for(Set<IConnection> connections : scope.getConnections()) {
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
                 sendToClient(conn, "songSelected", songName);
             }

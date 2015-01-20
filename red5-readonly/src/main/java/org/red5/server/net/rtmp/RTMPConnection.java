@@ -278,13 +278,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		if (publisherStreamId > 0) {
 			if (streams.get(publisherStreamId - 1) != null) {
 				GroupMixer groupMixer = (GroupMixer) GroupMixer.getInstance();
-        		if( !groupMixer.hasAnythingStarted() || 
-        			this != groupMixer.getAllInOneConn() ) {
+        		if( !groupMixer.hasAnythingStarted(scope) || 
+        			this != groupMixer.getAllInOneConn(scope) ) {
         			this.publisherStreamName = publisherStreamName;
         			this.publisherStreamId = publisherStreamId;
         			//don't create for __mixed_all__ stream
         			if ( !publisherStreamName.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
-        				groupMixer.createMixedStream(publisherStreamName);		
+        				groupMixer.createMixedStream(scope, publisherStreamName);		
         			}
         		}
     		}
@@ -900,7 +900,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				streams.remove(streamId - 1);
 				streamBuffers.remove(streamId - 1);
 				if ( streamId == this.publisherStreamId ) {
-					GroupMixer.getInstance().deleteMixedStream(this.publisherStreamName);
+					GroupMixer.getInstance().deleteMixedStream(scope, this.publisherStreamName);
 				}
 			}
 		}
@@ -1424,7 +1424,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	
 	//from flash client to select a song.
 	public void selectSong(String songName) {
-		GroupMixer.getInstance().selectSong(songName);
+		GroupMixer.getInstance().selectSong(scope, songName);
 	}
 
     public void onSongPlaying(String songName) {

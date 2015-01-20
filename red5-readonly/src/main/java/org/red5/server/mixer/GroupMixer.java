@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -32,28 +33,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public static final String MIXED_STREAM_PREFIX = "__mixed__";
     public static final String ALL_IN_ONE_STREAM_NAME = "allinone";
     public static final String SPECIAL_STREAM_NAME = "karaoke"; //test name
-    private static final String AppName = "myRed5App";//TODO appName change to a room or something
+    private static final String AppName = "VisparApp";//appName.
     private static final String ipAddr = "localhost"; //TODO change to something else in the future
     private static GroupMixer instance_;
-    private String allInOneSessionId_ = null; //all-in-one mixer rtmp connection
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
-
-    private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
     
-    private IdLookup idLookupTable = new IdLookup();
+    private IRTMPHandler handler_ = null; //global handler used in creating RTMPConnections
     
-    // Java processPipe vs. native Process pipe
-    // private ProcessPipe mixerPipe_ = null;
-    private NativeProcessPipe mixerPipe_ = null;
-    private boolean bMixerOpenedSuccess_ = false;
-    private IRTMPHandler handler_ = null;
-    
-    //special stream
-    private KaraokeGenerator karaokeGen_ = null;
-  
 	//spring members from configuration
 	protected static ApplicationContext applicationContext;
-	
 	private boolean bShouldMix;
 	private boolean bLoadSegFromDisc; //read from a segment file instead
 	private boolean bSaveSegToDisc; //log input segment file to a disc
@@ -64,8 +52,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private String inputSegPath;	
 	private String karaokeFilePath;
 	
-	private FLVArchiver flvArchiver_;
-    
+	//map to different rooms
+    Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
+	
     private GroupMixer() {
     }
     
@@ -84,24 +73,13 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	{ 	
     	if( handler_ == null ) {
         	handler_ = handler;
-    	    //starts process pipe
-    	    if( bShouldMix ) {
-    	    	mixerPipe_ = new NativeProcessPipe(this, mixCoderBridge_, bSaveSegToDisc, outputSegPath, bLoadSegFromDisc, inputSegPath);
-    	    }
-    
-    	    if( bGenKaraoke ) {
-    	    	karaokeGen_ = new KaraokeGenerator(this, karaokeFilePath);
-    	    }
-    	    if( bSaveFlvToDisc ) {
-    	    	flvArchiver_ = new FLVArchiver(outputFlvPath);
-    	    }
     	}
-    	log.info("prepare AllInOneConn!");
+    	log.info("prepare GroupMixer!");
 	}
     
-    private void createAllInOneConn()
+    private void createAllInOneConn( MixerRoom mixerRoom )
     {  
-    	if( allInOneSessionId_ == null ) {
+    	if( mixerRoom.allInOneSessionId_ == null ) {
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
     	    // add session to the connection
@@ -110,7 +88,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    connAllInOne.setHandler(handler_);
     	    
     	    // set it in MixerManager
-    	    allInOneSessionId_ = connAllInOne.getSessionId();
+    	    mixerRoom.allInOneSessionId_ = connAllInOne.getSessionId();
     	    
     	    //??? different thread , see mina threading model ???
     	    //next assume the session is opened
@@ -120,124 +98,134 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    handleConnectEvent(connAllInOne);
     	}
 	    //kick off createStream event
-    	createMixedStreamInternal(ALL_IN_ONE_STREAM_NAME);
+    	createMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
 	    
 	    //kick off karaoke 
-	    if( karaokeGen_!= null ) {
-	    	createMixedStreamInternal(SPECIAL_STREAM_NAME);
+	    if( mixerRoom.karaokeGen_!= null ) {
+	    	createMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
 	    }
 	    
-	    if( mixerPipe_ != null) {
-	    	bMixerOpenedSuccess_ = mixerPipe_.open(); 
-	    }
+	    //start all other services
+	    mixerRoom.startService();
 	    
-		//start the karaoke thread
-	    if( karaokeGen_!= null ) {
-    		karaokeGen_.tryToStart();
-    	}
-
-	    if( bSaveFlvToDisc ) {
-	    	flvArchiver_.startArchive();
-	    }
-	    
-	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
+	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }	
 
 	//close all-in-one RTMPConnections and all its associated assets
-    private void deleteAllinOneConn()
+    private void deleteAllinOneConn( MixerRoom mixerRoom )
     {
-    	log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", bMixerOpenedSuccess_, allInOneSessionId_, Thread.currentThread().getName());
+    	log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
 
-		//stop the karaoke thread
-    	if( karaokeGen_ != null ) {
-    		karaokeGen_.tryToStop();
-    	}
-    	//close the process pipe
-    	if( mixerPipe_ != null ) {
-    		mixerPipe_.close();
-    	}
+    	mixerRoom.stopService();
 
 	    //shutdown all in one stream
-    	deleteMixedStreamInternal(ALL_IN_ONE_STREAM_NAME);
+    	deleteMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
 	    
 	    //shutdown karaoke stream
-	    if( karaokeGen_!= null ) {
-	    	deleteMixedStreamInternal(SPECIAL_STREAM_NAME);
+	    if( mixerRoom.karaokeGen_!= null ) {
+	    	deleteMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
 	    }
 
-	    if( bSaveFlvToDisc ) {
-	    	flvArchiver_.stopArchive();
-	    }
 	    //remove connection
-	    RTMPConnManager.getInstance().removeConnection(allInOneSessionId_);
-	    allInOneSessionId_ = null;
+	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
+	    mixerRoom.allInOneSessionId_ = null;
     }
     
-    public boolean hasAnythingStarted() {
-    	return !idLookupTable.isEmpty();
-    }
-    
-    public void createMixedStream(String streamName)
-    {
-    	if( idLookupTable.isEmpty() ) {
-    		//next creates the all-in-one RTMPMinaConnection
-    		createAllInOneConn();
+    private MixerRoom getMixerRoom(IScope roomScope) {
+    	MixerRoom mixerRoom = null;
+    	if( mixerRooms_.containsKey(roomScope) ) {
+    		mixerRoom = mixerRooms_.get(roomScope);
+    	} else {
+    		mixerRoom = new MixerRoom(this,
+    				  roomScope,
+    				  bShouldMix,
+            		  bLoadSegFromDisc, //read from a segment file instead
+            		  bSaveSegToDisc, //log input segment file to a disc
+            		  bSaveFlvToDisc, //log input segment file to a disc
+            		  bGenKaraoke, //should use karaoke
+            		  outputSegPath,
+            		  outputFlvPath,
+            		  inputSegPath,	
+            		  karaokeFilePath);
+    		mixerRooms_.put(roomScope, mixerRoom);
     	}
-    	createMixedStreamInternal(streamName);
+    	return mixerRoom;
+    }
+    
+    public boolean hasAnythingStarted(IScope roomScope) {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	return !mixerRoom.idLookupTable_.isEmpty();
+    }
+    
+    public void createMixedStream(IScope roomScope, String streamName)
+    {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	if( mixerRoom.idLookupTable_.isEmpty() ) {
+    		//next creates the all-in-one RTMPMinaConnection
+    		createAllInOneConn(mixerRoom);
+    	}
+    	createMixedStreamInternal(mixerRoom, streamName);
     }  
 
-    public void deleteMixedStream(String streamName)
+    public void deleteMixedStream(IScope roomScope, String streamName)
     {
-    	if( deleteMixedStreamInternal(streamName) != -1 ) {
-        	log.info("----------------after deleting stream {}, idLookupTable cnt={}", streamName, idLookupTable.getCount());
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	if( deleteMixedStreamInternal(mixerRoom, streamName) != -1 ) {
+        	log.info("----------------after deleting stream {}, idLookupTable cnt={}", streamName, mixerRoom.idLookupTable_.getCount());
         	//if all streams are removed, remove the special stream and free up the mixer
-        	boolean isEmpty = idLookupTable.isEmpty();
-        	if( !isEmpty && karaokeGen_!= null ) {
+        	boolean isEmpty = mixerRoom.idLookupTable_.isEmpty();
+        	if( !isEmpty && mixerRoom.karaokeGen_!= null ) {
         		//if there is only 1 stream, which is the special stream, also clean up everything
-        		if( idLookupTable.getCount() == 1) {
+        		if( mixerRoom.idLookupTable_.getCount() == 1) {
         			isEmpty = true;
         		}
         	}
         	if( isEmpty ) {
-        		deleteAllinOneConn();
+        		deleteAllinOneConn(mixerRoom);
         	}
     	}
     }
     
-    private void createMixedStreamInternal(String streamName) {
-    	int newStreamId = idLookupTable.createNewEntry(streamName);
-    	
-    	RTMPMinaConnection conn = getAllInOneConn();
+    private void createMixedStreamInternal(MixerRoom mixerRoom, String streamName) {
+    	int newStreamId = mixerRoom.idLookupTable_.createNewEntry(streamName);
+
+    	RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
     	handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
     }
     
-    private int deleteMixedStreamInternal(String streamName)
+    private int deleteMixedStreamInternal(MixerRoom mixerRoom, String streamName)
     {
     	log.info("----------------try to delete stream {}", streamName);
-    	int streamId = idLookupTable.deleteEntry(streamName);
+    	int streamId = mixerRoom.idLookupTable_.deleteEntry(streamName);
     	if ( streamId != -1 ) {        	
-    		RTMPMinaConnection conn = getAllInOneConn();
+    		RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
     		handleDeleteEvent(conn, streamId);
     	}
     	return streamId;
     }
     
-    public void pushInputMessage(String streamName, int msgType, IoBuffer buf, int eventTime)
+    public void pushInputMessage(IScope roomScope, String streamName, int msgType, IoBuffer buf, int eventTime)
     {	
-    	if( buf.limit() > 0 && mixerPipe_ != null && bMixerOpenedSuccess_ ) {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	pushInputMessage(mixerRoom, streamName, msgType, buf, eventTime);
+    }
+    
+    private void pushInputMessage(MixerRoom mixerRoom, String streamName, int msgType, IoBuffer buf, int eventTime) {	
+    	if( buf.limit() > 0 && mixerRoom.mixerPipe_ != null && mixerRoom.bMixerOpenedSuccess_ ) {
     		//log.info("----------------pushInputMessage, buf.limit()={}, mixerPipe_={}, bMixerOpenedSuccess_={}", buf.limit(), mixerPipe_, bMixerOpenedSuccess_);
-    		mixerPipe_.handleSegInput(idLookupTable, streamName, msgType, buf, eventTime);
+    		mixerRoom.mixerPipe_.handleSegInput(mixerRoom.idLookupTable_, streamName, msgType, buf, eventTime);
     	}
     }
 
-    public void onFrameParsed(int mixerId, ByteBuffer frame, int flvFrameLen)
+    public void onFrameParsed(IScope roomScope, int mixerId, ByteBuffer frame, int flvFrameLen)
     {
-    	int streamId = idLookupTable.lookupStreamId(mixerId);
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	int streamId = mixerRoom.idLookupTable_.lookupStreamId(mixerId);
     	//log.info("=====>onFrameParsed mixerId {} len {} streamName {}", mixerId, flvFrameLen, idLookupTable.lookupStreamName(mixerId) );
-    	onFrameGenerated( mixerId, streamId, frame, flvFrameLen, false );
+    	onFrameGenerated(mixerRoom, mixerId, streamId, frame, flvFrameLen, false );
     }
     
-    private void onFrameGenerated(int mixerId, int streamId, ByteBuffer frame, int flvFrameLen, boolean isKaraoke) {
+    private void onFrameGenerated(MixerRoom mixerRoom, int mixerId, int streamId, ByteBuffer frame, int flvFrameLen, boolean isKaraoke) {
     	if ( streamId != -1 ) {
     	    byte[] flvFrame = frame.array();
     	    int curIndex = 0;
@@ -247,7 +235,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 
     	    if( bSaveFlvToDisc ) {
     	    	if( mixerId == IdLookup.ALL_IN_ONE_STREAM_MIXER_ID ) {
-    	    		flvArchiver_.archiveData(frame, curIndex, flvFrameLen);
+    	    		mixerRoom.flvArchiver_.archiveData(frame, curIndex, flvFrameLen);
     	    	}
     	    }
     	    while( curIndex < flvFrameLen ) {
@@ -269,7 +257,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         		msgHeader.setTimerDelta(msgTimestamp);
         		msgHeader.setExtendedTimestamp(0); //extended timestamp
                 		
-                RTMPMinaConnection conn = getAllInOneConn();
+                RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
                 switch(msgType) {
             		case Constants.TYPE_AUDIO_DATA:
             		{
@@ -283,7 +271,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             			if( isKaraoke ) {
             			    IoBuffer buf = msgEvent.getData();
             			    if( buf != null) {
-            			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+            			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
             			    } else {
             			    	log.info("----------------onAudioData failed, streamId={}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
             			    }
@@ -306,7 +294,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             			if( isKaraoke ) {
             			    IoBuffer buf = msgEvent.getData();
             			    if( buf != null) {
-            			    	pushInputMessage(SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+            			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
             			    } else {
             			    	log.info("----------------onVideoData failed, streamId = {}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
             			    }
@@ -335,9 +323,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
     }
     
-    public RTMPMinaConnection getAllInOneConn()
+    private RTMPMinaConnection getAllInOneConn(MixerRoom mixerRoom)
     {
-    	return (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(allInOneSessionId_);
+    	return (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(mixerRoom.allInOneSessionId_);
+    }
+    
+    public RTMPMinaConnection getAllInOneConn(IScope roomScope)
+    {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	return getAllInOneConn(mixerRoom);
     }
     
     private void handleConnectEvent(RTMPMinaConnection conn)
@@ -501,20 +495,24 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
 
 	@Override
-	public void onKaraokeFrameParsed(ByteBuffer frame, int len) {
+	public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len) {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
 		//either send it to the original stream or delayed stream.
-		onFrameGenerated(idLookupTable.lookupMixerId(SPECIAL_STREAM_NAME), 
-						 idLookupTable.lookupStreamId(SPECIAL_STREAM_NAME), 
+		onFrameGenerated(mixerRoom, mixerRoom.idLookupTable_.lookupMixerId(SPECIAL_STREAM_NAME), 
+						 mixerRoom.idLookupTable_.lookupStreamId(SPECIAL_STREAM_NAME), 
 						 frame, len, true);
 	}
 
 	@Override
-    public void onSongPlaying(String songName) {
-    	RTMPConnection conn = getAllInOneConn();
+    public void onSongPlaying(IScope roomScope, String songName) {
+    	RTMPConnection conn = getAllInOneConn(roomScope);
     	conn.onSongPlaying(songName);
     }
-	public void selectSong(String songName) {
-		karaokeGen_.selectSong(songName);
+	
+	//from client to server
+	public void selectSong(IScope roomScope, String songName) {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	mixerRoom.karaokeGen_.selectSong(songName);
 	}
 	
 	/**

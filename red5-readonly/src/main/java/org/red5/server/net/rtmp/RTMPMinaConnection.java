@@ -290,7 +290,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public boolean isConnected() {
 		GroupMixer groupMixer = GroupMixer.getInstance();
-	    if( groupMixer.hasAnythingStarted() && this == groupMixer.getAllInOneConn() ) {
+	    if( groupMixer.hasAnythingStarted(scope) && this == groupMixer.getAllInOneConn(scope) ) {
     		//log.debug("***Connected: {}", super.isConnected());
     		return super.isConnected();
 	    } else {

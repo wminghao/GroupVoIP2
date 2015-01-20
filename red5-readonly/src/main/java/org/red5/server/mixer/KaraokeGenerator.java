@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
@@ -36,6 +37,8 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     String curSongName_ = "";
     private AtomicBoolean bCancelCurrentSong = new AtomicBoolean(false);
     
+    private IScope scope_ = null;
+    
     private class FLVFrameObject
     {
     	public ByteBuffer frame;
@@ -49,12 +52,13 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
     
     public interface Delegate {
-        public void onKaraokeFrameParsed(ByteBuffer frame, int len);
-        public void onSongPlaying(String songName);
+        public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len);
+        public void onSongPlaying(IScope roomScope, String songName);
     }
     
-    public KaraokeGenerator(KaraokeGenerator.Delegate delegate, String karaokeFilePath){
+    public KaraokeGenerator(KaraokeGenerator.Delegate delegate, IScope roomScope, String karaokeFilePath){
     	this.delegate_ = delegate;
+    	this.scope_ = roomScope;
     	this.karaokeFilePath_ = karaokeFilePath;
     	readSongMappingTable();
     }
@@ -101,7 +105,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	        			}
     	        		}
     	        		FLVFrameObject curFrame = flvFrameQueue_.remove();
-    	        		delegate_.onKaraokeFrameParsed(curFrame.frame, curFrame.frame.capacity());
+    	        		delegate_.onKaraokeFrameParsed(scope_, curFrame.frame, curFrame.frame.capacity());
     	        		//log.info("---->Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
     	        	}
 		    
@@ -133,7 +137,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	     			Thread.sleep( 1 );
     	     		} else {
     	     			FLVFrameObject frame = flvFrameQueue_.remove();
-    	     			delegate_.onKaraokeFrameParsed(frame.frame, frame.frame.capacity());
+    	     			delegate_.onKaraokeFrameParsed(scope_, frame.frame, frame.frame.capacity());
     	     			//log.info("---->Finally Popped a frame timestamp:  {}, len {}", curFrame.timestamp, curFrame.frame.capacity());
     	     		}
     	     	}
@@ -161,7 +165,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	//read a segment file and send it over
     	log.info("Reading in karaoke filePath: {}", karaokeFilePath_);
     	while( bStarted_.get() ) {
-            delegate_.onSongPlaying(curSongName_);
+            delegate_.onSongPlaying(scope_, curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
 
@@ -176,7 +180,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	if( firstPTS_ == 0xffffffff ) {
     	    //send the first frame immediately
     	    firstPTS_ = timestamp;
-    	    delegate_.onKaraokeFrameParsed(frame, len);
+    	    delegate_.onKaraokeFrameParsed(scope_, frame, len);
     	    log.info("---->First frame timestamp: {} len: {}", firstPTS_, len);
     	} else {
     	    //for the rest, put into the queue first

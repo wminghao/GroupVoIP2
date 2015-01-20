@@ -8,11 +8,13 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.nio.ByteBuffer;
 
+import org.red5.server.api.scope.IScope;
+
 public class SegmentParserTest implements SegmentParser.Delegate{
 
 	SegmentParser parser;
 	public SegmentParserTest() {
-		parser = new SegmentParser(this);
+		parser = new SegmentParser(this, null);
 	}
 	public void readData(byte[] src, int srcLen) {
 		parser.readData(src, srcLen);
@@ -61,7 +63,7 @@ public class SegmentParserTest implements SegmentParser.Delegate{
 	}
 
 	@Override
-	public void onFrameParsed(int mixerId, ByteBuffer frame, int len) {
+	public void onFrameParsed(IScope scope, int mixerId, ByteBuffer frame, int len) {
         System.out.println("Read a frame, mixerId: " + mixerId+" len="+len);
 	}
 
