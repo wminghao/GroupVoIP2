@@ -19,10 +19,10 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.ISubscriberStream;
 
-public class Application extends ApplicationAdapter implements
+public class VisparApp extends ApplicationAdapter implements
 		IPendingServiceCallback, IStreamAwareScopeHandler {
 
-    protected static Logger log = LoggerFactory.getLogger(Application.class);
+    protected static Logger log = LoggerFactory.getLogger(VisparApp.class);
     
     private Set<String> publisherList = new HashSet<String>();
 
@@ -40,17 +40,6 @@ public class Application extends ApplicationAdapter implements
 		log.info("Client connected {} conn {}", new Object[]{conn.getClient().getId(), conn});
 		service.invoke("setId", new Object[] { conn.getClient().getId() },
 						this);
-		//notify clients of all stream published, in comma deliminated form
-		String publisherListNames = "";
-		int totalPublishers = publisherList.size();
-		int i = 0;
-		for (String publisherName : publisherList) {
-			publisherListNames += publisherName;
-			if( (++i) < totalPublishers) {
-				publisherListNames += ",";
-			}
-		}
-        sendToClient(conn, "initStreams", publisherListNames);
 		return true;
 	}
 
@@ -63,14 +52,39 @@ public class Application extends ApplicationAdapter implements
 		return true;
 	}
 
-	/** {@inheritDoc} */
+
+	/** {@inheritDoc}
+	 * When a room is connected, the first thing we do is tell the client who else is publishing.
+	 * So that the client gets the notification.
+	 *  */
+    @Override
+	public boolean roomConnect(IConnection conn, Object[] params) {
+		//notify clients of all stream published, in comma deliminated form
+		String publisherListNames = "";
+		int totalPublishers = publisherList.size();
+		int i = 0;
+		for (String publisherName : publisherList) {
+			publisherListNames += publisherName;
+			if( (++i) < totalPublishers) {
+				publisherListNames += ",";
+			}
+		}
+        sendToClient(conn, "initStreams", publisherListNames);
+    	return true;
+	}
+    
+	/** {@inheritDoc} 
+	 * When a stream publishes, we notify all other connections that the person has been added as a publisher.
+	 * Should be roomscope instead of Application scope
+	 * */
     public void streamPublishStart(IBroadcastStream stream) {
     	// Notify all the clients that the stream had been started
     	if (log.isDebugEnabled()) {
     		log.debug("stream broadcast start: {}", stream.getPublishedName());
     	}
     	IConnection current = Red5.getConnectionLocal();
-        for(Set<IConnection> connections : scope.getConnections()) {
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
                 if (conn.equals(current)) {
                     // Don't notify current client
@@ -87,11 +101,17 @@ public class Application extends ApplicationAdapter implements
     public void streamRecordStart(IBroadcastStream stream) {
 	}
 
-	/** {@inheritDoc} */
+	/** {@inheritDoc} 
+	 * 
+	 * When a stream publish closes, we notify all other connections that the person has been removed as a publisher.
+	 * Should be roomscope instead of Application scope
+	 * 
+	 * */
     public void streamBroadcastClose(IBroadcastStream stream) {
     	//notify the connections that a stream is unpublished
     	IConnection current = Red5.getConnectionLocal();
-        for(Set<IConnection> connections : scope.getConnections()) {
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
                 if (conn.equals(current)) {
                     // Don't notify current client
@@ -162,6 +182,7 @@ public class Application extends ApplicationAdapter implements
 	public void resultReceived(IPendingServiceCall call) {
 		log.info("Received result {} for {}", new Object[]{call.getResult(), call.getServiceMethodName()});
 	}
+	
 	/*
 	 * Server calling (flash) client events such as: onSongSelected, addStream, removeStream, initStream, etc.
 	 */
@@ -186,5 +207,4 @@ public class Application extends ApplicationAdapter implements
             }
         }
     }
-
 }

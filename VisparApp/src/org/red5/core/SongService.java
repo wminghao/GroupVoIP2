@@ -7,7 +7,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
 
 public class SongService {
-    protected static Logger log = LoggerFactory.getLogger(Application.class);
+    protected static Logger log = LoggerFactory.getLogger(VisparApp.class);
 	public void selectSong(String songName) {
 
 		IConnection conn = Red5.getConnectionLocal();
