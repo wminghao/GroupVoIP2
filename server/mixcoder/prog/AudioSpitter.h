@@ -9,7 +9,7 @@
 //This class is useful only b/c Flash player cannot play h264+mp3 on android devices, we need to convert archived source into h264+aac.
 //AudioSpitter swallows MP3 raw frames of 1152samples/frame and spits out AAC frames of 1024samples/frame
 //We also map the timestamp properly for such case, however, 
-//  since the timestamp remapping can cause VLC to not like the stream, works fine on Flash.
+//  since the timestamp remapping can cause VLC to not like the stream, works fine on Flash and ffplay.
 //  therefore need to turn it off for VLC.
 class AudioSpitter
 {

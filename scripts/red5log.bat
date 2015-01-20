@@ -1,0 +1,1 @@
+sudo tail -f /usr/share/red5-server-1.0.2-RC4/log/red5.log
