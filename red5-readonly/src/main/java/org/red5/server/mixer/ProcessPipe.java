@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class ProcessPipe implements SegmentParser.Delegate{
@@ -49,13 +50,14 @@ public class ProcessPipe implements SegmentParser.Delegate{
     /*
      * flv output segment parser
      */
-    private SegmentParser segParser_ = new SegmentParser(this);
+    private SegmentParser segParser_ = null;
     
     private SegmentParser.Delegate delegate;
     
-    public ProcessPipe(SegmentParser.Delegate delegate, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
+    public ProcessPipe(SegmentParser.Delegate delegate, IScope scope, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
     {
 	this.delegate = delegate;
+	this.segParser_ = new SegmentParser(this, scope);
 	this.bSaveToDisc = bSaveToDisc;
 	this.outputFilePath = outputFilePath;
 	this.bLoadFromDisc = bLoadFromDisc;
@@ -250,8 +252,8 @@ public class ProcessPipe implements SegmentParser.Delegate{
     }
 
     @Override
-    public void onFrameParsed(int mixerId, ByteBuffer frame, int len) {
-	this.delegate.onFrameParsed(mixerId, frame, len);		
+    public void onFrameParsed(IScope scope, int mixerId, ByteBuffer frame, int len) {
+	this.delegate.onFrameParsed(scope, mixerId, frame, len);		
     }	
     
     public void close()

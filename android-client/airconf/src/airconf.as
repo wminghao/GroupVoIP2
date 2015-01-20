@@ -69,6 +69,10 @@ package
 		
 		private function onInvoke(event:InvokeEvent):void
 		{	
+			//example parameters
+			//live: "vispar.player://live/rooms/howard/now";
+			//vod: "vispar.player://vod/rooms/howard/1234567890";
+			var room:String = null;
 			var bIsArchive:Boolean = false;
 			//logDebug("reason: " + event.reason);  
 			//logDebug("arguments.length: " + event.arguments.length);  
@@ -81,12 +85,19 @@ package
 				var endIndex:int = arg.indexOf("/");
 				var typeStr:String = arg.substring(0, endIndex);
 				bIsArchive = ( typeStr == "vod");
-				//logDebug("=>typeStr="+typeStr);				
+				//logDebug("=>typeStr="+typeStr);	
+				
+				//skip the next parameter
+				arg = arg.substr(endIndex + 1);
+				endIndex = arg.indexOf("/");
+				arg = arg.substr(endIndex + 1);
+				endIndex = arg.indexOf("/");
+				room = arg.substring(0, endIndex);
 			}
 			if( bIsArchive ) {
 				vidInstance_ = new VideoPlayer(this, this);
 			} else {				
-				vidInstance_ = new VideoConn(this, this);
+				vidInstance_ = new VideoConn(this, this, room);
 			}
 		}		
 		

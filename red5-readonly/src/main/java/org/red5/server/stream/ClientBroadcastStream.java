@@ -387,7 +387,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			String publisherStreamName = rtmpConn.getPublisherStreamName();
 			//TODO only for mobile streams
 			if (publisherStreamName !=null && !publisherStreamName.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
-				GroupMixer.getInstance().pushInputMessage(publisherStreamName, msgType, buf, eventTime);
+				GroupMixer.getInstance().pushInputMessage(rtmpConn.getScope(), publisherStreamName, msgType, buf, eventTime);
 			}
 		}
 	}

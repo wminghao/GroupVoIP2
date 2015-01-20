@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge.Delegate {
@@ -31,14 +32,15 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     /*
      * flv output segment parser
      */
-    private SegmentParser segParser_ = new SegmentParser(this);
+    private SegmentParser segParser_ = null;
     private SegmentParser.Delegate delegate;
     private MixCoderBridge mixCoderBridge = null;
     private int procId = -1;
     
-    public NativeProcessPipe(SegmentParser.Delegate delegate, MixCoderBridge mixCoderBridge, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
+    public NativeProcessPipe(SegmentParser.Delegate delegate, IScope scope, MixCoderBridge mixCoderBridge, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
     {
     	this.delegate = delegate;
+    	this.segParser_ = new SegmentParser(this, scope);
     	this.mixCoderBridge = mixCoderBridge;
     	this.bSaveToDisc = bSaveToDisc;
     	this.outputFilePath = outputFilePath;
@@ -154,8 +156,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     }
     
     @Override
-    public void onFrameParsed(int mixerId, ByteBuffer frame, int len) {
-    	this.delegate.onFrameParsed(mixerId, frame, len);		
+    public void onFrameParsed(IScope scope, int mixerId, ByteBuffer frame, int len) {
+    	this.delegate.onFrameParsed(scope, mixerId, frame, len);		
     }	
     
     public boolean open()

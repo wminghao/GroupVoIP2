@@ -1,12 +1,12 @@
 package com.vispar;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import com.vispar.mysessions.AirConfActivity;
 import com.vispar.R;
-import com.vispar.share.ClipboardActivity;
+import com.vispar.share.ShareSheet;
+import com.vispar.schedule.StartEventActivity;
+import com.vispar.schedule.ViewEventActivity;
 
 import android.app.Activity;
 import android.app.ActionBar;
@@ -14,12 +14,9 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,8 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
-
 
 public class MainActivity extends Activity implements ActionBar.TabListener {
     
@@ -142,7 +137,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 3; //4 by adding follow
         }
 
         @Override
@@ -150,11 +145,15 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             Locale l = Locale.getDefault();
             switch (position) {
                 case 0:
-                    return getString(R.string.MySessions).toUpperCase(l);
-                case 1:
                     return getString(R.string.Explore).toUpperCase(l);
+                case 1:
+                    return getString(R.string.MySessions).toUpperCase(l);
                 case 2:
+                    return getString(R.string.Schedule).toUpperCase(l);
+                    /*
+                case 3:
                     return getString(R.string.Follow).toUpperCase(l);
+                    */
             }
             return null;
         }
@@ -168,6 +167,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 		Button inviteFriends = null;
         Button joinRoom = null;
         Button myVideos = null;
+
+		Button inviteEvent = null;
+        Button viewEvent = null;
+        Button startEvent = null;
         
         /**
          * The fragment argument representing the section number for this
@@ -198,7 +201,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             //for My sessions, show 3 buttons
             ///////////////////////////////////////
             int selection = this.getArguments().getInt(ARG_SECTION_NUMBER);
-            if(  selection == 1 ) {
+            if(  selection == 2 ) {
             	rootView = inflater.inflate(R.layout.fragment_main, container, false);
             	inviteFriends = (Button) rootView.findViewById(R.id.Invite);
                 joinRoom = (Button) rootView.findViewById(R.id.Room);
@@ -207,68 +210,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
     	           		 String msgToShare = getString(R.string.invite_session_message) + " http://www.vispar.com/rooms/howard"; //TODO
-    	           		 Intent intent = new Intent(Intent.ACTION_SEND);
-    	           		 intent.setType("text/plain");
-    	           		 List<Intent> targetedShareIntents = new ArrayList<Intent>();
-               		 
-    	           		 final PackageManager pm = container.getContext().getPackageManager();
-    	           		 final List<ResolveInfo> matches = pm.queryIntentActivities(intent, 0);
-    	           		 for (final ResolveInfo info : matches) {
-    	           			 String packageName = info.activityInfo.packageName;
-    	           			 System.out.println("Package name: "+ packageName);
-    	           			 Intent targetedShareIntent = new Intent(android.content.Intent.ACTION_SEND);
-    	           			 
-    	           			 if (packageName.equals("com.facebook.orca")){
-   	       					 	targetedShareIntent.setType("text/plain");
-   	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-   	       					 	targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-   	           			 	 } else if (packageName.equals("com.facebook.katana")){
-    	       					 targetedShareIntent.setType("text/plain");
-    	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-    	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-    	           			 } else if (packageName.equals("com.twitter.android") || packageName.endsWith("twitter")) {
-    	           				 targetedShareIntent.setType("text/plain");
-    	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-    	       		             targetedShareIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-    	           			 }
-    	           			 else if (packageName.endsWith(".gm") || packageName.endsWith("gmail")){
-    	           			 	 targetedShareIntent.setType("text/plain");
-    	           				 targetedShareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-    	           				 targetedShareIntent.putExtra(Intent.EXTRA_TEXT, msgToShare);
-    	           			 } else if (packageName.endsWith(".email") || packageName.endsWith(".mail")){
-    	           				 targetedShareIntent.setType("text/plain");
-    	           				 targetedShareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-    	           				 targetedShareIntent.putExtra(Intent.EXTRA_TEXT, msgToShare);
-    	           			 } else if (packageName.endsWith(".mms") ){
-    	           				 targetedShareIntent.setType("text/plain");
-    	           				 //targetedShareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.shareSubject));
-    	           				 targetedShareIntent.putExtra(Intent.EXTRA_TEXT, msgToShare);
-    	           			 } else {
-    	           				 continue;
-    	           			 }
-    	           			 targetedShareIntent.setPackage(packageName);
-    	                     targetedShareIntents.add(targetedShareIntent);
-    	           		 }
-    	           		 //add clipboard
-               			 Intent clipboardIntent = new Intent(getActivity(), ClipboardActivity.class);
-               			 clipboardIntent.setType("text/plain");
-               			 clipboardIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
-               			 clipboardIntent.putExtra(android.content.Intent.EXTRA_TEXT, msgToShare);
-               			 clipboardIntent.setPackage(".share.ClipboardActivity");
-                         targetedShareIntents.add(clipboardIntent);
-    	           		 
-    	           		 if (targetedShareIntents.size() >0) {
-    	           			 Intent chooserIntent = Intent.createChooser(targetedShareIntents.remove(0), getString(R.string.select_to_share));
-    	           			 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedShareIntents.toArray(new Parcelable[]{}));
-    	           			 startActivityForResult(chooserIntent, 0);
-    	           		 } else {
-    	           			 Toast toast = Toast.makeText(
-    	           					 v.getContext(), 
-    	               	             getString(R.string.no_app_to_share), 
-    	               	             Toast.LENGTH_LONG
-    	           	             );
-    	                   	     toast.show();
-    	           		 }
+    	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, false);
                     }
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
@@ -290,7 +232,38 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                         startActivity(intent);
                     }
                 });
-            } else if(  selection == 2) {
+            } else if(  selection == 3) {
+            	rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
+
+            	viewEvent = (Button) rootView.findViewById(R.id.ViewEvent);
+            	viewEvent.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getActivity(), ViewEventActivity.class);
+                        String url = ""; //TODO
+                        Uri data = Uri.parse(url);
+                        intent.setData(data);
+                        startActivity(intent);
+                    }
+                });  
+            	startEvent = (Button) rootView.findViewById(R.id.StartEvent);
+            	startEvent.setOnClickListener( new View.OnClickListener() {
+                	public void onClick(View v) {
+                		Intent intent = new Intent(getActivity(), StartEventActivity.class);
+                        String url = ""; //TODO
+                        Uri data = Uri.parse(url);
+                        intent.setData(data);
+                        startActivity(intent);
+                    }
+                });
+            	inviteEvent = (Button) rootView.findViewById(R.id.InviteEvent);
+            	inviteEvent.setOnClickListener( new View.OnClickListener() {
+                	public void onClick(View v) {
+    	           		 String msgToShare = getString(R.string.invite_event_message) + 
+    	           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
+    	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, true);
+                    }
+                });
+            } else if(  selection == 1) {
             	rootView = inflater.inflate(R.layout.fragment_explore, container, false);
             } else {
             	rootView = inflater.inflate(R.layout.fragment_follow, container, false);
