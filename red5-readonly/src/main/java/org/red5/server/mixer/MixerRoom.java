@@ -3,7 +3,6 @@ package org.red5.server.mixer;
 import org.red5.server.api.scope.IScope;
 
 public class MixerRoom {
-    public MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
     public String allInOneSessionId_ = null; //all-in-one mixer rtmp connection
     public IdLookup idLookupTable_ = new IdLookup();
     
@@ -17,8 +16,12 @@ public class MixerRoom {
     //flv archiver
     public FLVArchiver flvArchiver_;
     
+    //remember the name of the scope
+    public String scopeName_;
+    
     //creates a mixerRoom
     public MixerRoom( GroupMixer groupMixer,
+    			      MixCoderBridge mixCoderBridge,
     				  IScope scope,
     				  boolean bShouldMix,
             		  boolean bLoadSegFromDisc, //read from a segment file instead
@@ -30,9 +33,10 @@ public class MixerRoom {
             		  String inputSegPath,	
             		  String karaokeFilePath) {
 
+    	scopeName_ = scope.getName();
 	    //starts process pipe
 	    if( bShouldMix ) {
-	    	mixerPipe_ = new NativeProcessPipe(groupMixer, scope, mixCoderBridge_, bSaveSegToDisc, outputSegPath, bLoadSegFromDisc, inputSegPath);
+	    	mixerPipe_ = new NativeProcessPipe(groupMixer, scope, mixCoderBridge, bSaveSegToDisc, outputSegPath, bLoadSegFromDisc, inputSegPath);
 	    }
 	    if( bGenKaraoke ) {
 	    	karaokeGen_ = new KaraokeGenerator(groupMixer, scope, karaokeFilePath);

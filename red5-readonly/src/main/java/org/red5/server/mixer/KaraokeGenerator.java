@@ -67,12 +67,10 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	if( bStarted_.compareAndSet(false, true) ) {
     		Thread thread = new Thread(this, "KaraokeThread");
     		thread.start();
-            log.info("----tryToStart");
     	}
     }
     public void tryToStop() {
     	bStarted_.set(false);
-        log.info("----tryToStop");
     }
     
     private void loadASong(String fileName) {

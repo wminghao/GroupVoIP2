@@ -34,7 +34,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public static final String ALL_IN_ONE_STREAM_NAME = "allinone";
     public static final String SPECIAL_STREAM_NAME = "karaoke"; //test name
     private static final String AppName = "VisparApp";//appName.
-    private static final String ipAddr = "localhost"; //TODO change to something else in the future
+    private static final String ipAddr = "localhost"; //ignore
     private static GroupMixer instance_;
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     
@@ -53,7 +53,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private String karaokeFilePath;
 	
 	//map to different rooms
-    Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
+	private Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
+	
+	//mixcoder bridge is shared among all rooms, singleton, created only once
+    private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
 	
     private GroupMixer() {
     }
@@ -95,7 +98,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    handler_.connectionOpened(connAllInOne);
     	    
     	    //handle connect, createStream and publish events
-    	    handleConnectEvent(connAllInOne);
+    	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
     	}
 	    //kick off createStream event
     	createMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
@@ -137,6 +140,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     		mixerRoom = mixerRooms_.get(roomScope);
     	} else {
     		mixerRoom = new MixerRoom(this,
+    				  mixCoderBridge_,
     				  roomScope,
     				  bShouldMix,
             		  bLoadSegFromDisc, //read from a segment file instead
@@ -153,8 +157,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
     
     public boolean hasAnythingStarted(IScope roomScope) {
-    	MixerRoom mixerRoom = getMixerRoom(roomScope);
-    	return !mixerRoom.idLookupTable_.isEmpty();
+    	if( roomScope != null ) {
+    		MixerRoom mixerRoom = getMixerRoom(roomScope);
+    		return !mixerRoom.idLookupTable_.isEmpty();
+    	} else {
+    		return false;
+    	}
     }
     
     public void createMixedStream(IScope roomScope, String streamName)
@@ -334,7 +342,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	return getAllInOneConn(mixerRoom);
     }
     
-    private void handleConnectEvent(RTMPMinaConnection conn)
+    private void handleConnectEvent(RTMPMinaConnection conn, String scopeName)
     {
     	///////////////////////////////////
     	//handle StreamAction.CONNECT event
@@ -364,10 +372,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	connectMsgEvent.setCall(connectCall);
     	
     	Map<String, Object> connectParams = new HashMap<String, Object>();
-    	connectParams.put("app", AppName);
+    	connectParams.put("app", AppName+"/"+scopeName);
     	connectParams.put("flashVer", "FMSc/1.0");
     	connectParams.put("swfUrl", "a.swf");
-    	connectParams.put("tcUrl", "rtmp://"+ipAddr+":1935/"+AppName); //server ip address
+    	connectParams.put("tcUrl", "rtmp://"+ipAddr+"/"+AppName+"/"+scopeName); //server ip address
     	connectParams.put("fpad", false);
     	connectParams.put("audioCodecs", 0x0fff); //All codecs
     	connectParams.put("videoCodecs", 0x0ff); //All codecs
