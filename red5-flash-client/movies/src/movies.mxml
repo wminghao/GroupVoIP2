@@ -29,9 +29,11 @@
 			private var connectionSub:NetConnection;
 			private var container:UIComponent;
 			private var mic:Microphone;
-			private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"54.186.122.59";//"192.168.0.61";
+			private var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";
 			private var mixedStreamPrefix:String = "__mixed__";
-			private var specialStream:String = "__mixed__karaoke";
+			private var specialStream:String = mixedStreamPrefix+"karaoke";
+			private var appName:String = "VisparApp";
+			private var defaultRoom:String = "default";
 			private var defaultMovie:String = "Default"; //default movie means mtv stopped
 			
 			[Bindable]
@@ -65,8 +67,30 @@
 			private var videoHeight:int = 240;
 			private var positionArray:Array = [ [0, 0], [0, videoHeight], [videoWidth*3, 0], [videoWidth*3, videoHeight] ];
 			
+			private function getVideoPath():String {
+				var room:String = defaultRoom;
+				try
+				{
+					var paramObj:Object = LoaderInfo(this.root.loaderInfo).parameters;
+					var keyStr:String;
+					Alert.show("param="+paramObj.toString());
+					for (keyStr in paramObj) 
+					{
+						Alert.show("key="+keyStr.toString());
+						if( keyStr is String && keyStr == "room" ) {
+							room = String(paramObj[keyStr]);
+						}
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return "rtmp://"+serverIp+"/"+appName+"/"+room;
+			}
+			
 			public function onCreationComplete(event:FlexEvent) : void {
-				var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
+				var videoPath:String = getVideoPath();
 				// setup connection code
 				connectionPub = new NetConnection();
 				connectionPub.connect(videoPath);
@@ -211,7 +235,7 @@
 				// ignore AsyncErrorEvent events.
 			}
 			public function subscribeStreams():void {
-				var videoPath:String = "rtmp://"+serverIp+"/myRed5App/";
+				var videoPath:String = getVideoPath();
 				// setup connection code
 				connectionSub = new NetConnection();
 				connectionSub.connect(videoPath);  //subscribe to live video
