@@ -14,15 +14,13 @@ package com.vispar
 		private var netConn:NetConnection = null;	
 		private var videoOthers:Video = null;
 		
-		private var serverIp:String = "54.201.108.66";//"192.168.2.109";//"192.168.0.61";
-		
 		//detect connection timeout
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null;		
 		
-		public function VideoPlayer(container:Sprite, delegate:VideoContainerDelegate)
+		public function VideoPlayer(container:Sprite, delegate:VideoContainerDelegate,  room:String)
 		{
-			super(container, delegate);
+			super(container, delegate, room);
 		}
 		
 		override public function connectServer():void {
@@ -144,7 +142,7 @@ package com.vispar
 			streamView.bufferTime = 1; //1 seconds buffer
 			//causes android to fail for unknown reason, anyway, this flag is not helping too much.
 			//streamView.useJitterBuffer = true; //audio is mp3, so set buffer to be 0 
-			streamView.play("archive");//"vispar_videos/archive");
+			streamView.play("archive_"+room);//"vispar_videos/archive");
 			
 			videoOthers = new Video();
 			videoOthers.attachNetStream(streamView);

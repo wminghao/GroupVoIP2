@@ -16,10 +16,8 @@ package com.vispar
 		private var mic:Microphone = null;
 		private var camera:Camera = null;
 		
-		private var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		private var mixedStreamPrefix:String = "__mixed__";
 		private var appName:String = "VisparApp";
-		private var room:String = null;
 		private var defaultSong:String = "Default"; //default song means mtv stopped
 		
 		private var publishDest:String = null;
@@ -36,8 +34,7 @@ package com.vispar
 		
 		public function VideoConn(container:Sprite, delegate:VideoContainerDelegate, room:String)
 		{ 
-			super(container, delegate);
-			this.room = room;
+			super(container, delegate, room);
 		}
 		
 		override public function connectServer():void {

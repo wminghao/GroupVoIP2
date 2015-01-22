@@ -42,7 +42,7 @@ public class MixerRoom {
 	    	karaokeGen_ = new KaraokeGenerator(groupMixer, scope, karaokeFilePath);
 	    }
 	    if( bSaveFlvToDisc ) {
-	    	flvArchiver_ = new FLVArchiver(outputFlvPath);
+	    	flvArchiver_ = new FLVArchiver(outputFlvPath, scopeName_);
 	    }
     }
     

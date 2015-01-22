@@ -9,21 +9,24 @@ import java.nio.ByteBuffer;
 
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class FLVArchiver {
 	private String archivePrefix_;
+	private String scopeName_;
     private OutputStream outputFile_ = null;
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     
-	public FLVArchiver(String archivePath) {
-		archivePrefix_ = archivePath;		
+	public FLVArchiver(String archivePath, String scopeName) {
+		archivePrefix_ = archivePath;
+		scopeName_ = scopeName;
 	}
 	public void startArchive() {
 		try {
 		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
 		    if( outputFile_ == null ) {
-		    	String filePath = archivePrefix_+"archive.flv";
+		    	String filePath = archivePrefix_+"archive_"+scopeName_+".flv";
             	outputFile_ = new BufferedOutputStream(new FileOutputStream(filePath));
 		    }
 		    if( outputFile_ != null ) {

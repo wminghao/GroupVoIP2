@@ -95,7 +95,7 @@ package
 				room = arg.substring(0, endIndex);
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this);
+				vidInstance_ = new VideoPlayer(this, this, room);
 			} else {				
 				vidInstance_ = new VideoConn(this, this, room);
 			}

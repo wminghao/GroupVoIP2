@@ -19,15 +19,13 @@ import org.slf4j.Logger;
 
 public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge.Delegate {
     private boolean bLoadFromDisc = false; //read from a file instead
-    private boolean bSaveToDisc = false; //log input file to a disc
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     
     //test only
     private String inputFilePath;
-    private String outputFilePath;
-    private OutputStream outputFile_ = null;
     private DiscReaderThread discReaderThread_ = null;
     private boolean bStartDiscReader = false;
+    private SegmentArchiver segArchiver_ = null;
     
     /*
      * flv output segment parser
@@ -42,8 +40,9 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     	this.delegate = delegate;
     	this.segParser_ = new SegmentParser(this, scope);
     	this.mixCoderBridge = mixCoderBridge;
-    	this.bSaveToDisc = bSaveToDisc;
-    	this.outputFilePath = outputFilePath;
+    	if( bSaveToDisc ) {
+    		segArchiver_ = new SegmentArchiver(outputFilePath, scope.getName());
+    	}
     	this.bLoadFromDisc = bLoadFromDisc;
     	this.inputFilePath = inputFilePath;
     	log.info("======>GroupMixer configuration, bSaveToDisc={}, outPath={}, bLoadFromDisc={}, inPath={}, procId={}.", bSaveToDisc, outputFilePath, bLoadFromDisc, inputFilePath, procId);
@@ -56,25 +55,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     	    InputObject inputObject = new InputObject(idLookupTable, streamName, msgType, buf, eventTime, dataLen);
     	    ByteBuffer seg = inputObject.toByteBuffer();
     
-    	    if(bSaveToDisc) {
-        		try {
-        		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
-        		    if( outputFile_ == null ) {
-                    	outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
-        		    }
-        		    if( outputFile_ != null ) {
-            			if( seg != null ) {
-            			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
-            			    outputFile_.write(seg.array(), 0, seg.array().length);
-            			}
-        		    }
-        		}
-        		catch(FileNotFoundException ex){
-        		    log.info("======>Output File not found.");
-        		}
-        		catch(IOException ex){
-        		    log.info("======>IO exception.");
-        		}
+    	    if( segArchiver_ != null ) {
+    	    	segArchiver_.write(seg);
     	    } 
     	    if ( bLoadFromDisc ) {
         		try {
@@ -169,13 +151,8 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     
     public void close()
     {
-    	if( bSaveToDisc ) {
-    	    try {
-    	    	outputFile_.close();
-    	    	outputFile_ = null;
-    	    }catch (IOException ex) {
-    	    	log.info("close exception:  {}", ex);
-        	}
+    	if(  segArchiver_ != null  ) {
+    		segArchiver_.close();
     	}
     	
     	if ( !bLoadFromDisc ) {
