@@ -10,7 +10,7 @@
 #include "FLVSegmentOutput.h"
 #include "AudioSpeexEncoder.h"
 #include "AudioMp3Encoder.h"
-#include "AudioFaacEncoder.h"
+//#include "AudioFaacEncoder.h"
 #include "AudioFdkaacEncoder.h"
 #include "VideoFfmpegEncoder.h"
 #include "VideoVp8Encoder.h"
