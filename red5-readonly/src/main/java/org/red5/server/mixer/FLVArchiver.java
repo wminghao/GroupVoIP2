@@ -55,15 +55,19 @@ public class FLVArchiver {
 	}
 	public void stopArchive() {
 		try {
-	    	outputFile_.close();
-	    	outputFile_ = null;
+		    if( outputFile_ != null ) {
+    	    	outputFile_.close();
+    	    	outputFile_ = null;
+		    }
 	    }catch (IOException ex) {
 	    	log.info("close flv exception:  {}", ex);
     	}
 	}
 	public void archiveData(ByteBuffer frame, int startOffset, int flvFrameLen) {
 	    try {
-			outputFile_.write(frame.array(), startOffset, flvFrameLen-startOffset);
+		    if( outputFile_ != null ) {
+		    	outputFile_.write(frame.array(), startOffset, flvFrameLen-startOffset);
+		    }
 		} catch (IOException e) {
 	    	log.info("flv write exception:  {}", e);
 		}

@@ -47,8 +47,10 @@ public class SegmentArchiver {
     }
     public void close() {
 	    try {
-	    	outputFile_.close();
-	    	outputFile_ = null;
+	    	if( outputFile_ != null ) {
+	    		outputFile_.close();
+	    		outputFile_ = null;
+	    	}
 	    }catch (IOException ex) {
 	    	log.info("close exception:  {}", ex);
     	}
