@@ -71,15 +71,11 @@
 				var room:String = defaultRoom;
 				try
 				{
-					var paramObj:Object = LoaderInfo(this.root.loaderInfo).parameters;
-					var keyStr:String;
-					Alert.show("param="+paramObj.toString());
-					for (keyStr in paramObj) 
-					{
-						Alert.show("key="+keyStr.toString());
-						if( keyStr is String && keyStr == "room" ) {
-							room = String(paramObj[keyStr]);
-						}
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						room = ExternalInterface.call("getRoom");
+						Alert.show("room="+room);
 					}
 				}
 				catch (error:Error) 
