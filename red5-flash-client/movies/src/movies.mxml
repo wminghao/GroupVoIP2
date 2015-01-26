@@ -75,7 +75,7 @@
 					{ 
 						// Perform ExternalInterface method calls here. 
 						room = ExternalInterface.call("getRoom");
-						Alert.show("room="+room);
+						//Alert.show("room="+room);
 					}
 				}
 				catch (error:Error) 
