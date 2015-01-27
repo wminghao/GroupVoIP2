@@ -15,6 +15,7 @@ package
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
+	import flash.media.*;
 	
 	public class airconf extends Sprite implements VideoContainerDelegate
 	{		
@@ -97,7 +98,7 @@ package
 			if( bIsArchive ) {
 				vidInstance_ = new VideoPlayer(this, this, room);
 			} else {				
-				vidInstance_ = new VideoConn(this, this, room);
+				vidInstance_ = new VideoConf(this, this, room);
 			}
 		}		
 		
@@ -226,6 +227,18 @@ package
 		public function getScreenY():int
 		{
 			return screenY;
+		}
+		
+		public function tryGetFrontCamera():Camera {
+			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
+			for (var i:uint = 0; i < numCameras; i++) {
+				var cam:Camera = Camera.getCamera(String(i));
+				//logDebug(" cam position="+cam.position);
+				if (cam && cam.position == CameraPosition.FRONT) {
+					return cam;
+				}
+			} 
+			return null;
 		}
 	}
 }

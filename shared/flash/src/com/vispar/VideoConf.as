@@ -7,7 +7,7 @@ package com.vispar
 	import flash.system.*;
 	import flash.utils.*;
 	
-	public class VideoConn extends VideoContainer
+	public class VideoConf extends VideoContainer
 	{
 		private var streamPub:NetStream = null; //must declare outside, otherwise, gc will recycle it.
 		private var streamView:NetStream = null; //must declare outside
@@ -32,7 +32,7 @@ package com.vispar
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
 		
-		public function VideoConn(container:Sprite, delegate:VideoContainerDelegate, room:String)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String)
 		{ 
 			super(container, delegate, room);
 		}
@@ -161,18 +161,6 @@ package com.vispar
 			}
 		}
 		
-		private function tryGetFrontCamera():Camera {
-			var numCameras:uint = (Camera.isSupported) ? Camera.names.length : 0;
-			for (var i:uint = 0; i < numCameras; i++) {
-				var cam:Camera = Camera.getCamera(String(i));
-				//logDebug(" cam position="+cam.position);
-				if (cam && cam.position == CameraPosition.FRONT) {
-					return cam;
-				}
-			} 
-			return null;
-		}
-		
 		private function publishNow() : void {
 			
 			//already published, don't do anything.
@@ -204,7 +192,7 @@ package com.vispar
 					//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
 					return;
 				}
-				camera = tryGetFrontCamera();	     
+				camera = delegate_.tryGetFrontCamera();	     
 				if (camera == null) {
 					logDebug("----camera null");
 					Security.showSettings(SecurityPanel.CAMERA) ;
