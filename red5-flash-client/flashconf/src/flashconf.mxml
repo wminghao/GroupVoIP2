@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600"
+			   creationComplete="onCreationComplete(event)" xmlns:local="*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import com.vispar.*;
+			
+			private var defaultRoom:String = "default";
+			
+			//vidContainer class
+			private var vidInstance_:VideoContainer = null;
+			
+			public function onCreationComplete(event:FlexEvent) : void {
+				try {
+					this.container.setDebugArea(debugText);
+					var room:String = getVideoRoom();
+					if( getIsArchive() ) {
+						vidInstance_ = new VideoPlayer(container, container, room);
+					} else {				
+						vidInstance_ = new VideoConf(container, container, room);
+					}
+					vidInstance_.connectServer();	
+				} catch (error:Error) {
+					Alert.show("----exception, e=" + error.toString());
+				}
+			}
+			
+			private function getVideoRoom():String {
+				var room:String = defaultRoom;
+				try
+				{
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						room = ExternalInterface.call("getRoom");
+						if(room == null) {
+							room = defaultRoom;
+						}
+						//Alert.show("room="+room);
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return room;
+			}
+			
+			private function getIsArchive():Boolean {
+				var isArchive:Boolean = false;
+				try
+				{
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						isArchive = ExternalInterface.call("isArchive");
+						//Alert.show("isArchive="+isArchive);
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return isArchive;
+			}
+		]]>
+	</fx:Script>
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout>
+		<s:Label id="lbl" width="100%" height="100%" fontSize="20" horizontalCenter="0"
+				 paddingLeft="10" paddingRight="5" paddingTop="5" text="Welcome to Howard's Room"
+				 verticalCenter="0"/>
+	</s:Group>
+	<local:UIContainer id="container" x="0" y="30" width="650" height="480"/>
+	<s:TextArea id="debugText" x="649" y="30" width="305" height="480" text=""/>
+	<s:Label id="debug" x="649" y="3" width="180" height="26" fontSize="20" paddingLeft="5"
+			 paddingTop="5" text="Debug Messages"/>
+</s:Application>
