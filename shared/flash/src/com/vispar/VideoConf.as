@@ -26,6 +26,7 @@ package com.vispar
 		private var videoSelf:Video = null;
 		private var videoOthers:Video = null;
 		
+		//TODO, change it to something else
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
 		
 		//detect connection timeout

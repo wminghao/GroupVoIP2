@@ -149,7 +149,7 @@ package com.vispar
 			container_.addChild(videoOthers);
 			//video.opaqueBackground = 0x000000;
 			videoOthers.width = (delegate_.getScreenWidth() - 2*delegate_.getScreenX());
-			videoOthers.height = delegate_.getScreenHeight();
+			videoOthers.height = (delegate_.getScreenHeight() - 2*delegate_.getScreenY());
 			videoOthers.x = delegate_.getScreenX();
 			videoOthers.y = delegate_.getScreenY();
 			videoOthers.visible = true;
