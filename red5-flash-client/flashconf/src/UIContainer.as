@@ -85,14 +85,14 @@ package
 		}
 		
 		public function onVideoSelected(videoName:String):void {
-			logDebug("Now playing="+videoName);
+			logDebug("Now playing="+videoName+" ");
 		}
 		public function onVideoListPopulated(videoNamesArray:Array):void {
 			var arrLen:int = videoNamesArray.length;
 			for (var i:int = 0; i<arrLen; i++) {
 				var vidName:String = videoNamesArray[i];
 				videoSet_.addItem({'value':vidName, 'code':vidName});
-				logDebug("vidName="+vidName+" ");
+				//logDebug("vidName="+vidName+" ");
 			}
 		}
 	}
