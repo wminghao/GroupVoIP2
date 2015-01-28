@@ -218,8 +218,8 @@ package com.vispar
 					container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 					videoSelf.x = delegate_.getScreenX();
 					videoSelf.y = delegate_.getScreenY();
-					videoSelf.width = (delegate_.getScreenWidth()-2*delegate_.getScreenX())/2;
-					videoSelf.height = delegate_.getScreenHeight()/2;
+					videoSelf.width = delegate_.getScreenWidth()-2*delegate_.getScreenX();
+					videoSelf.height = delegate_.getScreenHeight()-2*delegate_.getScreenY();
 					videoSelf.visible = true;
 					
 					mic.setSilenceLevel(0,200);
@@ -291,10 +291,10 @@ package com.vispar
 			videoOthers.attachNetStream(streamView);
 			container_.addChild(videoOthers);
 			//video.opaqueBackground = 0x000000;
-			videoOthers.width = (delegate_.getScreenWidth() - 2*delegate_.getScreenX());
-			videoOthers.height = delegate_.getScreenHeight();
 			videoOthers.x = delegate_.getScreenX();
 			videoOthers.y = delegate_.getScreenY();
+			videoOthers.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX());
+			videoOthers.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY());
 			videoOthers.visible = true;
 		}
 		private function onCuePoint(info:Object):void {
@@ -317,16 +317,17 @@ package com.vispar
 				}
 			}
 			
-			videoSelf.x = (x*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth() + delegate_.getScreenX();
-			videoSelf.y = (y*delegate_.getScreenHeight())/delegate_.getVideoHeight();
+			videoSelf.x = ((x*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth()) + delegate_.getScreenX();
+			videoSelf.y = ((y*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight()) + delegate_.getScreenY();
 			videoSelf.width = (width*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth();
-			videoSelf.height = (height*delegate_.getScreenHeight())/delegate_.getVideoHeight();
+			videoSelf.height = (height*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight();
 			/*
 			logDebug("videoSelf.x = " + videoSelf.x);
 			logDebug("videoSelf.y = " + videoSelf.y);
 			logDebug("videoSelf.width = " + videoSelf.width);			
 			logDebug("videoSelf.height = " + videoSelf.height);
 			*/
+			
 			container_.addChild(videoOthers);
 			container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 		};

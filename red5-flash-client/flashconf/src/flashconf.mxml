@@ -15,13 +15,17 @@
 			import com.vispar.*;
 			
 			private var defaultRoom:String = "default";
+			//540=480+30*2
+			private var edgeX_:int = 0; //leave the top area for display label and others
+			private var edgeY_:int = 30;//leave the top area for display label and others
 			
 			//vidContainer class
 			private var vidInstance_:VideoContainer = null;
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
-					this.container.setDebugArea(debugText);
+					
+					this.container.setInfo(edgeX_, edgeY_, debugText );
 					var room:String = getVideoRoom();
 					if( getIsArchive() ) {
 						vidInstance_ = new VideoPlayer(container, container, room);
@@ -82,7 +86,7 @@
 				 paddingLeft="10" paddingRight="5" paddingTop="5" text="Welcome to Howard's Room"
 				 verticalCenter="0"/>
 	</s:Group>
-	<local:UIContainer id="container" x="0" y="30" width="650" height="480"/>
+	<local:UIContainer id="container" x="0" y="0" width="640" height="540"/>
 	<s:TextArea id="debugText" x="649" y="30" width="305" height="480" text=""/>
 	<s:Label id="debug" x="649" y="3" width="180" height="26" fontSize="20" paddingLeft="5"
 			 paddingTop="5" text="Debug Messages"/>

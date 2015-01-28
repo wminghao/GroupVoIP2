@@ -56,6 +56,8 @@ package
 			screenHeight = Math.min( stage.fullScreenHeight, minBound );  
 			screenX = (screenWidth*videoHeight - videoWidth * screenHeight) / (2*videoHeight);
 			
+			//logDebug("----screenWidth="+screenWidth+" screenHeight="+screenHeight+" screenX="+screenX);
+			
 			//invoke events for parameter passing.
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvoke);
 			
