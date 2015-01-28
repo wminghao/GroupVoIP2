@@ -74,4 +74,10 @@ public class MixerRoom {
 	    	flvArchiver_.stopArchive();
 	    }
     }
+    
+    public void populateVideoList(){
+    	if( karaokeGen_ != null ) {
+    		karaokeGen_.populateVideoList();
+    	}
+    }
 }

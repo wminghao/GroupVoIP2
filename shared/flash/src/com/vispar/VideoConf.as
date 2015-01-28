@@ -26,6 +26,8 @@ package com.vispar
 		private var videoSelf:Video = null;
 		private var videoOthers:Video = null;
 		
+		private var defaultMovie:String = "Default"; //default movie means mtv stopped
+		
 		//TODO, change it to something else
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
 		
@@ -372,6 +374,34 @@ package com.vispar
 		}
 		public function removeStream(resp:Object):void {
 			removeElementFromStringVector(String(resp), publishedStreamArray);
+		}
+		
+		override public function selectVideo(videoName:String):void {
+			if( publishDest != null ) {
+				netConn.call("song.selectSong", null, videoName);	
+			}
+		}
+		override public function stopVideo():void {
+			if( publishDest != null ) {
+				netConn.call("song.selectSong", null, defaultMovie);	
+			}
+		}
+		
+		//notify external video is playing
+		public function onVideoSelected(resp:Object):void	
+		{
+			var videoName:String = String(resp);
+			if( videoName != null) {
+				delegate_.onVideoSelected(videoName);
+			}
+		}
+		public function onVideoListPopulated(resp:Object):void	{
+			var videoListStr:String = String(resp);
+			logDebug("videoPopulated = "+videoListStr);
+			if( videoListStr != "") {
+				var videoNamesArray:Array = videoListStr.split(",");
+				delegate_.onVideoListPopulated(videoNamesArray);	
+			}
 		}
 	}
 }

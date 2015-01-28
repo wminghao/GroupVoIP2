@@ -173,6 +173,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     		createAllInOneConn(mixerRoom);
     	}
     	createMixedStreamInternal(mixerRoom, streamName);
+    	mixerRoom.populateVideoList();//send video list to the client
     }  
 
     public void deleteMixedStream(IScope roomScope, String streamName)
@@ -512,9 +513,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	}
 
 	@Override
-    public void onSongPlaying(IScope roomScope, String songName) {
+    public void onVideoPlaying(IScope roomScope, String videoName) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
-    	conn.onSongPlaying(songName);
+    	conn.onVideoPlaying(videoName);
+    }
+
+	@Override
+    public void onVideoListPopulated(IScope roomScope, String videoListNames) {
+    	RTMPConnection conn = getAllInOneConn(roomScope);
+    	conn.onVideoListPopulated(videoListNames);
     }
 	
 	//from client to server

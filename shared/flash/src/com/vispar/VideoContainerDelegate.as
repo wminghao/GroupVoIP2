@@ -14,5 +14,8 @@ package com.vispar
 		function getScreenHeight():int;		
 		function getScreenX():int;
 		function getScreenY():int;
+		
+		function onVideoSelected(videoName:String):void;
+		function onVideoListPopulated(videoNamesArray:Array):void;
 	}
 }

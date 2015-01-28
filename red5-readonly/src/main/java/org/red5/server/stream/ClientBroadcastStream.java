@@ -949,8 +949,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 	}
 	
-	//notify client a song is playing
-    public void onSongPlaying(String songName) {
+	//notify client a video is playing
+    public void onVideoPlaying(String videoName) {
     	IEventListener source = Red5.getConnectionLocal();
 
 		if (source instanceof IConnection) {
@@ -959,7 +959,23 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
-					((IStreamAwareScopeHandler) handler).onSongPlaying(songName);
+					((IStreamAwareScopeHandler) handler).onVideoPlaying(videoName);
+				}
+			}
+		}
+    }
+
+	//notify client a video is playing
+    public void onVideoListPopulated(String videoListNames) {
+    	IEventListener source = Red5.getConnectionLocal();
+
+		if (source instanceof IConnection) {
+			IScope scope = ((IConnection) source).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for song playing
+					((IStreamAwareScopeHandler) handler).onVideoListPopulated(videoListNames);
 				}
 			}
 		}

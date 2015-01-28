@@ -197,15 +197,26 @@ public class VisparApp extends ApplicationAdapter implements
 	}
 
 	/*
-	 * Notification when a song is playing
+	 * Notification when a video is playing
 	 */
-    public void onSongPlaying(String songName) {
-    	super.onSongPlaying(songName);
+    public void onVideoPlaying(String videoName) {
+    	super.onVideoPlaying(videoName);
     	IConnection current = Red5.getConnectionLocal();
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
-                sendToClient(conn, "songSelected", songName);
+                sendToClient(conn, "onVideoSelected", videoName);
+            }
+        }
+    }
+
+    public void onVideoListPopulated(String videoListNames) {
+    	super.onVideoListPopulated(videoListNames);
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+                sendToClient(conn, "onVideoListPopulated", videoListNames);
             }
         }
     }

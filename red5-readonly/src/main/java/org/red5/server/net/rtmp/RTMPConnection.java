@@ -1427,14 +1427,25 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		GroupMixer.getInstance().selectSong(scope, songName);
 	}
 
-    public void onSongPlaying(String songName) {
+    public void onVideoPlaying(String videoName) {
 		Red5.setConnectionLocal(this);
         try {
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
     		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.onSongPlaying(songName);
+    		cbs.onVideoPlaying(videoName);
         } catch(Exception e) {
-        	log.info("----Non-critical error: onSongPlaying callback failed: {}", e);
+        	log.info("----Non-critical error: onVideoPlaying callback failed: {}", e);
+        }
+    }
+
+    public void onVideoListPopulated(String videoListNames) {
+		Red5.setConnectionLocal(this);
+        try {
+    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
+    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+    		cbs.onVideoListPopulated(videoListNames);
+        } catch(Exception e) {
+        	log.info("----Non-critical error: onVideoListPopulated callback failed: {}", e);
         }
     }
 }

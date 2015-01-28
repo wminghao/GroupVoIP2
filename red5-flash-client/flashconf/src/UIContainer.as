@@ -4,6 +4,7 @@ package
 	
 	import flash.media.*;
 	
+	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.core.UIComponent;
 	
@@ -12,6 +13,7 @@ package
 	public class UIContainer extends UIComponent implements VideoContainerDelegate
 	{
 		private var debugText_:TextArea;
+		private var videoSet_:ArrayCollection;
 		private var videoWidth_:int = 640;
 		private var videoHeight_:int = 480;
 		private var edgeX_:int; //leave the top area for display label and others
@@ -22,10 +24,13 @@ package
 			super();
 		}
 		
-		public function setInfo(edgeX:int, edgeY:int, debugText:TextArea):void {
+		public function setInfo(edgeX:int, edgeY:int, 
+								debugText:TextArea,
+								videoSet:ArrayCollection):void {
 			this.edgeX_ = edgeX;
 			this.edgeY_ = edgeY;
-			this.debugText_ = debugText;			
+			this.debugText_ = debugText;	
+			this.videoSet_ = videoSet;
 			//logDebug("----screenWidth="+this.width+" screenHeight="+this.height+" screenX="+(this.x + edgeX_)+" screenY="+(this.y + edgeY_));
 		}
 		
@@ -77,6 +82,18 @@ package
 				return cam;
 			} 
 			return null;
+		}
+		
+		public function onVideoSelected(videoName:String):void {
+			logDebug("Now playing="+videoName);
+		}
+		public function onVideoListPopulated(videoNamesArray:Array):void {
+			var arrLen:int = videoNamesArray.length;
+			for (var i:int = 0; i<arrLen; i++) {
+				var vidName:String = videoNamesArray[i];
+				videoSet_.addItem({'value':vidName, 'code':vidName});
+				logDebug("vidName="+vidName+" ");
+			}
 		}
 	}
 }

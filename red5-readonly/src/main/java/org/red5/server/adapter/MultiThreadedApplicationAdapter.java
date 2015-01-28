@@ -1381,10 +1381,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	/*
-	 * Notification when a song is playing
+	 * Notification when a video is playing
 	 */
-    public void onSongPlaying(String songName) {
+    public void onVideoPlaying(String videoName) {
 		// log w3c connect event
-		log.info("W3C x-category:stream x-event:onSongPlaying c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), songName);
+		log.info("W3C x-category:stream x-event:onVideoPlaying c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
+    }
+    public void onVideoListPopulated(String videoListNames) {
+		// log w3c connect event
+		log.info("W3C x-category:stream x-onVideoListPopulated c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoListNames);
     }
 }

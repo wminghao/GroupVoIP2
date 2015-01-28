@@ -53,7 +53,8 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     
     public interface Delegate {
         public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len);
-        public void onSongPlaying(IScope roomScope, String songName);
+        public void onVideoPlaying(IScope roomScope, String videoName);
+        public void onVideoListPopulated(IScope roomScope, String videoListNames);
     }
     
     public KaraokeGenerator(KaraokeGenerator.Delegate delegate, IScope roomScope, String karaokeFilePath){
@@ -163,7 +164,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	//read a segment file and send it over
     	log.info("Reading in karaoke filePath: {}", karaokeFilePath_);
     	while( bStarted_.get() ) {
-            delegate_.onSongPlaying(scope_, curSongName_);
+            delegate_.onVideoPlaying(scope_, curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
 
@@ -238,5 +239,14 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     private void nextAsDefaultSong() {
     	curSongFile_ = defaultSong;
     	curSongName_ = defaultSong;
+    }
+
+    public void populateVideoList(){
+    	String videoListStr = "";
+    	for (Map.Entry<String, String> entry : songMappingTable_.entrySet()) {
+    		videoListStr += entry.getKey();
+    		videoListStr += ",";
+    	}
+        delegate_.onVideoListPopulated(scope_, videoListStr.substring(0, videoListStr.length()-1));
     }
 }

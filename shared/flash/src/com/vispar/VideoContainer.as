@@ -33,5 +33,10 @@ package com.vispar
 		
 		public function disconnectServer():void {
 		}
+		
+		public function selectVideo(videoName:String):void {
+		}
+		public function stopVideo():void {
+		}
 	}
 }
