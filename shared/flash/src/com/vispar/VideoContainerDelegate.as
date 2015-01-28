@@ -4,6 +4,7 @@ package com.vispar
 	public interface VideoContainerDelegate
 	{
 		function logDebug(str:String, showInTextField:Boolean = true):void;
+		function showAlert(str:String):void;
 		
 		function tryGetFrontCamera():Camera;
 		

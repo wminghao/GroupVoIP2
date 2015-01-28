@@ -39,6 +39,10 @@ package
 				//trace(str);
 			}
 		}
+		public function showAlert(str:String):void
+		{
+			Alert.show(str);
+		}
 		
 		//delegate functions
 		public function getVideoWidth():int

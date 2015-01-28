@@ -40,7 +40,7 @@ package com.vispar
 		
 		override public function connectServer():void {
 			if( netConn == null) {
-				logDebug(" null!");				
+				//logDebug(" null!");				
 			}			
 			var videoPath:String = "rtmp://"+serverIp+"/"+appName+"/"+room;
 			// setup connection code
@@ -145,7 +145,7 @@ package com.vispar
 		
 		private function onCameraStatus( evt:StatusEvent ):void {
 			if (evt.code == "Camera.Muted"){
-				//Alert.show("Camera Access Has Been Denied!", "Information");
+				showAlert("Camera Access Has Been Denied! You have to reload to enable camera in flash settings!");
 			}
 			if (evt.code == "Camera.Unmuted"){
 				//Alert.show("Camera Access Has Been Granted", "Information");
@@ -157,7 +157,7 @@ package com.vispar
 					//Alert.show("Camera Access Has Been Granted!", "Information");
 					break;
 				case "Microphone.Muted":
-					logDebug("Camera Access Has Been Denied!");
+					showAlert("Microphone Access Has Been Denied! You have to reload to enable microphone in flash settings!");
 					break;
 			}
 		}
@@ -184,8 +184,7 @@ package com.vispar
 					break;
 				}
 			}
-			logDebug("----publishNow, publishDest="+publishDest);
-			
+			logDebug("----publishDest="+publishDest);
 			try{
 				openViewStream();
 				
@@ -198,7 +197,7 @@ package com.vispar
 					logDebug("----camera null");
 					Security.showSettings(SecurityPanel.CAMERA) ;
 				} else{
-					logDebug("----try to open microphone");
+					//logDebug("----try to open microphone");
 					mic = Microphone.getMicrophone();
 					mic.addEventListener(StatusEvent.STATUS, onMicStatus);
 					camera.addEventListener(StatusEvent.STATUS, onCameraStatus);

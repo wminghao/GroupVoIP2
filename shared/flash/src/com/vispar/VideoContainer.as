@@ -17,6 +17,9 @@ package com.vispar
 		protected function logDebug(str:String):void {
 			delegate_.logDebug(str, true);
 		}
+		protected function showAlert(str:String):void {
+			delegate_.showAlert(str);
+		}
 		
 		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate,  room:String)
 		{ 

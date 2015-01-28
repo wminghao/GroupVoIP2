@@ -175,6 +175,10 @@ package
 			}
 		}
 		
+		public function showAlert(str:String):void
+		{
+			logDebug(str);
+		}
 		
 		//debug functions
 		private var debug:Boolean = true;
