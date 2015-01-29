@@ -54,7 +54,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     public interface Delegate {
         public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len);
         public void onVideoPlaying(IScope roomScope, String videoName);
-        public void onVideoListPopulated(IScope roomScope, String videoListNames);
+        public void onVideoListPopulated(IScope roomScope, String streamName, String videoListNames);
     }
     
     public KaraokeGenerator(KaraokeGenerator.Delegate delegate, IScope roomScope, String karaokeFilePath){
@@ -241,12 +241,12 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	curSongName_ = defaultSong;
     }
 
-    public void populateVideoList(){
+    public void populateVideoList(String streamName){
     	String videoListStr = "";
     	for (Map.Entry<String, String> entry : songMappingTable_.entrySet()) {
     		videoListStr += entry.getKey();
     		videoListStr += ",";
     	}
-        delegate_.onVideoListPopulated(scope_, videoListStr.substring(0, videoListStr.length()-1));
+        delegate_.onVideoListPopulated(scope_, streamName, videoListStr.substring(0, videoListStr.length()-1));
     }
 }

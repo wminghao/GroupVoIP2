@@ -966,7 +966,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
     }
 
 	//notify client a video is playing
-    public void onVideoListPopulated(String videoListNames) {
+    public void onVideoListPopulated(String streamName, String videoListNames) {
     	IEventListener source = Red5.getConnectionLocal();
 
 		if (source instanceof IConnection) {
@@ -975,7 +975,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
-					((IStreamAwareScopeHandler) handler).onVideoListPopulated(videoListNames);
+					((IStreamAwareScopeHandler) handler).onVideoListPopulated(streamName, videoListNames);
 				}
 			}
 		}

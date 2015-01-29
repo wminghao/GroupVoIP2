@@ -1438,12 +1438,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         }
     }
 
-    public void onVideoListPopulated(String videoListNames) {
+    public void onVideoListPopulated(String streamName, String videoListNames) {
 		Red5.setConnectionLocal(this);
         try {
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
     		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.onVideoListPopulated(videoListNames);
+    		cbs.onVideoListPopulated(streamName, videoListNames);
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoListPopulated callback failed: {}", e);
         }

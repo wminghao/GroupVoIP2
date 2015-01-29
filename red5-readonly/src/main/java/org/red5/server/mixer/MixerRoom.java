@@ -75,9 +75,9 @@ public class MixerRoom {
 	    }
     }
     
-    public void populateVideoList(){
+    public void populateVideoList(String streamName){
     	if( karaokeGen_ != null ) {
-    		karaokeGen_.populateVideoList();
+    		karaokeGen_.populateVideoList(streamName);
     	}
     }
 }

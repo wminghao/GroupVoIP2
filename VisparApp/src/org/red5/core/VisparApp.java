@@ -18,6 +18,7 @@ import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.RTMPConnection;
 
 public class VisparApp extends ApplicationAdapter implements
 		IPendingServiceCallback, IStreamAwareScopeHandler {
@@ -210,13 +211,19 @@ public class VisparApp extends ApplicationAdapter implements
         }
     }
 
-    public void onVideoListPopulated(String videoListNames) {
-    	super.onVideoListPopulated(videoListNames);
+    public void onVideoListPopulated(String streamName, String videoListNames) {
+    	super.onVideoListPopulated(streamName, videoListNames);
     	IConnection current = Red5.getConnectionLocal();
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
-                sendToClient(conn, "onVideoListPopulated", videoListNames);
+            	if( conn instanceof RTMPConnection ) {
+            		RTMPConnection rtmpConn = (RTMPConnection) conn;
+            		String publisherName = rtmpConn.getPublisherStreamName();
+            		if( publisherName!=null && publisherName.equals(streamName) ) {
+            			sendToClient(conn, "onVideoListPopulated", videoListNames);
+            		}
+            	}
             }
         }
     }

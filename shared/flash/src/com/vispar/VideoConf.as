@@ -397,7 +397,7 @@ package com.vispar
 		}
 		public function onVideoListPopulated(resp:Object):void	{
 			var videoListStr:String = String(resp);
-			logDebug("videoPopulated = "+videoListStr);
+			//logDebug("videoPopulated = "+videoListStr);
 			if( videoListStr != "") {
 				var videoNamesArray:Array = videoListStr.split(",");
 				delegate_.onVideoListPopulated(videoNamesArray);	
