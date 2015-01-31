@@ -36,7 +36,7 @@ package
 		
 		//debug functions
 		private var debug:Boolean = true;
-		public function logDebug(str:String, showInTextField:Boolean = true):void 
+		public function logDebug(str:String):void 
 		{
 			//Test code
 			if(debug && debugText_ ) {

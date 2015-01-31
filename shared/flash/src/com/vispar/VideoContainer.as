@@ -15,7 +15,7 @@ package com.vispar
 		//ip address
 		protected var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";//"192.168.0.61";
 		protected function logDebug(str:String):void {
-			delegate_.logDebug(str, true);
+			delegate_.logDebug(str);
 		}
 		protected function showAlert(str:String):void {
 			delegate_.showAlert(str);

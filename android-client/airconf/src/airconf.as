@@ -1,7 +1,6 @@
 package
 {
 	import com.vispar.*;
-	import com.vispar.ui.AlertBox;
 	import com.wadedwalker.nativeExtension.telephone.CallStateEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataActivityEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataConnectionStateEvent;
@@ -12,10 +11,12 @@ package
 	import flash.display.*;
 	import flash.events.*;
 	import flash.geom.Rectangle;
+	import flash.media.*;
 	import flash.text.*;
 	import flash.ui.Keyboard;
 	import flash.utils.*;
-	import flash.media.*;
+	
+	import ui.alert.*;
 	
 	public class airconf extends Sprite implements VideoContainerDelegate
 	{		
@@ -39,6 +40,11 @@ package
 		private var ignoreBack:Boolean = false;
 		//wheter deactivate indicates exit. (Home button)
 		private var deactivateExit:Boolean = true;
+		
+		//alert box
+		private var alert:AlertBox;
+		private static var alertBoxWidth:int = 400;
+		private static var alertBoxHeight:int = 400;
 		
 		public function airconf()
 		{
@@ -80,7 +86,7 @@ package
 			//logDebug("reason: " + event.reason);  
 			//logDebug("arguments.length: " + event.arguments.length);  
 			if( event.arguments.length > 0 && event.arguments[0]!=null ) {
-				logDebug("=>onInvoke="+event.arguments[0]);
+				//logDebug("=>onInvoke="+event.arguments[0]);
 				var arg:String = event.arguments[0];
 				arg = arg.substr(arg.indexOf("//") + 2);
 				//logDebug("=>arg="+arg);
@@ -107,9 +113,23 @@ package
 		private function handleActivate(event:Event):void
 		{
 			logDebug("=>handleActivate.");
-			vidInstance_.connectServer();	
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
+			
+			var detectNetworkFunc:Function = function (eventType : String):void {
+				this.removeChild(alert);
+				if( eventType == AlertBox.ALERT_YES ) {
+					vidInstance_.connectServer();						
+				} else { //AlertBox.ALERT_NO
+					logDebug("===>Cancel");
+				}
+			}
+			showAlertWithCallback( "Warning",
+								   "You must have at least 1Mbps network upload and download speed in order to view the session", 
+								   ["Continue", "Cancel"], 
+								   detectNetworkFunc);
 		}
+		
+		
 		
 		private function handleDeactivate(event:Event):void
 		{
@@ -175,36 +195,54 @@ package
 			}
 		}
 		
-		public function showAlert(str:String):void
+		public function showAlert(str:String):void 
 		{
-			logDebug(str);
+			showAlertWithCallback("Alert", str, null, null);
+		}
+		
+		public function showAlertWithCallback(title:String, str:String, button:Array, myFunc:Function):void
+		{
+			try {
+				var rect:Rectangle = new Rectangle( stage.fullScreenWidth/2-alertBoxWidth/2, stage.fullScreenHeight/2-alertBoxHeight/2, 
+													alertBoxWidth, alertBoxHeight );
+				alert = new AlertBox(   title, 
+										str, 
+										button,
+										rect,
+										myFunc == null? doNothing: myFunc,
+										logDebug);
+				this.addChild(alert);
+				var doNothing:Function = function (eventType:String):void {
+					this.removeChild(alert);
+				};
+			} catch(err:Error) {
+				logDebug(err.toString());
+			}
 		}
 		
 		//debug functions
 		private var debug:Boolean = true;
 		private var debugText:TextField = null;
-		public function logDebug(str:String, showInTextField:Boolean = true):void 
+		public function logDebug(str:String):void 
 		{
 			//Test code
 			if(debug) {
-				if(showInTextField) {
-					if(!debugText) {
-						debugText = new TextField();
-						// Autosize TextField with the text and align to CENTER.
-						debugText.autoSize = TextFieldAutoSize.CENTER;
-						debugText.x = 0;
-						debugText.y = 0;
-						var newFormat:TextFormat = new TextFormat();
-						newFormat.font = "Verdana";
-						newFormat.size = 30;
-						newFormat.color = 0xff0000;
-						debugText.setTextFormat(newFormat);
-						debugText.wordWrap = true;
-						debugText.width=200;
-						addChild(debugText);
-					}
-					debugText.appendText(str+"\t");
+				if(!debugText) {
+					debugText = new TextField();
+					// Autosize TextField with the text and align to CENTER.
+					debugText.autoSize = TextFieldAutoSize.CENTER;
+					debugText.x = 0;
+					debugText.y = 0;
+					var newFormat:TextFormat = new TextFormat();
+					newFormat.font = "Verdana";
+					newFormat.size = 30;
+					newFormat.color = 0xff0000;
+					debugText.setTextFormat(newFormat);
+					debugText.wordWrap = true;
+					debugText.width=140;
+					addChild(debugText);
 				}
+				debugText.appendText(str+"\t");
 				trace(str);
 			}
 		}
