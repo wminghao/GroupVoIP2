@@ -42,7 +42,6 @@ package
 		private var deactivateExit:Boolean = true;
 		
 		//alert box
-		private var alert:AlertBox;
 		private static var alertBoxWidth:int = 400;
 		private static var alertBoxHeight:int = 400;
 		
@@ -116,15 +115,14 @@ package
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
 			
 			var detectNetworkFunc:Function = function (eventType : String):void {
-				this.removeChild(alert);
 				if( eventType == AlertBox.ALERT_YES ) {
 					vidInstance_.connectServer();						
 				} else { //AlertBox.ALERT_NO
-					logDebug("===>Cancel");
+					backClickHandler(); //treat the same way as backbutton					
 				}
 			}
 			showAlertWithCallback( "Warning",
-								   "You must have at least 1Mbps network upload and download speed in order to view the session", 
+								   "You must have at least 1Mbps network upload and download speed to join a realtime session!", 
 								   ["Continue", "Cancel"], 
 								   detectNetworkFunc);
 		}
@@ -197,7 +195,7 @@ package
 		
 		public function showAlert(str:String):void 
 		{
-			showAlertWithCallback("Alert", str, null, null);
+			showAlertWithCallback("Alert", str, ["OK"], null);
 		}
 		
 		public function showAlertWithCallback(title:String, str:String, button:Array, myFunc:Function):void
@@ -205,16 +203,13 @@ package
 			try {
 				var rect:Rectangle = new Rectangle( stage.fullScreenWidth/2-alertBoxWidth/2, stage.fullScreenHeight/2-alertBoxHeight/2, 
 													alertBoxWidth, alertBoxHeight );
-				alert = new AlertBox(   title, 
-										str, 
-										button,
-										rect,
-										myFunc == null? doNothing: myFunc,
-										logDebug);
+				var alert:AlertBox = new AlertBox(  title, 
+													str, 
+													button,
+													rect,
+													myFunc,
+													logDebug);
 				this.addChild(alert);
-				var doNothing:Function = function (eventType:String):void {
-					this.removeChild(alert);
-				};
 			} catch(err:Error) {
 				logDebug(err.toString());
 			}

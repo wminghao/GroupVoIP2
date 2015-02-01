@@ -4,12 +4,13 @@ package ui.alert
 	
 	import flash.display.Sprite;
 	import flash.events.*;
+	import flash.events.TouchEvent;
 	import flash.geom.*;
 	import flash.text.*;
-	import flash.events.TouchEvent;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	
+	//http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/fl/controls/Button.html
 	//example from http://sibirjak.com/osflash/blog/tutorial-creating-an-alert-box-with-the-as3commons-popupmanager/
 	public class AlertBox extends Sprite {
 		public static const ALERT_YES : String = "yes";
@@ -23,7 +24,6 @@ package ui.alert
 								 rect:Rectangle,
 								 clickCallback : Function,
 								 logDebug:Function) {
-			Multitouch.inputMode = MultitouchInputMode.TOUCH_POINT;
 			_clickCallback = clickCallback;
 			_logDebug = logDebug;
 			
@@ -64,16 +64,23 @@ package ui.alert
 			
 			// buttons
 			if (buttons) {
-				if (buttons[0]) {
-					var b0:Button = createButton(buttons[0], ALERT_YES);
-					b0.x = rect.x + 20;
-					b0.y = rect.y + rect.height-60;
-					this.addChild(b0);
-				}
-				if (buttons[1]) {
-					var b1:Button = createButton(buttons[1], ALERT_NO);
-					b1.x = rect.x + 20 + rect.width/2;
-					b1.y = rect.y + rect.height-60;
+				if( buttons.length == 2) {
+					if (buttons[0]) {
+						var b0:Button = createButton(buttons[0], ALERT_YES);
+						b0.x = rect.x + 20;
+						b0.y = rect.y + rect.height-60;
+						this.addChild(b0);
+					}
+					if (buttons[1]) {
+						var b1:Button = createButton(buttons[1], ALERT_NO);
+						b1.x = rect.x + 20 + rect.width/2;
+						b1.y = rect.y + rect.height-60;
+						this.addChild(b1);
+					}
+				} else {
+					var b00:Button = createButton(buttons[0], ALERT_YES);
+					b00.x = rect.x + rect.width/2 -20;
+					b00.y = rect.y + rect.height-60;
 					this.addChild(b1);
 				}
 			}
@@ -83,30 +90,28 @@ package ui.alert
 			var button : Button = new Button();
 			button.setSize(120, 44);
 			button.label = label;
-			button.enabled = true;
 			var enabledTextFormat:TextFormat = new TextFormat();
 			enabledTextFormat.bold = true;
 			enabledTextFormat.size = 18;
 			enabledTextFormat.color = 0x0000FF;
-			//button.setStyle("embedFonts", true);
 			button.setStyle("textFormat", enabledTextFormat);
-			button.emphasized = true;
-			button.textField.defaultTextFormat = enabledTextFormat;
-			_logDebug("------here--------");
-			button.addEventListener(TouchEvent.TOUCH_BEGIN, function(event : Event) : void {
+			button.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
 				buttonClickHandler(eventType);
-				_logDebug("-----on touched---------");
 			});
-			button.addEventListener(MouseEvent.CLICK, function(event : Event) : void {
-				buttonClickHandler(eventType);
-				_logDebug("-----on clicked---------");
-			});
-			_logDebug("------there--------");
 			return button;
 		}
 		
 		private function buttonClickHandler(eventType : String) : void {
-			_clickCallback(this, eventType);
+			try {
+				if( parent ) {
+					parent.removeChild(this);
+				}
+				if( _clickCallback!= null ) {
+					_clickCallback(eventType);
+				}
+			} catch(err:Error) {
+				_logDebug(err.toString());
+			}
 		}
 	}
 }
