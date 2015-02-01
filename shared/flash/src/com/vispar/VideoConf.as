@@ -360,7 +360,7 @@ package com.vispar
 		
 		public function initStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			logDebug("initStreams = "+streamListStr); 
+			//logDebug("initStreams = "+streamListStr); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;

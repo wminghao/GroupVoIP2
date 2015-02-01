@@ -281,7 +281,7 @@ package
 		}
 		
 		public function onVideoSelected(videoName:String):void {
-			logDebug("Now playing="+videoName);
+			//logDebug("Now playing="+videoName);
 		}
 		public function onVideoListPopulated(videoNamesArray:Array):void {
 		}
