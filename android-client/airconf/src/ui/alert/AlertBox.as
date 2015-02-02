@@ -94,6 +94,7 @@ package ui.alert
 			enabledTextFormat.bold = true;
 			enabledTextFormat.size = 18;
 			enabledTextFormat.color = 0x0000FF;
+			button.setStyle("disabledTextFormat", enabledTextFormat);
 			button.setStyle("textFormat", enabledTextFormat);
 			button.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
 				buttonClickHandler(eventType);

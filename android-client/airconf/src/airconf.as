@@ -114,17 +114,21 @@ package
 			logDebug("=>handleActivate.");
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
 			
-			var detectNetworkFunc:Function = function (eventType : String):void {
-				if( eventType == AlertBox.ALERT_YES ) {
-					vidInstance_.connectServer();						
-				} else { //AlertBox.ALERT_NO
-					backClickHandler(); //treat the same way as backbutton					
+			if( vidInstance_ is VideoConf ) {
+				var detectNetworkFunc:Function = function (eventType : String):void {
+					if( eventType == AlertBox.ALERT_YES ) {
+						vidInstance_.connectServer();						
+					} else { //AlertBox.ALERT_NO
+						backClickHandler(); //treat the same way as backbutton					
+					}
 				}
+				showAlertWithCallback( "Warning",
+									   "You must have at least 1Mbps network upload and download speed to join a realtime session!", 
+									   ["Continue", "Cancel"], 
+									   detectNetworkFunc);
+			} else {
+				vidInstance_.connectServer();
 			}
-			showAlertWithCallback( "Warning",
-								   "You must have at least 1Mbps network upload and download speed to join a realtime session!", 
-								   ["Continue", "Cancel"], 
-								   detectNetworkFunc);
 		}
 		
 		
