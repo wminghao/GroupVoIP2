@@ -216,7 +216,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://live/rooms/howard/now"; //TODO
+                        String url = "vispar.player://live/rooms/howard/howard/now"; //TODO
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -226,7 +226,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                     public void onClick(View v) {
                     	//TODO an activity to list all archived videos
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://vod/rooms/howard/1234567890";//TODO archive ID
+                        String url = "vispar.player://vod/rooms/howard/howard/1234567890";//TODO archive ID
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);

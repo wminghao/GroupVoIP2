@@ -21,6 +21,8 @@ package com.vispar
 		private var appName:String = "VisparApp";
 		private var defaultVideo:String = "Default"; //default means video stopped
 		private var allinone:String = "allinone";
+		private var maxPublishers:int = 4-1; //excluding the external video source, TODO 
+		private var totalPublishers:int = 0;
 		
 		private var publishDest:String = null;
 		private var publishedStreamArray:Vector.<String> = new Vector.<String>();
@@ -31,18 +33,15 @@ package com.vispar
 		private var isViewOnly_:Boolean = false;
 		private var isAudioOnly_:Boolean = false;
 		
-		//TODO, change it to something else
-		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
-		
 		//detect connection timeout
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
 		
 		private var emptyRoomNotification_:TextField = null;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String)
 		{ 
-			super(container, delegate, room);
+			super(container, delegate, room, user);
 		}
 		
 		override public function connectServer():void {
@@ -139,26 +138,24 @@ package com.vispar
 			}
 		}
 		
-		private function getPublisherName():String {
-			var publisherName:String;
-			//find the publishDest
-			for each(var item:String in dataSet){
-				var bFound:Boolean = false;
+		private function getPublisherName():Array {
+			var publisherName:String = null;
+			var bFound:Boolean = false;
+			if( totalPublishers < maxPublishers ) {
+				//find the publishDest
 				var length:uint = publishedStreamArray.length;
 				for ( var i:uint=0; i<length; i++ ) {
 					//check if the stream is already published
-					if (publishedStreamArray[ i ] == item ) {
+					if (publishedStreamArray[ i ] == this.user ) {
 						bFound = true;
 						break;
 					}
 				}
-				if( !bFound) {
-					publisherName = item;
-					break;
+				if( !bFound ) {
+					publisherName = this.user;
 				}
 			}
-			//logDebug("----publisherName="+publisherName);
-			return publisherName;
+			return [publisherName, bFound];
 		}
 		
 		private function attachCamera():void {
@@ -187,12 +184,17 @@ package com.vispar
 			if( publishDest!=null) {
 				return;
 			}
-			publishDest = getPublisherName();
-			logDebug("----publishDest="+publishDest);
+			var ret:Array = getPublisherName();
 			try{
+				publishDest = ret[0];
 				isViewOnly_ = (publishDest == null);
+				logDebug("----publishDest="+publishDest);
 				if( isViewOnly_ ) {
-					//logDebug("----cannot join, view only!");
+					if( ret[1] == true ) {
+						showAlert("Cannot join b/c you have logged on from a different client, viewer mode only now!");						
+					} else {
+						showAlert("Cannot join b/c it exceeds max talker's capacity, viewer mode only now!");
+					}
 					openViewStream( allinone );
 					return;
 				}
@@ -375,18 +377,20 @@ package com.vispar
 			container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 		};
 		//server call to client
-		private function newStream(publishedStream:String):void {
+		private function addStreamToStringVector(publishedStream:String):void {
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
 				publishedStream.indexOf(mixedStreamPrefix) < 0 && 
 				publishedStream != publishDest ){ 
 				logDebug(publishedStream+" joined!");
 				publishedStreamArray.push(publishedStream);
+				totalPublishers++;
 			}
 		}
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
 			if(vector.indexOf(element) > -1){  
 				vector.splice(vector.indexOf(element), 1);  
 				removeElementFromStringVector(element, vector);
+				totalPublishers--;
 				//Alert.show("An old connection "+element+" left", "Information");  
 			} else {  
 				return;  
@@ -401,12 +405,12 @@ package com.vispar
 		
 		public function initStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			logDebug("initStreams = "+streamListStr+"---"); 
+			//logDebug("initStreams = "+streamListStr+"---"); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;
 				for (var i:int = 0; i<arrLen; i++) {
-					newStream(streamListArr[i]);
+					addStreamToStringVector(streamListArr[i]);
 				}
 			}
 			if( container_.contains(emptyRoomNotification_)) {
@@ -439,7 +443,7 @@ package com.vispar
 			netConn.call("clientRequest.isEmptyStream", myResult);
 		}
 		public function addStream(resp:Object):void {
-			newStream(String(resp));
+			addStreamToStringVector(String(resp));
 			if( container_.contains(emptyRoomNotification_)) {
 				container_.removeChild(emptyRoomNotification_);
 			}
@@ -492,7 +496,7 @@ package com.vispar
 					//do nothing
 				}
 			} else {
-				if( isViewOnly_ && getPublisherName() != null ) {
+				if( isViewOnly_ ) {
 					closeViewStream();
 					publishNow();					
 				} else {

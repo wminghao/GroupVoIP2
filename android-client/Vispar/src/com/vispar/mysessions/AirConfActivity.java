@@ -15,11 +15,11 @@ public class AirConfActivity extends AppEntry {
 		Uri data = getIntent().getData();
 		if( data != null ) {
 			List<String> params = data.getPathSegments();
-			if( params != null && (params.size() >= 3) ) {
+			if( params != null && (params.size() >= 4) ) {
 				String type = data.getHost();
-				String room = params.get(0);
-				String user = params.get(1);
-				String sessionId = params.get(2);
+				String room = params.get(1);
+				String user = params.get(2);
+				String sessionId = params.get(3);
 				System.out.println("AirConfActivity launched. type=" + type);
 				System.out.println("AirConfActivity launched. room=" + room);
 				System.out.println("AirConfActivity launched. user=" + user);
