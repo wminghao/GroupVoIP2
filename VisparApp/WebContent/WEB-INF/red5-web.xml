@@ -34,5 +34,5 @@
 	<bean id="web.handler" 
 	    class="org.red5.core.VisparApp" 
 		singleton="true" />
-    <bean id= "song.service" class = "org.red5.core.SongService"/>
+    <bean id= "clientRequest.service" class = "org.red5.core.ClientRequestService"/>
 </beans>

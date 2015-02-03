@@ -1422,9 +1422,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	}
 	
-	//from flash client to select a song.
-	public void selectSong(String songName) {
-		GroupMixer.getInstance().selectSong(scope, songName);
+	//from flash client to select a video to play.
+	public void selectVideo(String videoName) {
+		GroupMixer.getInstance().selectVideo(scope, videoName);
+	}
+	//from flash client to detect whether an allinone connection's streams are empty or not.
+	public Boolean isEmptyStream() {
+		Boolean isEmptyStream = GroupMixer.getInstance().isEmptyStream(scope);
+		return isEmptyStream;
 	}
 
     public void onVideoPlaying(String videoName) {

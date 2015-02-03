@@ -18,7 +18,7 @@ package com.vispar
 		
 		private var mixedStreamPrefix:String = "__mixed__";
 		private var appName:String = "VisparApp";
-		private var defaultSong:String = "Default"; //default means video stopped
+		private var defaultVideo:String = "Default"; //default means video stopped
 		private var allinone:String = "allinone";
 		
 		private var publishDest:String = null;
@@ -26,8 +26,6 @@ package com.vispar
 		
 		private var videoSelf:Video = null;
 		private var videoOthers:Video = null;
-		
-		private var defaultMovie:String = "Default"; //default movie means mtv stopped
 		
 		private var isViewOnly_:Boolean = false;
 		private var isAudioOnly_:Boolean = false;
@@ -156,7 +154,7 @@ package com.vispar
 					break;
 				}
 			}
-			logDebug("----publisherName="+publisherName);
+			//logDebug("----publisherName="+publisherName);
 			return publisherName;
 		}
 		
@@ -409,7 +407,16 @@ package com.vispar
 				}
 			}
 		}
-		
+		public function detectEmptyStream():void {
+			var onResult:Function = function (result:Object):void {
+				var isEmpty:Boolean = Boolean(result);
+				logDebug("isEmpty = "+isEmpty+"---"); 
+			}
+			// Create a responder object
+			var myResult:Responder = new Responder( onResult );
+			// Create an onResult( ) method to handle results from the call to the remote method
+			netConn.call("clientRequest.isEmptyStream", myResult);
+		}
 		public function addStream(resp:Object):void {
 			newStream(String(resp));
 		}
@@ -419,12 +426,12 @@ package com.vispar
 		
 		override public function selectVideo(videoName:String):void {
 			if( publishDest != null ) {
-				netConn.call("song.selectSong", null, videoName);	
+				netConn.call("clientRequest.selectVideo", null, videoName);	
 			}
 		}
 		override public function stopVideo():void {
 			if( publishDest != null ) {
-				netConn.call("song.selectSong", null, defaultMovie);	
+				netConn.call("clientRequest.selectVideo", null, defaultVideo);	
 			}
 		}
 		
@@ -455,6 +462,8 @@ package com.vispar
 					closePublishStream();
 					isViewOnly_ = true;
 					openViewStream( allinone );
+					//detect whether empty room or not after 1 second
+					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 				} else {
 					//do nothing
 				}

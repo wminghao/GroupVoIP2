@@ -226,13 +226,13 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	}
     }
     
-    public void selectSong(String songName) {
-    	String fileName = songMappingTable_.get(songName);
+    public void selectVideo(String videoName) {
+    	String fileName = songMappingTable_.get(videoName);
     	if(fileName != null ) {
     	    curSongFile_ = fileName;
-    	    curSongName_ = songName;
+    	    curSongName_ = videoName;
     	    bCancelCurrentSong.set(true);
-    	    log.info("-------A song selected: Key : {}, Value : {}", fileName, songName);
+    	    log.info("-------A song selected: Key : {}, Value : {}", fileName, videoName);
     	}
     }
     //set next as the default song, an ad for viewing only

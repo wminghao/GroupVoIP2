@@ -158,11 +158,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     public boolean hasAnythingStarted(IScope roomScope) {
     	if( roomScope != null ) {
-    		MixerRoom mixerRoom = getMixerRoom(roomScope);
-    		return !mixerRoom.idLookupTable_.isEmpty();
-    	} else {
-    		return false;
-    	}
+    		if( mixerRooms_.containsKey(roomScope) ) {
+    			MixerRoom mixerRoom = getMixerRoom(roomScope);
+    			return !mixerRoom.idLookupTable_.isEmpty();
+    		} 
+    	} 
+    	return false;
     }
     
     public void createMixedStream(IScope roomScope, String streamName)
@@ -191,6 +192,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	}
         	if( isEmpty ) {
         		deleteAllinOneConn(mixerRoom);
+        	    mixerRooms_.remove(roomScope);
         	}
     	}
     }
@@ -525,9 +527,20 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
 	
 	//from client to server
-	public void selectSong(IScope roomScope, String songName) {
+	public void selectVideo(IScope roomScope, String videoName) {
     	MixerRoom mixerRoom = getMixerRoom(roomScope);
-    	mixerRoom.karaokeGen_.selectSong(songName);
+    	mixerRoom.karaokeGen_.selectVideo(videoName);
+	}
+
+	//from client to server
+	public Boolean isEmptyStream(IScope roomScope) {
+    	boolean isThere = mixerRooms_.containsKey(roomScope);
+    	if( isThere ) {
+    		MixerRoom mixerRoom = getMixerRoom(roomScope);
+    		return mixerRoom.idLookupTable_.isEmpty();
+    	} else {
+    		return true;
+    	}
 	}
 	
 	/**
