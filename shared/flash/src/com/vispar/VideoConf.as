@@ -5,6 +5,7 @@ package com.vispar
 	import flash.media.*;
 	import flash.net.*;
 	import flash.system.*;
+	import flash.text.*;
 	import flash.utils.*;
 	
 	public class VideoConf extends VideoContainer
@@ -36,6 +37,8 @@ package com.vispar
 		//detect connection timeout
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
+		
+		private var emptyRoomNotification_:TextField = null;
 		
 		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String)
 		{ 
@@ -406,11 +409,29 @@ package com.vispar
 					newStream(streamListArr[i]);
 				}
 			}
+			if( container_.contains(emptyRoomNotification_)) {
+				container_.removeChild(emptyRoomNotification_);
+			}
 		}
 		public function detectEmptyStream():void {
 			var onResult:Function = function (result:Object):void {
 				var isEmpty:Boolean = Boolean(result);
-				logDebug("isEmpty = "+isEmpty+"---"); 
+				emptyRoomNotification_ = new TextField();
+				emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
+				emptyRoomNotification_.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY())/2;
+				emptyRoomNotification_.x = delegate_.getScreenX() + emptyRoomNotification_.width/2 - 100;
+				emptyRoomNotification_.y = delegate_.getScreenY() + emptyRoomNotification_.height/2 - 20;
+				var format:TextFormat = new TextFormat();
+				format.bold = true;
+				format.size = 30;
+				format.color = 0x0000FF;
+				emptyRoomNotification_.defaultTextFormat = format;
+				emptyRoomNotification_.background = true; 
+				emptyRoomNotification_.backgroundColor = 0xFFF000; 
+				emptyRoomNotification_.text = "You are in viewer mode. There is no body joining the session right now. You can either go to talker mode or wait until others join!";
+				emptyRoomNotification_.border = true;
+				emptyRoomNotification_.wordWrap = true;
+				container_.addChild(emptyRoomNotification_);
 			}
 			// Create a responder object
 			var myResult:Responder = new Responder( onResult );
@@ -419,6 +440,9 @@ package com.vispar
 		}
 		public function addStream(resp:Object):void {
 			newStream(String(resp));
+			if( container_.contains(emptyRoomNotification_)) {
+				container_.removeChild(emptyRoomNotification_);
+			}
 		}
 		public function removeStream(resp:Object):void {
 			removeElementFromStringVector(String(resp), publishedStreamArray);

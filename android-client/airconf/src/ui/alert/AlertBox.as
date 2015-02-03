@@ -90,12 +90,12 @@ package ui.alert
 			try {
 				var enabledTextFormat:TextFormat = new TextFormat();
 				enabledTextFormat.bold = true;
-				enabledTextFormat.size = 30;
+				enabledTextFormat.size = 20;
 				enabledTextFormat.color = 0x0000FF;
 				var button : Button = new Button();
-				button.setSize(120, 44);
-				button.setStyle("disabledTextFormat", enabledTextFormat);
-				button.setStyle("textFormat", enabledTextFormat);
+				button.width = 120;
+				button.height = 28;
+				button.textField.defaultTextFormat = enabledTextFormat;
 				button.label = label;
 				button.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
 					buttonClickHandler(eventType);
