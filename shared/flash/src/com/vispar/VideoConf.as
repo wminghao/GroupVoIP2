@@ -30,6 +30,7 @@ package com.vispar
 		private var defaultMovie:String = "Default"; //default movie means mtv stopped
 		
 		private var isViewOnly_:Boolean = false;
+		private var isAudioOnly_:Boolean = false;
 		
 		//TODO, change it to something else
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
@@ -159,6 +160,27 @@ package com.vispar
 			return publisherName;
 		}
 		
+		private function attachCamera():void {
+			camera = delegate_.tryGetFrontCamera();	     
+			if (camera == null) {
+				logDebug("----camera null");
+				Security.showSettings(SecurityPanel.CAMERA) ;
+			} else {
+				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
+				camera.setMode(delegate_.getVideoWidth(), delegate_.getVideoHeight(), 30); //640*480 30 fps
+				camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
+				streamPub.attachCamera(camera);
+				videoSelf.attachCamera(camera);
+			}
+		}
+		private function detachCamera():void {			
+			if( camera ) {
+				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
+				streamPub.attachCamera(null);
+				videoSelf.attachCamera(null);
+			}
+		}
+		
 		private function publishNow() : void {
 			//already published, don't do anything.
 			if( publishDest!=null) {
@@ -175,35 +197,31 @@ package com.vispar
 				}
 				openViewStream( publishDest );
 				
-				camera = delegate_.tryGetFrontCamera();	     
-				if (camera == null) {
-					logDebug("----camera null");
-					Security.showSettings(SecurityPanel.CAMERA) ;
-				} else{
-					//logDebug("----try to open microphone");
-					mic = Microphone.getMicrophone();
+				//logDebug("----try to open microphone");
+				mic = Microphone.getMicrophone();
+				if (mic == null) {
+					logDebug("----mic null");
+					Security.showSettings(SecurityPanel.MICROPHONE) ;
+				} else {
 					mic.addEventListener(StatusEvent.STATUS, onMicStatus);
-					camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
-					camera.setMode(delegate_.getVideoWidth(), delegate_.getVideoHeight(), 30); //640*480 30 fps
-					camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
 					
 					streamPub = new NetStream(netConn);
+					videoSelf = new Video();
+					attachCamera();	
+					
 					var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
 					h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
 					streamPub.videoStreamSettings = h264settings; 
 					streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
 					streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-					streamPub.attachCamera(camera);
 					streamPub.publish(publishDest, "live");
 					
-					videoSelf = new Video();
-					videoSelf.attachCamera(camera) ;
-					container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 					videoSelf.x = delegate_.getScreenX();
 					videoSelf.y = delegate_.getScreenY();
 					videoSelf.width = delegate_.getScreenWidth()-2*delegate_.getScreenX();
 					videoSelf.height = delegate_.getScreenHeight()-2*delegate_.getScreenY();
 					videoSelf.visible = true;
+					container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 					
 					mic.setSilenceLevel(0,200);
 					//Speex settings
@@ -227,10 +245,9 @@ package com.vispar
 		private function closePublishStream():void {
 			if( mic ) {
 				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
+				streamPub.attachAudio(null);
 			}
-			if( camera ) {
-				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
-			}
+			detachCamera();
 			if( videoSelf ) {
 				videoSelf.attachCamera(null);
 				videoSelf.clear();
@@ -445,6 +462,27 @@ package com.vispar
 				if( isViewOnly_ && getPublisherName() != null ) {
 					closeViewStream();
 					publishNow();					
+				} else {
+					//do nothing
+				}
+			}
+		}
+		
+		override public function isAudioOnly():Boolean {
+			return isAudioOnly_;
+		}
+		override public function switchToAudioOnly(forceAudioOnly:Boolean):void {	
+			if( forceAudioOnly ) {
+				if( !isAudioOnly_ ) {
+					detachCamera();
+					isAudioOnly_ = true;
+				} else{
+					//do nothing
+				}
+			} else {
+				if( isAudioOnly_ ) {
+					attachCamera();
+					isAudioOnly_ = false;
 				} else {
 					//do nothing
 				}

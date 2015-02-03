@@ -44,5 +44,10 @@ package com.vispar
 		}
 		public function switchToViewOnly(forceViewOnly:Boolean):void {			
 		}
+		public function isAudioOnly():Boolean {
+			return false;
+		}
+		public function switchToAudioOnly(forceAudioOnly:Boolean):void {			
+		}
 	}
 }
