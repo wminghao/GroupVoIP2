@@ -190,12 +190,12 @@ package com.vispar
 				isViewOnly_ = (publishDest == null);
 				logDebug("----publishDest="+publishDest);
 				if( isViewOnly_ ) {
+					openViewStream( allinone );
 					if( ret[1] == true ) {
 						showAlert("Cannot join b/c you have logged on from a different client, viewer mode only now!");						
 					} else {
 						showAlert("Cannot join b/c it exceeds max talker's capacity, viewer mode only now!");
 					}
-					openViewStream( allinone );
 					return;
 				}
 				openViewStream( publishDest );

@@ -13,7 +13,6 @@ import org.json.JSONObject;
 
 import com.vispar.R;
 import com.vispar.VisparApplication;
-import com.vispar.MainActivity.PlaceholderFragment;
 import com.vispar.share.ShareSheet;
 
 import android.app.Activity;

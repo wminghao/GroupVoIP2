@@ -81,7 +81,7 @@ package ui.alert
 					var b00:Button = createButton(buttons[0], ALERT_YES);
 					b00.x = rect.x + rect.width/2 -20;
 					b00.y = rect.y + rect.height-60;
-					this.addChild(b1);
+					this.addChild(b00);
 				}
 			}
 		}
