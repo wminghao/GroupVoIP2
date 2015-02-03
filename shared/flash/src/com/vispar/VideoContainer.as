@@ -38,5 +38,11 @@ package com.vispar
 		}
 		public function stopVideo():void {
 		}
+		
+		public function isViewOnly():Boolean {
+			return false;
+		}
+		public function switchToViewOnly(forceViewOnly:Boolean):void {			
+		}
 	}
 }

@@ -15,6 +15,8 @@ package com.vispar
 		function getScreenX():int;
 		function getScreenY():int;
 		
+		function onVideoStarted(isViewOnly:Boolean):void; //return whether it's viewer mode or talker mode
+		
 		function onVideoSelected(videoName:String):void;
 		function onVideoListPopulated(videoNamesArray:Array):void;
 	}

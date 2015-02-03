@@ -18,7 +18,8 @@ package
 		private var videoHeight_:int = 480;
 		private var edgeX_:int; //leave the top area for display label and others
 		private var edgeY_:int; //leave the top area for display label and others
-
+		private var onVideoStarted_:Function;
+		
 		public function UIContainer()
 		{
 			super();
@@ -26,11 +27,13 @@ package
 		
 		public function setInfo(edgeX:int, edgeY:int, 
 								debugText:TextArea,
-								videoSet:ArrayCollection):void {
+								videoSet:ArrayCollection,
+								onVideoStarted:Function):void {
 			this.edgeX_ = edgeX;
 			this.edgeY_ = edgeY;
 			this.debugText_ = debugText;	
 			this.videoSet_ = videoSet;
+			this.onVideoStarted_ = onVideoStarted;
 			//logDebug("----screenWidth="+this.width+" screenHeight="+this.height+" screenX="+(this.x + edgeX_)+" screenY="+(this.y + edgeY_));
 		}
 		
@@ -82,6 +85,10 @@ package
 				return cam;
 			} 
 			return null;
+		}
+		
+		public function onVideoStarted(isViewOnly:Boolean):void {
+			onVideoStarted_( isViewOnly );
 		}
 		
 		public function onVideoSelected(videoName:String):void {

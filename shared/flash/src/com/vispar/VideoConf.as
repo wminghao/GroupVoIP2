@@ -18,7 +18,8 @@ package com.vispar
 		
 		private var mixedStreamPrefix:String = "__mixed__";
 		private var appName:String = "VisparApp";
-		private var defaultSong:String = "Default"; //default song means mtv stopped
+		private var defaultSong:String = "Default"; //default means video stopped
+		private var allinone:String = "allinone";
 		
 		private var publishDest:String = null;
 		private var publishedStreamArray:Vector.<String> = new Vector.<String>();
@@ -27,6 +28,8 @@ package com.vispar
 		private var videoOthers:Video = null;
 		
 		private var defaultMovie:String = "Default"; //default movie means mtv stopped
+		
+		private var isViewOnly_:Boolean = false;
 		
 		//TODO, change it to something else
 		private var dataSet:Array = ["testliveA","testliveB","testliveC","testliveD"];
@@ -65,38 +68,9 @@ package com.vispar
 			if( connTimeoutTimer ) {
 				connTimeoutTimer.stop();
 			}
-			if( mic ) {
-				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
-			}
-			if( camera ) {
-				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
-			}
-			if( videoSelf ) {
-				videoSelf.attachCamera(null);
-				videoSelf.clear();
-				container_.removeChild(videoSelf);
-				videoSelf = null;
-			}
-			if( videoOthers ) {
-				videoOthers.attachNetStream(null);
-				videoOthers.clear();
-				container_.removeChild(videoOthers);
-				videoOthers = null;
-			}
-			if( streamView ) {
-				streamView.dispose();
-				streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-				streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-				streamView.close();
-				streamView = null;
-			}
-			if( streamPub ) {
-				streamPub.dispose();
-				streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-				streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
-				streamPub.close();
-				streamPub = null;
-			}
+			closeViewStream();
+			closePublishStream();
+			
 			if( netConn ) {
 				netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
 				netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
@@ -105,7 +79,6 @@ package com.vispar
 			}
 			logDebug("=>disconnect from server!");
 			
-			publishDest = null;
 			publishedStreamArray = new Vector.<String>();
 		}
 		
@@ -164,12 +137,8 @@ package com.vispar
 			}
 		}
 		
-		private function publishNow() : void {
-			
-			//already published, don't do anything.
-			if( publishDest!=null) {
-				return;
-			}
+		private function getPublisherName():String {
+			var publisherName:String;
 			//find the publishDest
 			for each(var item:String in dataSet){
 				var bFound:Boolean = false;
@@ -182,18 +151,30 @@ package com.vispar
 					}
 				}
 				if( !bFound) {
-					publishDest = item;
+					publisherName = item;
 					break;
 				}
 			}
+			logDebug("----publisherName="+publisherName);
+			return publisherName;
+		}
+		
+		private function publishNow() : void {
+			//already published, don't do anything.
+			if( publishDest!=null) {
+				return;
+			}
+			publishDest = getPublisherName();
 			logDebug("----publishDest="+publishDest);
 			try{
-				openViewStream();
-				
-				if( publishDest == null ) {
-					//Alert.show("Cannot only listen to karaoke, since the room is already full!", "Information");
+				isViewOnly_ = (publishDest == null);
+				if( isViewOnly_ ) {
+					//logDebug("----cannot join, view only!");
+					openViewStream( allinone );
 					return;
 				}
+				openViewStream( publishDest );
+				
 				camera = delegate_.tryGetFrontCamera();	     
 				if (camera == null) {
 					logDebug("----camera null");
@@ -242,6 +223,30 @@ package com.vispar
 				logDebug("---Exception="+e);
 			}
 		}
+		
+		private function closePublishStream():void {
+			if( mic ) {
+				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
+			}
+			if( camera ) {
+				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
+			}
+			if( videoSelf ) {
+				videoSelf.attachCamera(null);
+				videoSelf.clear();
+				container_.removeChild(videoSelf);
+				videoSelf = null;
+			}
+			if( streamPub ) {
+				streamPub.dispose();
+				streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamPub.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamPub.close();
+				streamPub = null;
+			}
+			publishDest = null;
+		}
+		
 		private function netStatusHandler(event:NetStatusEvent):void {
 			switch (event.info.code) {
 				case "NetStream.Play.StreamNotFound":
@@ -274,7 +279,7 @@ package com.vispar
 			//TODO
 		}
 		
-		private function openViewStream():void {
+		private function openViewStream(dest:String):void {
 			streamView = new NetStream(netConn);
 			
 			streamView.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
@@ -287,7 +292,7 @@ package com.vispar
 			streamView.bufferTimeMax = 0;
 			//causes android to fail for unknown reason, anyway, this flag is not helping too much.
 			//streamView.useJitterBuffer = true; //audio is mp3, so set buffer to be 0 
-			streamView.play(mixedStreamPrefix + publishDest);
+			streamView.play(mixedStreamPrefix + dest);
 			
 			videoOthers = new Video();
 			videoOthers.attachNetStream(streamView);
@@ -299,6 +304,24 @@ package com.vispar
 			videoOthers.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY());
 			videoOthers.visible = true;
 		}
+		
+		private function closeViewStream():void {
+			if( videoOthers && container_.contains(videoOthers) ) {
+				videoOthers.attachNetStream(null);
+				videoOthers.clear();
+				container_.removeChild(videoOthers);
+				videoOthers = null;
+			}
+			
+			if( streamView ) {
+				streamView.dispose();
+				streamView.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				streamView.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				streamView.close();
+				streamView = null;
+			}				
+		}
+		
 		private function onCuePoint(info:Object):void {
 			var x:int = 0;
 			var y:int = 0;
@@ -369,6 +392,7 @@ package com.vispar
 				}
 			}
 		}
+		
 		public function addStream(resp:Object):void {
 			newStream(String(resp));
 		}
@@ -401,6 +425,29 @@ package com.vispar
 			if( videoListStr != "") {
 				var videoNamesArray:Array = videoListStr.split(",");
 				delegate_.onVideoListPopulated(videoNamesArray);	
+			}
+		}
+		
+		override public function isViewOnly():Boolean {
+			return isViewOnly_;
+		}
+		override public function switchToViewOnly(forceViewOnly:Boolean):void {
+			if( forceViewOnly ) {
+				if( !isViewOnly_ ) {
+					closeViewStream();
+					closePublishStream();
+					isViewOnly_ = true;
+					openViewStream( allinone );
+				} else {
+					//do nothing
+				}
+			} else {
+				if( isViewOnly_ && getPublisherName() != null ) {
+					closeViewStream();
+					publishNow();					
+				} else {
+					//do nothing
+				}
 			}
 		}
 	}

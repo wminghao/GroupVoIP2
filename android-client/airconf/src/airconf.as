@@ -289,5 +289,9 @@ package
 		}
 		public function onVideoListPopulated(videoNamesArray:Array):void {
 		}
+		
+		public function onVideoStarted(isViewOnly:Boolean):void{
+			//TODO
+		}
 	}
 }

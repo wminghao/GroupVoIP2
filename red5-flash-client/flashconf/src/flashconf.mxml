@@ -8,12 +8,14 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import com.vispar.*;
+			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
+			
 			import spark.events.IndexChangeEvent;
-			import com.vispar.*;
 			
 			private var defaultRoom:String = "default";
 			//540=480+30*2
@@ -32,7 +34,7 @@
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
-					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet );
+					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted );
 					var room:String = getVideoRoom();
 					if( getIsArchive() ) {
 						vidInstance_ = new VideoPlayer(container, container, room);
@@ -98,6 +100,21 @@
 					videoList.selectedIndex = 0;
 				}
 			}
+			
+			protected function switchViewOnly_clickHandler(event:MouseEvent):void {
+				var isViewOnly:Boolean = vidInstance_.isViewOnly();
+				vidInstance_.switchToViewOnly( !isViewOnly );
+				this.onVideoStarted( !isViewOnly );
+			}
+			
+			public function onVideoStarted(isViewOnly:Boolean):void{
+				//check whether it's the talker mode or other mode.
+				if( isViewOnly ) {
+					this.switchViewOnly.label = "Switch To Talker Mode";
+				} else {
+					this.switchViewOnly.label = "Switch To Viewer Mode";					
+				}
+			}
 		]]>
 	</fx:Script>
 	<s:Group>
@@ -115,7 +132,9 @@
 				  click="stopVideo_clickHandler(event)" color="#4800FF" fontSize="14"/>
 	</s:Group>
 	<local:UIContainer id="container" x="0" y="0" width="640" height="540"/>
-	<s:TextArea id="debugText" x="649" y="30" width="305" height="480" text=""/>
-	<s:Label id="debug" x="649" y="3" width="180" height="26" fontSize="20" paddingLeft="5"
+	<s:Button id="switchViewOnly" x="648" y="1" width="193" height="25" label="Switch To Viewer Mode"
+			  click="switchViewOnly_clickHandler(event)" color="#4800FF" fontSize="14"/>
+	<s:TextArea id="debugText" x="650" y="64" width="305" height="476" text=""/>
+	<s:Label id="debug" x="648" y="34" width="180" height="26" fontSize="20" paddingLeft="5"
 			 paddingTop="5" text="Debug Messages"/>
 </s:Application>

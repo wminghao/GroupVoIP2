@@ -87,18 +87,22 @@ package ui.alert
 		}
 		
 		private function createButton(label : String, eventType : String) : Button {
-			var button : Button = new Button();
-			button.setSize(120, 44);
-			button.label = label;
-			var enabledTextFormat:TextFormat = new TextFormat();
-			enabledTextFormat.bold = true;
-			enabledTextFormat.size = 18;
-			enabledTextFormat.color = 0x0000FF;
-			button.setStyle("disabledTextFormat", enabledTextFormat);
-			button.setStyle("textFormat", enabledTextFormat);
-			button.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
-				buttonClickHandler(eventType);
-			});
+			try {
+				var enabledTextFormat:TextFormat = new TextFormat();
+				enabledTextFormat.bold = true;
+				enabledTextFormat.size = 30;
+				enabledTextFormat.color = 0x0000FF;
+				var button : Button = new Button();
+				button.setSize(120, 44);
+				button.setStyle("disabledTextFormat", enabledTextFormat);
+				button.setStyle("textFormat", enabledTextFormat);
+				button.label = label;
+				button.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
+					buttonClickHandler(eventType);
+				});
+			} catch(err:Error) {
+				_logDebug(err.toString());
+			}
 			return button;
 		}
 		
