@@ -110,10 +110,10 @@
 				//check whether it's the talker mode or other mode.
 				if( isViewOnly ) {
 					this.switchAudioOnly.enabled = false;
-					this.switchViewOnly.label = "Switch To Talker Mode";
+					this.switchViewOnly.label = "Go To Talker Mode";
 				} else {
 					this.switchAudioOnly.enabled = true;
-					this.switchViewOnly.label = "Switch To Viewer Mode";					
+					this.switchViewOnly.label = "Go To Viewer Mode";					
 				}
 			}
 			protected function switchAudioOnly_clickHandler(event:MouseEvent):void {
@@ -146,10 +146,10 @@
 				  click="stopVideo_clickHandler(event)" color="#4800FF" fontSize="14"/>
 	</s:Group>
 	<local:UIContainer id="container" x="0" y="0" width="640" height="540"/>
-	<s:Button id="switchViewOnly" x="648" y="1" width="193" height="25" label="Switch To Viewer Mode"
+	<s:Button id="switchViewOnly" x="648" y="1" width="193" height="25" label="Go To Viewer Mode"
 			  click="switchViewOnly_clickHandler(event)" color="#610877" fontSize="14"/>
-	<s:Button id="switchAudioOnly" x="778" y="1" width="193" height="25" label="Audio Only"
-			  click="switchAudioOnly_clickHandler(event)" color="#610877" fontSize="14"/>
+	<s:Button id="switchAudioOnly" x="849" y="1" width="106" height="25" label="Audio Only"
+			  click="switchAudioOnly_clickHandler(event)" color="#085C77" fontSize="14"/>
 	<s:TextArea id="debugText" x="650" y="64" width="305" height="476" text=""/>
 	<s:Label id="debug" x="648" y="34" width="180" height="26" fontSize="20" paddingLeft="5"
 			 paddingTop="5" text="Debug Messages"/>

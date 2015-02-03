@@ -378,7 +378,7 @@ package com.vispar
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
 				publishedStream.indexOf(mixedStreamPrefix) < 0 && 
 				publishedStream != publishDest ){ 
-				logDebug("A new connection "+publishedStream+" joined");
+				logDebug(publishedStream+" joined!");
 				publishedStreamArray.push(publishedStream);
 			}
 		}
@@ -400,7 +400,7 @@ package com.vispar
 		
 		public function initStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			//logDebug("initStreams = "+streamListStr); 
+			logDebug("initStreams = "+streamListStr+"---"); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;
