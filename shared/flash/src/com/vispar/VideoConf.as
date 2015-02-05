@@ -239,6 +239,8 @@ package com.vispar
 					//detectVolume();
 					streamPub.attachAudio(mic);
 					//Alert.show("camera width="+camera.width);
+					
+					addStreamToStringVector(publishDest);
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -264,6 +266,7 @@ package com.vispar
 				streamPub.close();
 				streamPub = null;
 			}
+			removeElementFromStringVector(publishDest, publishedStreamArray);
 			publishDest = null;
 		}
 		
@@ -379,19 +382,24 @@ package com.vispar
 		//server call to client
 		private function addStreamToStringVector(publishedStream:String):void {
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
-				publishedStream.indexOf(mixedStreamPrefix) < 0 && 
-				publishedStream != publishDest ){ 
+				publishedStream.indexOf(mixedStreamPrefix) < 0 ){ 
 				logDebug(publishedStream+" joined!");
 				publishedStreamArray.push(publishedStream);
 				totalPublishers++;
+				//remove the notification
+				if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
+					container_.removeChild(emptyRoomNotification_);
+				}
 			}
 		}
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
 			if(vector.indexOf(element) > -1){  
 				vector.splice(vector.indexOf(element), 1);  
 				removeElementFromStringVector(element, vector);
+				logDebug(element+" removed!");
 				totalPublishers--;
-				//Alert.show("An old connection "+element+" left", "Information");  
+				//detect whether empty room or not after 1 second
+				delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 			} else {  
 				return;  
 			}  
@@ -413,29 +421,32 @@ package com.vispar
 					addStreamToStringVector(streamListArr[i]);
 				}
 			}
-			if( container_.contains(emptyRoomNotification_)) {
-				container_.removeChild(emptyRoomNotification_);
-			}
+		}
+		private function showEmptyNotification():void {
+			videoOthers.clear();	
+			emptyRoomNotification_ = new TextField();
+			emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
+			emptyRoomNotification_.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY())/2;
+			emptyRoomNotification_.x = delegate_.getScreenX() + emptyRoomNotification_.width/2 - 100;
+			emptyRoomNotification_.y = delegate_.getScreenY() + emptyRoomNotification_.height/2 - 20;
+			var format:TextFormat = new TextFormat();
+			format.bold = true;
+			format.size = 30;
+			format.color = 0x0000FF;
+			emptyRoomNotification_.defaultTextFormat = format;
+			emptyRoomNotification_.background = true; 
+			emptyRoomNotification_.backgroundColor = 0xFFF000; 
+			emptyRoomNotification_.text = "You are in viewer mode. There is no body joining the session right now. You can either go to talker mode or wait until others join!";
+			emptyRoomNotification_.border = true;
+			emptyRoomNotification_.wordWrap = true;
+			container_.addChild(emptyRoomNotification_);
 		}
 		public function detectEmptyStream():void {
 			var onResult:Function = function (result:Object):void {
 				var isEmpty:Boolean = Boolean(result);
-				emptyRoomNotification_ = new TextField();
-				emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
-				emptyRoomNotification_.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY())/2;
-				emptyRoomNotification_.x = delegate_.getScreenX() + emptyRoomNotification_.width/2 - 100;
-				emptyRoomNotification_.y = delegate_.getScreenY() + emptyRoomNotification_.height/2 - 20;
-				var format:TextFormat = new TextFormat();
-				format.bold = true;
-				format.size = 30;
-				format.color = 0x0000FF;
-				emptyRoomNotification_.defaultTextFormat = format;
-				emptyRoomNotification_.background = true; 
-				emptyRoomNotification_.backgroundColor = 0xFFF000; 
-				emptyRoomNotification_.text = "You are in viewer mode. There is no body joining the session right now. You can either go to talker mode or wait until others join!";
-				emptyRoomNotification_.border = true;
-				emptyRoomNotification_.wordWrap = true;
-				container_.addChild(emptyRoomNotification_);
+				if( isEmpty ) {
+					showEmptyNotification();
+				}
 			}
 			// Create a responder object
 			var myResult:Responder = new Responder( onResult );
@@ -444,14 +455,10 @@ package com.vispar
 		}
 		public function addStream(resp:Object):void {
 			addStreamToStringVector(String(resp));
-			if( container_.contains(emptyRoomNotification_)) {
-				container_.removeChild(emptyRoomNotification_);
-			}
 		}
 		public function removeStream(resp:Object):void {
 			removeElementFromStringVector(String(resp), publishedStreamArray);
 		}
-		
 		override public function selectVideo(videoName:String):void {
 			if( publishDest != null ) {
 				netConn.call("clientRequest.selectVideo", null, videoName);	
@@ -490,8 +497,6 @@ package com.vispar
 					closePublishStream();
 					isViewOnly_ = true;
 					openViewStream( allinone );
-					//detect whether empty room or not after 1 second
-					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 				} else {
 					//do nothing
 				}
