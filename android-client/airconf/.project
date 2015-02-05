@@ -24,19 +24,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>[source path] FLVPlayback</name>
-			<type>2</type>
-			<locationURI>FLASHPRO_APPCONFIG/Component%20Source/ActionScript%203.0/FLVPlayback</locationURI>
-		</link>
-		<link>
-			<name>[source path] FLVPlaybackCaptioning</name>
-			<type>2</type>
-			<locationURI>FLASHPRO_APPCONFIG/Component%20Source/ActionScript%203.0/FLVPlaybackCaptioning</locationURI>
-		</link>
-		<link>
 			<name>[source path] User Interface</name>
 			<type>2</type>
-			<locationURI>FLASHPRO_APPCONFIG/Component%20Source/ActionScript%203.0/User%20Interface</locationURI>
+			<location>/Users/howard/GroupVoIP2/third-party/flashcs6lib/User Interface</location>
 		</link>
 	</linkedResources>
 </projectDescription>
