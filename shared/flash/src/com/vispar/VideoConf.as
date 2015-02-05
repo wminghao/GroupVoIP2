@@ -41,10 +41,12 @@ package com.vispar
 		private var reconnTimer:Timer = null; 
 		
 		//detect low bw
-		private var lowBWDetector_:LowBWDetector = new LowBWDetector(stopVideoCallbackOnLowBW);
+		private var lowBWDetector_:LowBWDetector = new LowBWDetector(stopVideoCallbackOnLowBW, logDebug);
 		private var networkDisconnectDetector_:NetworkDisconnectDetector = new NetworkDisconnectDetector(stopVideoCallbackOnLowBW);
 		
 		private var emptyRoomNotification_:TextField = null;
+		
+		private var fatalError_:Boolean = false;
 		
 		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String)
 		{ 
@@ -112,7 +114,7 @@ package com.vispar
 		}
 		private function onReconnectTimer(e:TimerEvent):void
 		{
-			logDebug("=>onReconnectTimer");
+			showEmptyNotification("Network failed! Reconnecting now!");
 			try {
 				//then reconnect
 				var shouldReconn:Boolean = networkDisconnectDetector_.onDisconnectNotification();
@@ -293,7 +295,9 @@ package com.vispar
 				case "NetStream.Publish.Start":
 				case "NetStream.Unpublish.Success":
 					break;
-				case "Netstream.Play.InsufficientBW":
+				case "NetStream.Play.InsufficientBW":
+					lowBWDetector_.onLowBWNotification();
+					break;
 				default:
 					logDebug("New event: " + event.info.code);
 					//Alert.show("Unknown event: " + event.info.code, "Information");
@@ -410,7 +414,9 @@ package com.vispar
 				logDebug(element+" removed!");
 				totalPublishers--;
 				//detect whether empty room or not after 1 second
-				delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
+				if( !fatalError_ ) {
+					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
+				}
 			} else {  
 				return;  
 			}  
@@ -436,6 +442,10 @@ package com.vispar
 		private function showEmptyNotification(message:String):void {
 			if( videoOthers ) {
 				videoOthers.clear();
+			}
+			//remove the notification
+			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
+				container_.removeChild(emptyRoomNotification_);
 			}
 			emptyRoomNotification_ = new TextField();
 			emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
@@ -560,6 +570,7 @@ package com.vispar
 		}
 		
 		private function stopVideoCallbackOnLowBW():void {
+			fatalError_ = true;
 			closeViewStream();
 			closePublishStream();
 			showEmptyNotification("Your video has to stop now since your network speed is too slow. " +
