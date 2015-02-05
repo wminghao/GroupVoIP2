@@ -1,6 +1,7 @@
 package com.vispar
 {
 	import com.vispar.network.LowBWDetector;
+	import com.vispar.network.NetworkDisconnectDetector;
 	
 	import flash.display.Sprite;
 	import flash.events.*;
@@ -41,6 +42,7 @@ package com.vispar
 		
 		//detect low bw
 		private var lowBWDetector_:LowBWDetector = new LowBWDetector(stopVideoCallbackOnLowBW);
+		private var networkDisconnectDetector_:NetworkDisconnectDetector = new NetworkDisconnectDetector(stopVideoCallbackOnLowBW);
 		
 		private var emptyRoomNotification_:TextField = null;
 		
@@ -62,21 +64,16 @@ package com.vispar
 			netConn.client = this;
 			
 			logDebug("=>connect 2 server!");
-			connTimeoutTimer = new Timer(4000, 1);
+			connTimeoutTimer = new Timer(3000, 1);
 			connTimeoutTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 			connTimeoutTimer.start();
 		}
 		
 		override public function disconnectServer():void {
-			if( reconnTimer ) {
-				reconnTimer.stop();
-			}
-			if( connTimeoutTimer ) {
-				connTimeoutTimer.stop();
-			}
+			stopReconnTimer();
+			stopConnTimeoutTimer();
 			closeViewStream();
 			closePublishStream();
-			
 			if( netConn ) {
 				netConn.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);			
 				netConn.removeEventListener(NetStatusEvent.NET_STATUS, onConnectionNetStatus);
@@ -89,22 +86,18 @@ package com.vispar
 		}
 		
 		private function onConnectionNetStatus(event:NetStatusEvent) : void {
-			if( connTimeoutTimer ) {
-				connTimeoutTimer.stop(); //cancel the timeout timer
-			}
-			if( reconnTimer ) {
-				reconnTimer.stop();
-			}
+			stopConnTimeoutTimer();			
+			stopReconnTimer();
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
+				networkDisconnectDetector_.onConnectNotification();
 				logDebug("NetConnection.Connect.Success!");
 			} else if(event.info.code == "NetConnection.Connect.Failed" ||
 					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
 					  event.info.code == "NetConnection.Connect.Closed"){
 				logDebug("Connection code:"+event.info.code+", try reconnecting");
 				disconnectServer(); //disconnect to free up resources
-				//then reconnect
 				reconnTimer = new Timer(3000, 1);
 				reconnTimer.addEventListener(TimerEvent.TIMER, onReconnectTimer);
 				reconnTimer.start();	
@@ -112,16 +105,24 @@ package com.vispar
 					  event.info.code == "NetConnection.Connect.AppShutdown") {
 				logDebug("Connection code:"+event.info.code+". Fatal error");
 				disconnectServer();
+				showEmptyNotification("Fatal Error, Server Side. Sorry for the trouble, please try again!");
 			} else {
 				logDebug("Connection code:"+event.info.code+". Ignore event");
 			}
 		}
-		//TODO try 3 times and fail with an error
 		private function onReconnectTimer(e:TimerEvent):void
 		{
-			logDebug("=>onReconnectTimer reconnecting server.");
-			disconnectServer();
-			connectServer();
+			logDebug("=>onReconnectTimer");
+			try {
+				//then reconnect
+				var shouldReconn:Boolean = networkDisconnectDetector_.onDisconnectNotification();
+				disconnectServer();
+				if( shouldReconn ) {
+					connectServer();
+				}
+			} catch(e:Error) {
+				logDebug("---Exception="+e);
+			}
 		}
 		
 		private function onCameraStatus( evt:StatusEvent ):void {
@@ -181,6 +182,7 @@ package com.vispar
 				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
 				streamPub.attachCamera(null);
 				videoSelf.attachCamera(null);
+				camera = null;
 			}
 		}
 		
@@ -256,6 +258,7 @@ package com.vispar
 			if( mic ) {
 				mic.removeEventListener(StatusEvent.STATUS, onMicStatus);
 				streamPub.attachAudio(null);
+				mic = null;
 			}
 			detachCamera();
 			if( videoSelf ) {
@@ -271,8 +274,10 @@ package com.vispar
 				streamPub.close();
 				streamPub = null;
 			}
-			removeElementFromStringVector(publishDest, publishedStreamArray);
-			publishDest = null;
+			if( publishDest ) {
+				removeElementFromStringVector(publishDest, publishedStreamArray);
+				publishDest = null;
+			}
 		}
 		
 		private function netStatusHandler(event:NetStatusEvent):void {
@@ -429,7 +434,9 @@ package com.vispar
 			}
 		}
 		private function showEmptyNotification(message:String):void {
-			videoOthers.clear();	
+			if( videoOthers ) {
+				videoOthers.clear();
+			}
 			emptyRoomNotification_ = new TextField();
 			emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
 			emptyRoomNotification_.height = (delegate_.getScreenHeight() - 2 * delegate_.getScreenY())/2;
@@ -538,10 +545,23 @@ package com.vispar
 			}
 		}
 		
+		private function stopReconnTimer():void {
+			if( reconnTimer ) {
+				reconnTimer.stop();
+				reconnTimer = null;
+			}
+		}
+		private function stopConnTimeoutTimer():void {
+			if( connTimeoutTimer ) {
+				connTimeoutTimer.stop();
+				connTimeoutTimer = null;
+			}
+		}
+		
 		private function stopVideoCallbackOnLowBW():void {
 			closeViewStream();
 			closePublishStream();
-			showEmptyNotification("We have to stop you now since your network speed is too slow. " +
+			showEmptyNotification("Your video has to stop now since your network speed is too slow. " +
 				"Please make sure you have a reliable upload & download speed of at least 1Mbps for best service!");
 		}
 	}
