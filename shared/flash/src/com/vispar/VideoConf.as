@@ -453,6 +453,7 @@ package com.vispar
 			emptyRoomNotification_.border = true;
 			emptyRoomNotification_.wordWrap = true;
 			container_.addChild(emptyRoomNotification_);
+			this.delegate_.onFatalNetworkTooSlowError();
 		}
 		public function detectEmptyStream():void {
 			var onResult:Function = function (result:Object):void {
