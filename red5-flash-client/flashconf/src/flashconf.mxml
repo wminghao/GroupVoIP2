@@ -35,7 +35,7 @@
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
-					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted );
+					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError );
 					var room:String = getVideoRoom();
 					var user:String = getUserName();
 					if( getIsArchive() ) {
@@ -155,6 +155,13 @@
 				} else {
 					this.switchAudioOnly.label = "Audio Only";					
 				}
+			}
+			
+			public function onFatalNetworkTooSlowError():void{
+				this.switchAudioOnly.enabled = false;
+				this.switchViewOnly.enabled = false;
+				this.videoList.enabled = false;
+				this.stopVideo.enabled = false;
 			}
 		]]>
 	</fx:Script>

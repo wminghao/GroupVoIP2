@@ -1,5 +1,7 @@
 package com.vispar
 {
+	import com.vispar.network.LowBWDetector;
+	
 	import flash.display.Sprite;
 	import flash.events.*;
 	import flash.media.*;
@@ -17,11 +19,11 @@ package com.vispar
 		private var mic:Microphone = null;
 		private var camera:Camera = null;
 		
-		private var mixedStreamPrefix:String = "__mixed__";
-		private var appName:String = "VisparApp";
-		private var defaultVideo:String = "Default"; //default means video stopped
-		private var allinone:String = "allinone";
-		private var maxPublishers:int = 4-1; //excluding the external video source, TODO 
+		private const mixedStreamPrefix:String = "__mixed__";
+		private const appName:String = "VisparApp";
+		private const defaultVideo:String = "Default"; //default means video stopped
+		private const allinone:String = "allinone";
+		private const maxPublishers:int = 4-1; //excluding the external video source, TODO 
 		private var totalPublishers:int = 0;
 		
 		private var publishDest:String = null;
@@ -36,6 +38,9 @@ package com.vispar
 		//detect connection timeout
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null; 
+		
+		//detect low bw
+		private var lowBWDetector_:LowBWDetector = new LowBWDetector(stopVideoCallbackOnLowBW);
 		
 		private var emptyRoomNotification_:TextField = null;
 		
@@ -283,6 +288,7 @@ package com.vispar
 				case "NetStream.Publish.Start":
 				case "NetStream.Unpublish.Success":
 					break;
+				case "Netstream.Play.InsufficientBW":
 				default:
 					logDebug("New event: " + event.info.code);
 					//Alert.show("Unknown event: " + event.info.code, "Information");
@@ -422,7 +428,7 @@ package com.vispar
 				}
 			}
 		}
-		private function showEmptyNotification():void {
+		private function showEmptyNotification(message:String):void {
 			videoOthers.clear();	
 			emptyRoomNotification_ = new TextField();
 			emptyRoomNotification_.width = (delegate_.getScreenWidth() - 2 * delegate_.getScreenX())/2;
@@ -436,7 +442,7 @@ package com.vispar
 			emptyRoomNotification_.defaultTextFormat = format;
 			emptyRoomNotification_.background = true; 
 			emptyRoomNotification_.backgroundColor = 0xFFF000; 
-			emptyRoomNotification_.text = "You are in viewer mode. There is no body joining the session right now. You can either go to talker mode or wait until others join!";
+			emptyRoomNotification_.text = message;
 			emptyRoomNotification_.border = true;
 			emptyRoomNotification_.wordWrap = true;
 			container_.addChild(emptyRoomNotification_);
@@ -445,7 +451,8 @@ package com.vispar
 			var onResult:Function = function (result:Object):void {
 				var isEmpty:Boolean = Boolean(result);
 				if( isEmpty ) {
-					showEmptyNotification();
+					showEmptyNotification("You are in viewer mode. There is no body joining the session right now. " +
+						"You can either go to talker mode or wait until others join!");
 				}
 			}
 			// Create a responder object
@@ -529,6 +536,13 @@ package com.vispar
 					//do nothing
 				}
 			}
+		}
+		
+		private function stopVideoCallbackOnLowBW():void {
+			closeViewStream();
+			closePublishStream();
+			showEmptyNotification("We have to stop you now since your network speed is too slow. " +
+				"Please make sure you have a reliable upload & download speed of at least 1Mbps for best service!");
 		}
 	}
 }

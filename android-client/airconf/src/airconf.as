@@ -299,5 +299,9 @@ package
 		public function onVideoStarted(isViewOnly:Boolean):void{
 			//TODO
 		}
+		
+		public function onFatalNetworkTooSlowError():void{
+			//TODO
+		}
 	}
 }
