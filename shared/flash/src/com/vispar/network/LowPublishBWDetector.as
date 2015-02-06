@@ -16,7 +16,7 @@ package com.vispar.network
 		public function onPublishBWDetected(bwInKBps:Number):void
 		{
 			bwArray_.push( bwInKBps );
-			this.logDebug_("---bwInKBps="+bwInKBps);
+			//this.logDebug_("---bwInKBps="+bwInKBps);
 			if( bwArray_.length == maxArraySize_ ) {
 				var avgBW:Number = 0;
 				var totalBW:Number = 0;
@@ -24,7 +24,7 @@ package com.vispar.network
 					totalBW += bwArray_[i] as Number;
 				}
 				avgBW = totalBW/maxArraySize_;
-				this.logDebug_("---avg="+avgBW+"kbps" );
+				//this.logDebug_("---avg="+avgBW+"kbps" );
 				bwArray_.shift();
 				if( avgBW < bwThreshold_ ) {
 					this.stopVideoCallback_("upload");

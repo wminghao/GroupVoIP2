@@ -113,7 +113,7 @@ package com.vispar
 		private function onServerClientComplete(event:BandwidthDetectEvent):void
 		{
 			logDebug("\n\n kbitDown: " + event.info.kbitDown + " deltaDown: " + event.info.deltaDown + " deltaTime: " + event.info.deltaTime + " latency: " + event.info.latency);
-			ClientServer();
+			//ClientServer();
 		}
 		
 		private function onServerClientStatus(event:BandwidthDetectEvent):void
