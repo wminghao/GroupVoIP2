@@ -136,6 +136,12 @@ public interface StatusCodes {
 	public static final String NS_PLAY_INSUFFICIENT_BW = "NetStream.Play.InsufficientBW";
 
 	/**
+	 * Data is playing behind the normal speed
+	 * Howard added an event to indicate that publishing speed is too slow
+	 */
+	public static final String NS_PUBLISH_INSUFFICIENT_BW = "NetStream.Publish.InsufficientBW";
+
+	/**
 	 * Play was started
 	 */
 	public static final String NS_PLAY_START = "NetStream.Play.Start";

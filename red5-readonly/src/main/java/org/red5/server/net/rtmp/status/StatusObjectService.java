@@ -96,6 +96,7 @@ public class StatusObjectService implements StatusCodes, InitializingBean {
 		statusObjects.put(NS_RECORD_FAILED, new StatusObject(NS_RECORD_FAILED, StatusObject.ERROR, ""));
 
 		statusObjects.put(NS_PLAY_INSUFFICIENT_BW, new RuntimeStatusObject(NS_PLAY_INSUFFICIENT_BW, StatusObject.WARNING, ""));
+		statusObjects.put(NS_PUBLISH_INSUFFICIENT_BW, new RuntimeStatusObject(NS_PUBLISH_INSUFFICIENT_BW, StatusObject.WARNING, ""));
 		statusObjects.put(NS_PLAY_START, new RuntimeStatusObject(NS_PLAY_START, StatusObject.STATUS, ""));
 		statusObjects.put(NS_PLAY_STREAMNOTFOUND, new RuntimeStatusObject(NS_PLAY_STREAMNOTFOUND, StatusObject.ERROR, ""));
 		statusObjects.put(NS_PLAY_STOP, new RuntimeStatusObject(NS_PLAY_STOP, StatusObject.STATUS, ""));

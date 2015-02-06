@@ -468,7 +468,7 @@ package com.vispar
 			var onResult:Function = function (result:Object):void {
 				var isEmpty:Boolean = Boolean(result);
 				if( isEmpty ) {
-					showEmptyNotification("You are in viewer mode. There is no body joining the session right now. " +
+					showEmptyNotification("You are in viewer mode. There is no body joining the session right now.\n\n" +
 						"You can either go to talker mode or wait until others join!");
 				}
 			}
@@ -572,7 +572,7 @@ package com.vispar
 			fatalError_ = true;
 			closeViewStream();
 			closePublishStream();
-			showEmptyNotification("Your video has to stop now since your network speed is either slow or unstable. " +
+			showEmptyNotification("Your video has to stop now since your network speed is either slow or unstable.\n\n" +
 				"Please make sure you have a reliable network of at least 1Mbps uplink and downlink speed for best service!");
 			this.delegate_.onFatalNetworkTooSlowError();
 		}

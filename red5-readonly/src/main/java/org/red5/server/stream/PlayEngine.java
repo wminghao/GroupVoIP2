@@ -134,19 +134,24 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Number of pending messages at which a <code>NetStream.Play.InsufficientBW</code>
 	 * message is generated for VOD streams.
+	 * Howard: For live video playback, be more aggressive, change the threshold to be lower.
 	 */
-	private int underrunTrigger = 10;
-
+	//private int underrunTrigger = 10;
+	private int underrunTrigger = 6;
 	/**
 	 * threshold for number of pending video frames
+	 * Howard: For live video playback, be more aggressive, change the threshold to be lower.
 	 */
-	private int maxPendingVideoFramesThreshold = 10;
+	//private int maxPendingVideoFramesThreshold = 10;
+	private int maxPendingVideoFramesThreshold = 6;
 
 	/**
 	 * if we have more than 1 pending video frames, but less than maxPendingVideoFrames,
 	 * continue sending until there are this many sequential frames with more than 1 pending
+	 * Howard: For live video playback, be more aggressive, change the threshold to be lower.
 	 */
-	private int maxSequentialPendingVideoFrames = 10;
+	//private int maxSequentialPendingVideoFrames = 10;
+	private int maxSequentialPendingVideoFrames = 6;
 
 	/**
 	 * the number of sequential video frames with > 0 pending frames
