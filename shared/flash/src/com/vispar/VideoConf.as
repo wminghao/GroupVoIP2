@@ -1,6 +1,7 @@
 package com.vispar
 {
-	import com.vispar.network.LowBWDetector;
+	import com.vispar.network.LowPlaybackBWDetector;
+	import com.vispar.network.LowPublishBWDetector;
 	import com.vispar.network.NetworkDisconnectDetector;
 	
 	import flash.display.Sprite;
@@ -10,6 +11,8 @@ package com.vispar
 	import flash.system.*;
 	import flash.text.*;
 	import flash.utils.*;
+	
+	import org.red5.flash.bwcheck.events.BandwidthDetectEvent;
 	
 	public class VideoConf extends VideoContainer
 	{
@@ -40,8 +43,10 @@ package com.vispar
 		private var reconnTimer:Timer = null; 
 		
 		//detect low bw
-		private var lowBWDetector_:LowBWDetector = new LowBWDetector(stopVideoCallbackOnLowBW, logDebug);
+		private var lowPlaybackBWDetector_:LowPlaybackBWDetector = new LowPlaybackBWDetector(stopVideoCallbackOnLowBW, logDebug);
+		private var lowPublishBWDetector_:LowPublishBWDetector = new LowPublishBWDetector(stopVideoCallbackOnLowBW, logDebug);
 		private var networkDisconnectDetector_:NetworkDisconnectDetector = new NetworkDisconnectDetector(stopVideoCallbackOnLowBW);
+		private var uploadSpeedTimer:Timer = null;
 		
 		private var emptyRoomNotification_:TextField = null;
 		
@@ -94,7 +99,9 @@ package com.vispar
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				networkDisconnectDetector_.onConnectNotification();
 				//logDebug("NetConnection.Connect.Success!");
-				ServerClient();
+				uploadSpeedTimer = new Timer(2000);
+				uploadSpeedTimer.addEventListener(TimerEvent.TIMER, onUploadSpeedDetected);
+				uploadSpeedTimer.start();
 			} else if(event.info.code == "NetConnection.Connect.Failed" ||
 					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
 					  event.info.code == "NetConnection.Connect.Closed"){
@@ -280,6 +287,10 @@ package com.vispar
 				removeElementFromStringVector(publishDest, publishedStreamArray);
 				publishDest = null;
 			}
+			if( uploadSpeedTimer ) {
+				uploadSpeedTimer.stop();
+				uploadSpeedTimer = null;
+			}
 		}
 		
 		private function netStatusHandler(event:NetStatusEvent):void {
@@ -295,8 +306,8 @@ package com.vispar
 				case "NetStream.Publish.Start":
 				case "NetStream.Unpublish.Success":
 					break;
-				case "NetStream.Play.InsufficientBW":
-					lowBWDetector_.onLowBWNotification();
+				case "NetStream.Play.InsufficientBW": //playback only
+					lowPlaybackBWDetector_.onLowBWNotification();
 					break;
 				default:
 					logDebug("New event: " + event.info.code);
@@ -567,12 +578,23 @@ package com.vispar
 				connTimeoutTimer = null;
 			}
 		}
+		private function onUploadSpeedDetected(e:TimerEvent):void
+		{
+			//periodically detect upload speed
+			ClientServer();
+		}
 		
-		private function stopVideoCallbackOnLowBW():void {
+		override protected function onClientServerComplete(event:BandwidthDetectEvent):void
+		{			
+			//logDebug("\n\n kbitUp = " + event.info.kbitUp + ", deltaUp= " + event.info.deltaUp + ", deltaTime = " + event.info.deltaTime + ", latency = " + event.info.latency + " KBytes " + event.info.KBytes);
+			this.lowPublishBWDetector_.onPublishBWDetected(event.info.kbitUp);
+		}
+		
+		private function stopVideoCallbackOnLowBW(str:String):void {
 			fatalError_ = true;
 			closeViewStream();
 			closePublishStream();
-			showEmptyNotification("Your video has to stop now since your network speed is either slow or unstable.\n\n" +
+			showEmptyNotification("Your video has to stop now since your "+str+ " speed is either slow or unstable.\n\n" +
 				"Please make sure you have a reliable network of at least 1Mbps uplink and downlink speed for best service!");
 			this.delegate_.onFatalNetworkTooSlowError();
 		}

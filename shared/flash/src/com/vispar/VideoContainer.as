@@ -67,7 +67,8 @@ package com.vispar
 		public function switchToAudioOnly(forceAudioOnly:Boolean):void {			
 		}
 		
-		private function ClientServer():void
+		//Upload speed test is relatively accurate.
+		protected function ClientServer():void
 		{
 			var clientServer:ClientServerBandwidth  = new ClientServerBandwidth();
 			//connect();
@@ -79,6 +80,7 @@ package com.vispar
 			clientServer.start();
 		}
 		
+		//Download speed test is NOT accurate.
 		protected function ServerClient():void
 		{
 			var serverClient:ServerClientBandwidth = new ServerClientBandwidth();
@@ -96,7 +98,7 @@ package com.vispar
 			logDebug("Detection failed with error: " + event.info.application + " " + event.info.description);
 		}
 		
-		private function onClientServerComplete(event:BandwidthDetectEvent):void
+		protected function onClientServerComplete(event:BandwidthDetectEvent):void
 		{			
 			logDebug("\n\n kbitUp = " + event.info.kbitUp + ", deltaUp= " + event.info.deltaUp + ", deltaTime = " + event.info.deltaTime + ", latency = " + event.info.latency + " KBytes " + event.info.KBytes);
 		}

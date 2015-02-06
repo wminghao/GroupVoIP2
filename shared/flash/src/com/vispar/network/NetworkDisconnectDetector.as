@@ -19,7 +19,7 @@ package com.vispar.network
 		{
 			this.numOfContDisconnect_++;
 			if( this.numOfContDisconnect_ >= numOfDisconnectThreshold_ ) {
-				this.stopVideoCallback_();
+				this.stopVideoCallback_("network");
 				return false;
 			}
 			return true;
