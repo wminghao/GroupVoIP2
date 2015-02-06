@@ -6,9 +6,9 @@ package com.vispar.network
 		private var stopVideoCallback_:Function;
 		private var logDebug_:Function;
 		
-		//if within 20 seconds, there are more than 2 low bw notifications, we treat it as fatal.
-		private const numOfNotificationThreshold_:int = 2;
-		private const timeIntervalThreshold_:int = 20; //20 seconds
+		//if within 25 seconds, there are more than 3 low bw notifications, we treat it as fatal.
+		private const numOfNotificationThreshold_:int = 3;
+		private const timeIntervalThreshold_:int = 25; //25 seconds
 		public function LowPlaybackBWDetector(stopVideoCallback:Function, logDebug:Function)
 		{
 			this.stopVideoCallback_ = stopVideoCallback;

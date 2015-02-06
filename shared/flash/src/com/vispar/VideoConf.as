@@ -97,8 +97,10 @@ package com.vispar
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
 				if( room == user ) {
-					delayedFunctionCall(1000, function(e:Event):void { publishNow();
+					delayedFunctionCall(1000, function(e:Event):void { 
+						publishNow();
 						delegate_.onVideoStarted( isViewOnly_);
+						//logDebug("NetConnection.Connect.Success!");
 					});
 				} else {
 					openViewStream( allinone );
@@ -107,10 +109,6 @@ package com.vispar
 					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 				}
 				networkDisconnectDetector_.onConnectNotification();
-				//logDebug("NetConnection.Connect.Success!");
-				uploadSpeedTimer = new Timer(2000);
-				uploadSpeedTimer.addEventListener(TimerEvent.TIMER, onUploadSpeedDetected);
-				uploadSpeedTimer.start();
 			} else if(event.info.code == "NetConnection.Connect.Failed" ||
 					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
 					  event.info.code == "NetConnection.Connect.Closed"){
@@ -266,6 +264,10 @@ package com.vispar
 					//Alert.show("camera width="+camera.width);
 					
 					addStreamToStringVector(publishDest);
+					
+					uploadSpeedTimer = new Timer(2000);
+					uploadSpeedTimer.addEventListener(TimerEvent.TIMER, onUploadSpeedDetected);
+					uploadSpeedTimer.start();
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -296,10 +298,7 @@ package com.vispar
 				removeElementFromStringVector(publishDest, publishedStreamArray);
 				publishDest = null;
 			}
-			if( uploadSpeedTimer ) {
-				uploadSpeedTimer.stop();
-				uploadSpeedTimer = null;
-			}
+			stopUploadSpeedTimer();
 		}
 		
 		private function netStatusHandler(event:NetStatusEvent):void {
@@ -429,8 +428,7 @@ package com.vispar
 		}
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
 			if(vector.indexOf(element) > -1){  
-				vector.splice(vector.indexOf(element), 1);  
-				removeElementFromStringVector(element, vector);
+				vector.splice(vector.indexOf(element), 1);
 				logDebug(element+" removed!");
 				totalPublishers--;
 				//detect whether empty room or not after 1 second
@@ -587,6 +585,12 @@ package com.vispar
 			if( connTimeoutTimer ) {
 				connTimeoutTimer.stop();
 				connTimeoutTimer = null;
+			}
+		}
+		private function stopUploadSpeedTimer():void{
+			if( uploadSpeedTimer ) {
+				uploadSpeedTimer.stop();
+				uploadSpeedTimer = null;
 			}
 		}
 		private function onUploadSpeedDetected(e:TimerEvent):void
