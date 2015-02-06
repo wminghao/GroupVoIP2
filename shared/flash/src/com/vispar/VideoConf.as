@@ -16,7 +16,6 @@ package com.vispar
 		private var streamPub:NetStream = null; //must declare outside, otherwise, gc will recycle it.
 		private var streamView:NetStream = null; //must declare outside
 		
-		private var netConn:NetConnection = null;	
 		private var mic:Microphone = null;
 		private var camera:Camera = null;
 		
@@ -94,7 +93,8 @@ package com.vispar
 			if(event.info.code == "NetConnection.Connect.Success") {
 				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
 				networkDisconnectDetector_.onConnectNotification();
-				logDebug("NetConnection.Connect.Success!");
+				//logDebug("NetConnection.Connect.Success!");
+				ServerClient();
 			} else if(event.info.code == "NetConnection.Connect.Failed" ||
 					  event.info.code == "NetConnection.Connect.IdleTimeout" ||
 					  event.info.code == "NetConnection.Connect.Closed"){
@@ -463,7 +463,6 @@ package com.vispar
 			emptyRoomNotification_.border = true;
 			emptyRoomNotification_.wordWrap = true;
 			container_.addChild(emptyRoomNotification_);
-			this.delegate_.onFatalNetworkTooSlowError();
 		}
 		public function detectEmptyStream():void {
 			var onResult:Function = function (result:Object):void {
@@ -573,8 +572,9 @@ package com.vispar
 			fatalError_ = true;
 			closeViewStream();
 			closePublishStream();
-			showEmptyNotification("Your video has to stop now since your network speed is too slow. " +
-				"Please make sure you have a reliable upload & download speed of at least 1Mbps for best service!");
+			showEmptyNotification("Your video has to stop now since your network speed is either slow or unstable. " +
+				"Please make sure you have a reliable network of at least 1Mbps uplink and downlink speed for best service!");
+			this.delegate_.onFatalNetworkTooSlowError();
 		}
 	}
 }

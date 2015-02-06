@@ -11,7 +11,6 @@ package com.vispar
 		
 		//netstream and netconnection
 		private var streamView:NetStream = null; //must declare outside
-		private var netConn:NetConnection = null;	
 		private var videoOthers:Video = null;
 		
 		//detect connection timeout
