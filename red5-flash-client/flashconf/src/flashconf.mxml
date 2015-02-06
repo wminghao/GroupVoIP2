@@ -131,7 +131,6 @@
 			protected function switchViewOnly_clickHandler(event:MouseEvent):void {
 				var isViewOnly:Boolean = vidInstance_.isViewOnly();
 				vidInstance_.switchToViewOnly( !isViewOnly );
-				this.onVideoStarted( !isViewOnly );
 			}			
 			public function onVideoStarted(isViewOnly:Boolean):void{
 				//check whether it's the talker mode or other mode.

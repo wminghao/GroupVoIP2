@@ -96,7 +96,16 @@ package com.vispar
 			stopReconnTimer();
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
-				delayedFunctionCall(1000, function(e:Event):void {publishNow();});
+				if( room == user ) {
+					delayedFunctionCall(1000, function(e:Event):void { publishNow();
+						delegate_.onVideoStarted( isViewOnly_);
+					});
+				} else {
+					openViewStream( allinone );
+					isViewOnly_ = true;
+					delegate_.onVideoStarted( isViewOnly_ );
+					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
+				}
 				networkDisconnectDetector_.onConnectNotification();
 				//logDebug("NetConnection.Connect.Success!");
 				uploadSpeedTimer = new Timer(2000);
@@ -532,13 +541,15 @@ package com.vispar
 					closePublishStream();
 					isViewOnly_ = true;
 					openViewStream( allinone );
+					delegate_.onVideoStarted( isViewOnly_ );
 				} else {
 					//do nothing
 				}
 			} else {
 				if( isViewOnly_ ) {
 					closeViewStream();
-					publishNow();					
+					publishNow();
+					delegate_.onVideoStarted( isViewOnly_ );					
 				} else {
 					//do nothing
 				}
