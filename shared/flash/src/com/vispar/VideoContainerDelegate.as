@@ -20,5 +20,8 @@ package com.vispar
 		
 		function onVideoSelected(videoName:String):void;
 		function onVideoListPopulated(videoNamesArray:Array):void;
+		
+		//request to talk to main UI
+		function onRequest2TalkNeedsApproval(user:String):void;
 	}
 }

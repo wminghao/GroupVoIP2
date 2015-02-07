@@ -269,6 +269,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private String publisherStreamName;
 	private int    publisherStreamId;
+	
+	/*
+	 * a flag to indicate if he's a moderator or not
+	 */
+	private boolean isModerator_;
+	private String user_;
+	
 
 	//this is only called if the current connection has a publisher associated with it.
 	//deleteStreamById must be protected with setPublisherStreamInfo, 
@@ -1451,6 +1458,41 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     		cbs.onVideoListPopulated(streamName, videoListNames);
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoListPopulated callback failed: {}", e);
+        }
+    }
+    
+    //moderator process
+    public void setAsUser(String user, boolean isModerator){
+    	user_ = user;
+    	isModerator_ = isModerator;
+		log.info("setAsUser user {}, isModerator_ {}", user, isModerator_);
+    }
+    public boolean isModerator(){
+    	return isModerator_;
+    }
+    public String getUser(){
+    	return user_;
+    }
+    public void request2Talk(String user) {
+		Red5.setConnectionLocal(this);
+        try {
+    		log.info("request2Talk user {}", user);
+    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
+    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+    		cbs.request2Talk(user);
+        } catch(Exception e) {
+        	log.info("----Non-critical error: request2Talk callback failed: {}", e);
+        }
+    }
+    public void approveRequest2Talk(Boolean isAllow, String user) {
+		Red5.setConnectionLocal(this);
+        try {
+    		log.info("approveRequest2Talk  isAllow {} user {}", isAllow, user);
+    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
+    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+    		cbs.approveRequest2Talk(isAllow, user);
+        } catch(Exception e) {
+        	log.info("----Non-critical error: approveRequest2Talk callback failed: {}", e);
         }
     }
 }

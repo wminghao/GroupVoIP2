@@ -20,6 +20,7 @@ package
 		private var edgeY_:int; //leave the top area for display label and others
 		private var onVideoStarted_:Function;
 		private var onFatalNetworkTooSlowError_:Function;
+		private var onRequest2TalkNeedsApproval_:Function;
 		
 		public function UIContainer()
 		{
@@ -30,13 +31,15 @@ package
 								debugText:TextArea,
 								videoSet:ArrayCollection,
 								onVideoStarted:Function,
-								onFatalNetworkTooSlowError:Function):void {
+								onFatalNetworkTooSlowError:Function,
+								onRequest2TalkNeedsApproval:Function):void {
 			this.edgeX_ = edgeX;
 			this.edgeY_ = edgeY;
 			this.debugText_ = debugText;	
 			this.videoSet_ = videoSet;
 			this.onVideoStarted_ = onVideoStarted;
 			this.onFatalNetworkTooSlowError_ = onFatalNetworkTooSlowError;
+			this.onRequest2TalkNeedsApproval_ = onRequest2TalkNeedsApproval;
 			//logDebug("----screenWidth="+this.width+" screenHeight="+this.height+" screenX="+(this.x + edgeX_)+" screenY="+(this.y + edgeY_));
 		}
 		
@@ -108,6 +111,11 @@ package
 		
 		public function onFatalNetworkTooSlowError():void {
 			onFatalNetworkTooSlowError_();
+		}
+		
+		public function onRequest2TalkNeedsApproval(user:String):void{
+			logDebug("onRequest2TalkNeedsApproval="+user+" ");
+			onRequest2TalkNeedsApproval_(user);
 		}
 	}
 }

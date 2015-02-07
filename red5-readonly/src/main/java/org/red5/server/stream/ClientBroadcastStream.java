@@ -980,5 +980,37 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			}
 		}
     }
+    
+	//notify moderator someone is requesting to talk
+    public void request2Talk(String user) {
+    	IEventListener source = Red5.getConnectionLocal();
+
+		if (source instanceof IConnection) {
+			IScope scope = ((IConnection) source).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for request2Talk
+					((IStreamAwareScopeHandler) handler).onRequest2TalkNeedsApproval(user);
+				}
+			}
+		}
+    }
+
+	//notify user moderator has approved the talk
+    public void approveRequest2Talk(Boolean isAllow, String user) {
+    	IEventListener source = Red5.getConnectionLocal();
+
+		if (source instanceof IConnection) {
+			IScope scope = ((IConnection) source).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for approved the talk
+					((IStreamAwareScopeHandler) handler).onRequest2TalkApproved(isAllow, user);
+				}
+			}
+		}
+    }
 
 }

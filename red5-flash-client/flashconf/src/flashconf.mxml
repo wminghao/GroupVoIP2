@@ -19,6 +19,8 @@
 			
 			private var defaultRoom:String = "default";
 			private var defaultUser:String = "default";
+			private var defaultMode:String = "moderator";
+			
 			//540=480+30*2
 			private var edgeX_:int = 0; //leave the top area for display label and others
 			private var edgeY_:int = 30;//leave the top area for display label and others
@@ -35,17 +37,18 @@
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
-					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError );
+					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError, onRequest2TalkNeedsApproval );
 					var room:String = getVideoRoom();
 					var user:String = getUserName();
+					var mode:String = getRoomMode();
 					if( getIsArchive() ) {
 						this.switchAudioOnly.visible = false;
 						this.switchViewOnly.visible = false;
 						this.videoList.visible = false;
 						this.stopVideo.visible = false;
-						vidInstance_ = new VideoPlayer(container, container, room, user);
+						vidInstance_ = new VideoPlayer(container, container, room, user, mode);
 					} else {				
-						vidInstance_ = new VideoConf(container, container, room, user);
+						vidInstance_ = new VideoConf(container, container, room, user, mode);
 					}
 					vidInstance_.connectServer();	
 				} catch (error:Error) {
@@ -113,6 +116,26 @@
 				return userName;
 			}
 			
+			private function getRoomMode():String {
+				var mode:String = defaultMode;
+				try
+				{
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						mode = ExternalInterface.call("getMode");
+						if(mode == null) {
+							mode = defaultMode;
+						}
+						//Alert.show("mode="+mode);
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return mode;
+			}
 			protected function stopVideo_clickHandler(event:MouseEvent):void
 			{
 				vidInstance_.stopVideo();	
@@ -161,6 +184,24 @@
 				this.switchViewOnly.enabled = false;
 				this.videoList.enabled = false;
 				this.stopVideo.enabled = false;
+			}
+			
+			public function onRequest2TalkNeedsApproval(user:String):void {
+				var myClickHandler:Function = function (evt_obj:Object):void {
+					if (evt_obj.detail == Alert.YES) {
+						this.vidInstance_.approveRequest2Talk(true, user);
+					} else if (evt_obj.detail == Alert.NO) {
+						this.vidInstance_.approveRequest2Talk(false, user);
+					}
+				};
+				try
+				{
+					Alert.show("Alert", user+" requested to join the conversation. Allow him?", Alert.YES | Alert.NO, null, myClickHandler);
+				}
+				catch (error:Error) 
+				{
+					this.container.logDebug("Alert error="+error.toString());
+				}
 			}
 		]]>
 	</fx:Script>

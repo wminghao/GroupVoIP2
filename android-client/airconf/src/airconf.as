@@ -83,6 +83,7 @@ package
 			var room:String = null;
 			var user:String = null;
 			var bIsArchive:Boolean = false;
+			var mode:String = null;
 			//logDebug("reason: " + event.reason);  
 			//logDebug("arguments.length: " + event.arguments.length);  
 			if( event.arguments.length > 0 && event.arguments[0]!=null ) {
@@ -107,11 +108,16 @@ package
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				user = arg.substring(0, endIndex);
+				
+				//skip the next parameter
+				arg = arg.substr(endIndex + 1);
+				endIndex = arg.indexOf("/");
+				mode = arg.substring(0, endIndex);
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this, room, user);
+				vidInstance_ = new VideoPlayer(this, this, room, user, mode);
 			} else {				
-				vidInstance_ = new VideoConf(this, this, room, user);
+				vidInstance_ = new VideoConf(this, this, room, user, mode);
 			}
 		}		
 		
@@ -301,6 +307,10 @@ package
 		}
 		
 		public function onFatalNetworkTooSlowError():void{
+			//TODO
+		}
+		
+		public function onRequest2TalkNeedsApproval(user:String):void{
 			//TODO
 		}
 	}

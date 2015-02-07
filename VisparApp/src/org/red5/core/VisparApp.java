@@ -195,6 +195,16 @@ public class VisparApp extends ApplicationAdapter implements
                 log.debug("sending {} notification to {}", methodName, conn);
             }
         }
+	}	
+	
+	private void sendToClient2(IConnection conn, String methodName, Boolean param1) {
+		if (conn instanceof IServiceCapableConnection) {
+            ((IServiceCapableConnection) conn).invoke(methodName,
+                    new Object[] { param1 }, this);
+            if (log.isDebugEnabled()) {
+                log.debug("sending {} notification to {}", methodName, conn);
+            }
+        }
 	}
 
 	/*
@@ -224,6 +234,37 @@ public class VisparApp extends ApplicationAdapter implements
             			sendToClient(conn, "onVideoListPopulated", videoListNames);
             		}
             	}
+            }
+        }
+    }
+
+    public void onRequest2TalkApproved(Boolean isAllow, String userName) {
+    	super.onRequest2TalkApproved(isAllow, userName);
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+                if (conn instanceof RTMPConnection) {
+                	if( ((RTMPConnection)conn).getUser() == userName){
+                		sendToClient2(conn, "onRequest2TalkApproved", isAllow);
+                	}
+                }
+            }
+        }
+    }
+    
+    public void onRequest2TalkNeedsApproval(String user ){
+    	super.onRequest2TalkNeedsApproval(user);
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+                if (conn instanceof RTMPConnection) {
+                	if( ((RTMPConnection)conn).isModerator()){
+                		log.info("Find moderator, send to him {}", ((RTMPConnection)conn).getUser());
+                		sendToClient(conn, "onRequest2TalkNeedsApproval", user);
+                	}
+                }
             }
         }
     }

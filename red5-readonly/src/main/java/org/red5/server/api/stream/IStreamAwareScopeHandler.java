@@ -127,4 +127,10 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 */
 	public void onVideoPlaying(String videoName);
     public void onVideoListPopulated(String streamName, String videoListNames);
+    
+    /*
+     * moderator process
+     */
+    public void onRequest2TalkApproved(Boolean isAllow, String user);
+    public void onRequest2TalkNeedsApproval(String user);
 }

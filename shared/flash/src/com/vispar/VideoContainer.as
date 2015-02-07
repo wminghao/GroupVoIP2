@@ -30,6 +30,9 @@ package com.vispar
 		
 		//ip address
 		protected var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";//"192.168.0.61";
+		
+		protected var roomMode_:String; //either auto mode or moderator mode
+		
 		protected function logDebug(str:String):void {
 			delegate_.logDebug(str);
 		}
@@ -37,12 +40,13 @@ package com.vispar
 			delegate_.showAlert(str);
 		}
 		
-		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String)
+		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
 		{ 
 			this.container_ = container;
 			this.delegate_ = delegate;
 			this.room = room;
 			this.user = user;
+			this.roomMode_ = mode;
 		}
 		
 		public function connectServer():void {
@@ -65,6 +69,12 @@ package com.vispar
 			return false;
 		}
 		public function switchToAudioOnly(forceAudioOnly:Boolean):void {			
+		}
+		public function isAutoMode():Boolean {
+			return roomMode_=="auto";
+		}
+		
+		public function approveRequest2Talk(isAllow:Boolean, user:String):void {
 		}
 		
 		//Upload speed test is relatively accurate.

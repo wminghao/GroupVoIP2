@@ -1391,4 +1391,15 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		// log w3c connect event
 		log.info("W3C x-category:stream x-onVideoListPopulated c-ip:{} x-sname:{} for stream {}", Red5.getConnectionLocal().getRemoteAddress(), videoListNames, streamName);
     }
+	/*
+	 * Moderator process
+	 */
+    public void onRequest2TalkApproved(Boolean isAllow, String user) {
+		// log w3c connect event
+		log.info("W3C x-category:stream x-onRequest2TalkApproved c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), isAllow, user);
+    }
+    public void onRequest2TalkNeedsApproval(String user){
+		// log w3c connect event
+		log.info("W3C x-category:stream x-request2Talk c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), user);    	
+    }
 }

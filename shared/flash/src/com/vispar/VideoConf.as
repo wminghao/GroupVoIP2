@@ -52,9 +52,9 @@ package com.vispar
 		
 		private var fatalError_:Boolean = false;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
 		{ 
-			super(container, delegate, room, user);
+			super(container, delegate, room, user, mode);
 		}
 		
 		override public function connectServer():void {
@@ -96,7 +96,9 @@ package com.vispar
 			stopReconnTimer();
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
-				if( room == user ) {
+				var isAutoMode:Boolean = isAutoMode();
+				netConn.call("clientRequest.setAsUser", null, user, (!isAutoMode  && (room == user)));	
+				if( isAutoMode || room == user ) {
 					delayedFunctionCall(1000, function(e:Event):void { 
 						publishNow();
 						delegate_.onVideoStarted( isViewOnly_);
@@ -544,10 +546,12 @@ package com.vispar
 					//do nothing
 				}
 			} else {
-				if( isViewOnly_ ) {
-					closeViewStream();
-					publishNow();
-					delegate_.onVideoStarted( isViewOnly_ );					
+				if( isViewOnly_ ) {		
+					if( isAutoMode() ){
+						onRequest2TalkApproved(true); //join immediately
+					} else {
+						request2Talk(); //requesting moderator to join the talk
+					}
 				} else {
 					//do nothing
 				}
@@ -587,6 +591,8 @@ package com.vispar
 				connTimeoutTimer = null;
 			}
 		}
+		
+		//uplink network speed test
 		private function stopUploadSpeedTimer():void{
 			if( uploadSpeedTimer ) {
 				uploadSpeedTimer.stop();
@@ -605,6 +611,7 @@ package com.vispar
 			this.lowPublishBWDetector_.onPublishBWDetected(event.info.kbitUp);
 		}
 		
+		//stop video if either uplink speed or downlink speed is too bad
 		private function stopVideoCallbackOnLowBW(str:String):void {
 			fatalError_ = true;
 			closeViewStream();
@@ -612,6 +619,27 @@ package com.vispar
 			showEmptyNotification("Your video has to stop now since your "+str+ " speed is either slow or unstable.\n\n" +
 				"Please make sure you have a reliable network of at least 1Mbps uplink and downlink speed for best service!");
 			this.delegate_.onFatalNetworkTooSlowError();
+		}
+		
+		//approval mode
+		public function request2Talk():void{
+			netConn.call("clientRequest.request2Talk", null, user);	
+		}
+		public function onRequest2TalkApproved(isAllow:Boolean):void{
+			if( isAllow ) {
+				closeViewStream();
+				publishNow();
+				delegate_.onVideoStarted( isViewOnly_ );			
+			} else {
+				delegate_.showAlert("Request denied to join the conversation!");
+			}
+		}
+		public override function approveRequest2Talk(isAllow:Boolean, user:String):void {
+			netConn.call("clientRequest.approveRequest2Talk", null, user, isAllow);	
+		}
+		public function onRequest2TalkNeedsApproval(user:String):void{
+			//TODO stuck here
+			this.delegate_.onRequest2TalkNeedsApproval(user);
 		}
 	}
 }
