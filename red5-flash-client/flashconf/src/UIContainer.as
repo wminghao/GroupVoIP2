@@ -114,7 +114,6 @@ package
 		}
 		
 		public function onRequest2TalkNeedsApproval(user:String):void{
-			logDebug("onRequest2TalkNeedsApproval="+user+" ");
 			onRequest2TalkNeedsApproval_(user);
 		}
 	}

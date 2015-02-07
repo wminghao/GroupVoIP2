@@ -1443,8 +1443,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.onVideoPlaying(videoName);
+        	if( scope !=null && scope.getContext() != null) {
+        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+        		cbs.onVideoPlaying(videoName);
+        	}
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoPlaying callback failed: {}", e);
         }
@@ -1454,8 +1456,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.onVideoListPopulated(streamName, videoListNames);
+        	if( scope !=null && scope.getContext() != null) {
+        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+        		cbs.onVideoListPopulated(streamName, videoListNames);
+        	}
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoListPopulated callback failed: {}", e);
         }
@@ -1478,8 +1482,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         try {
     		log.info("request2Talk user {}", user);
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.request2Talk(user);
+        	if( scope !=null && scope.getContext() != null) {
+        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+        		cbs.request2Talk(user);
+        	}
         } catch(Exception e) {
         	log.info("----Non-critical error: request2Talk callback failed: {}", e);
         }
@@ -1489,8 +1495,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         try {
     		log.info("approveRequest2Talk  isAllow {} user {}", isAllow, user);
     		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-    		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-    		cbs.approveRequest2Talk(isAllow, user);
+        	if( scope !=null && scope.getContext() != null) {
+        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+        		cbs.approveRequest2Talk(isAllow, user);
+        	}
         } catch(Exception e) {
         	log.info("----Non-critical error: approveRequest2Talk callback failed: {}", e);
         }

@@ -638,13 +638,9 @@ package com.vispar
 			netConn.call("clientRequest.approveRequest2Talk", null, user, isAllow);	
 		}
 		public function onRequest2TalkNeedsApproval(resp:Object):void{
-			try {
-				var user:String = String(resp);
-				logDebug(" onRequest2TalkNeedsApproval! user="+user);
-				delegate_.onRequest2TalkNeedsApproval(user);
-			} catch(e:Error) {
-				logDebug("---onRequest2TalkNeedsApproval Exception="+e);
-			}
+			var user:String = String(resp);
+			logDebug(" onRequest2TalkNeedsApproval! user="+user);
+			delegate_.onRequest2TalkNeedsApproval(user);
 		}
 	}
 }
