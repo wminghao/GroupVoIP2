@@ -261,7 +261,7 @@ public class VisparApp extends ApplicationAdapter implements
             for (IConnection conn: connections) {
                 if (conn instanceof RTMPConnection) {
                 	if( ((RTMPConnection)conn).isModerator()){
-                		log.info("Find moderator, send to him {}", ((RTMPConnection)conn).getUser());
+                		log.info("Find moderator, send to {} to approve {}", ((RTMPConnection)conn).getUser(), user);
                 		sendToClient(conn, "onRequest2TalkNeedsApproval", user);
                 	}
                 }

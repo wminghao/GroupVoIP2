@@ -96,9 +96,8 @@ package com.vispar
 			stopReconnTimer();
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
-				var isAutoMode:Boolean = isAutoMode();
-				netConn.call("clientRequest.setAsUser", null, user, (!isAutoMode  && (room == user)));	
-				if( isAutoMode || room == user ) {
+				netConn.call("clientRequest.setAsUser", null, user, (!isAutoMode()  && (room == user)));	
+				if( room == user ) {
 					delayedFunctionCall(1000, function(e:Event):void { 
 						publishNow();
 						delegate_.onVideoStarted( isViewOnly_);
@@ -625,7 +624,8 @@ package com.vispar
 		public function request2Talk():void{
 			netConn.call("clientRequest.request2Talk", null, user);	
 		}
-		public function onRequest2TalkApproved(isAllow:Boolean):void{
+		public function onRequest2TalkApproved(resp:Object):void{
+			var isAllow:Boolean = Boolean(resp);
 			if( isAllow ) {
 				closeViewStream();
 				publishNow();
@@ -637,9 +637,14 @@ package com.vispar
 		public override function approveRequest2Talk(isAllow:Boolean, user:String):void {
 			netConn.call("clientRequest.approveRequest2Talk", null, user, isAllow);	
 		}
-		public function onRequest2TalkNeedsApproval(user:String):void{
-			//TODO stuck here
-			this.delegate_.onRequest2TalkNeedsApproval(user);
+		public function onRequest2TalkNeedsApproval(resp:Object):void{
+			try {
+				var user:String = String(resp);
+				logDebug(" onRequest2TalkNeedsApproval! user="+user);
+				delegate_.onRequest2TalkNeedsApproval(user);
+			} catch(e:Error) {
+				logDebug("---onRequest2TalkNeedsApproval Exception="+e);
+			}
 		}
 	}
 }
