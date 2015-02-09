@@ -37,8 +37,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -48,6 +50,7 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
@@ -1439,27 +1442,35 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return isEmptyStream;
 	}
 
+	//notify client a video is playing
     public void onVideoPlaying(String videoName) {
 		Red5.setConnectionLocal(this);
         try {
-    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-        	if( scope !=null && scope.getContext() != null) {
-        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-        		cbs.onVideoPlaying(videoName);
-        	}
+			IScope scope = ((IConnection) this).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for song playing
+					((IStreamAwareScopeHandler) handler).onVideoPlaying(videoName);
+				}
+			}
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoPlaying callback failed: {}", e);
         }
     }
 
+	//notify client a video is playing
     public void onVideoListPopulated(String streamName, String videoListNames) {
 		Red5.setConnectionLocal(this);
         try {
-    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-        	if( scope !=null && scope.getContext() != null) {
-        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-        		cbs.onVideoListPopulated(streamName, videoListNames);
-        	}
+			IScope scope = ((IConnection) this).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for song playing
+					((IStreamAwareScopeHandler) handler).onVideoListPopulated(streamName, videoListNames);
+				}
+			}
         } catch(Exception e) {
         	log.info("----Non-critical error: onVideoListPopulated callback failed: {}", e);
         }
@@ -1477,28 +1488,36 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     public String getUser(){
     	return user_;
     }
+    
+	//notify moderator someone is requesting to talk
     public void request2Talk(String user) {
 		Red5.setConnectionLocal(this);
         try {
-    		log.info("request2Talk user {}", user);
-    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-        	if( scope !=null && scope.getContext() != null) {
-        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-        		cbs.request2Talk(user);
-        	}
+			IScope scope = ((IConnection) this).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for request2Talk
+					((IStreamAwareScopeHandler) handler).onRequest2TalkNeedsApproval(user);
+				}
+			}
         } catch(Exception e) {
         	log.info("----Non-critical error: request2Talk callback failed: {}", e);
         }
     }
+
+	//notify user moderator has approved the talk
     public void approveRequest2Talk(Boolean isAllow, String user) {
 		Red5.setConnectionLocal(this);
         try {
-    		log.info("approveRequest2Talk  isAllow {} user {}", isAllow, user);
-    		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-        	if( scope !=null && scope.getContext() != null) {
-        		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-        		cbs.approveRequest2Talk(isAllow, user);
-        	}
+			IScope scope = ((IConnection) this).getScope();
+			if (scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for approved the talk
+					((IStreamAwareScopeHandler) handler).onRequest2TalkApproved(isAllow, user);
+				}
+			}
         } catch(Exception e) {
         	log.info("----Non-critical error: approveRequest2Talk callback failed: {}", e);
         }

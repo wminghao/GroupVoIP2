@@ -189,6 +189,7 @@ public class VisparApp extends ApplicationAdapter implements
 	 */
 	private void sendToClient(IConnection conn, String methodName, String param) {
 		if (conn instanceof IServiceCapableConnection) {
+			//Red5.setConnectionLocal(conn);
             ((IServiceCapableConnection) conn).invoke(methodName,
                     new Object[] { param }, this);
             if (log.isDebugEnabled()) {
@@ -199,6 +200,7 @@ public class VisparApp extends ApplicationAdapter implements
 	
 	private void sendToClient2(IConnection conn, String methodName, Boolean param1) {
 		if (conn instanceof IServiceCapableConnection) {
+			//Red5.setConnectionLocal(conn);
             ((IServiceCapableConnection) conn).invoke(methodName,
                     new Object[] { param1 }, this);
             if (log.isDebugEnabled()) {

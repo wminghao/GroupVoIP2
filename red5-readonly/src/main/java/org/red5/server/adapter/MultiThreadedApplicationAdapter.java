@@ -1400,6 +1400,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     }
     public void onRequest2TalkNeedsApproval(String user){
 		// log w3c connect event
-		log.info("W3C x-category:stream x-request2Talk c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), user);    	
+		log.info("W3C x-category:stream x-onRequest2TalkNeedsApproval c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), user);    	
     }
 }
