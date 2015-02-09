@@ -189,7 +189,7 @@ public class VisparApp extends ApplicationAdapter implements
 	 */
 	private void sendToClient(IConnection conn, String methodName, String param) {
 		if (conn instanceof IServiceCapableConnection) {
-			//Red5.setConnectionLocal(conn);
+			Red5.setConnectionLocal(conn);
             ((IServiceCapableConnection) conn).invoke(methodName,
                     new Object[] { param }, this);
             if (log.isDebugEnabled()) {
@@ -200,7 +200,7 @@ public class VisparApp extends ApplicationAdapter implements
 	
 	private void sendToClient2(IConnection conn, String methodName, Boolean param1) {
 		if (conn instanceof IServiceCapableConnection) {
-			//Red5.setConnectionLocal(conn);
+			Red5.setConnectionLocal(conn);
             ((IServiceCapableConnection) conn).invoke(methodName,
                     new Object[] { param1 }, this);
             if (log.isDebugEnabled()) {
@@ -218,7 +218,10 @@ public class VisparApp extends ApplicationAdapter implements
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
-                sendToClient(conn, "onVideoSelected", videoName);
+            	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
+            		log.info("Send onVideoPlaying {} about videoName {}", ((RTMPConnection)conn).getUser(), videoName);
+            		sendToClient(conn, "onVideoPlaying", videoName);
+            	}
             }
         }
     }
@@ -233,7 +236,9 @@ public class VisparApp extends ApplicationAdapter implements
             		RTMPConnection rtmpConn = (RTMPConnection) conn;
             		String publisherName = rtmpConn.getPublisherStreamName();
             		if( publisherName!=null && publisherName.equals(streamName) ) {
-            			sendToClient(conn, "onVideoListPopulated", videoListNames);
+                    	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
+                    		sendToClient(conn, "onVideoListPopulated", videoListNames);
+                    	}
             		}
             	}
             }
@@ -246,7 +251,7 @@ public class VisparApp extends ApplicationAdapter implements
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
-                if (conn instanceof RTMPConnection) {
+                if (conn!=null && conn instanceof RTMPConnection) {
                 	if( ((RTMPConnection)conn).getUser() == userName){
                 		sendToClient2(conn, "onRequest2TalkApproved", isAllow);
                 	}
@@ -262,7 +267,7 @@ public class VisparApp extends ApplicationAdapter implements
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
                 if (conn instanceof RTMPConnection) {
-                	if( ((RTMPConnection)conn).isModerator()){
+                	if( conn!=null && ((RTMPConnection)conn).isModerator()){
                 		log.info("Find moderator, send to {} to approve {}", ((RTMPConnection)conn).getUser(), user);
                 		sendToClient(conn, "onRequest2TalkNeedsApproval", user);
                 	}

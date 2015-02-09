@@ -514,11 +514,11 @@ package com.vispar
 		}
 		
 		//notify external video is playing
-		public function onVideoSelected(resp:Object):void	
+		public function onVideoPlaying(resp:Object):void	
 		{
 			var videoName:String = String(resp);
 			if( videoName != null) {
-				delegate_.onVideoSelected(videoName);
+				delegate_.onVideoPlaying(videoName);
 			}
 		}
 		public function onVideoListPopulated(resp:Object):void	{

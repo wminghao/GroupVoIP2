@@ -1447,7 +1447,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
-			if (scope.hasHandler()) {
+			if (scope !=null && scope.hasHandler()) {
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
@@ -1464,7 +1464,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
-			if (scope.hasHandler()) {
+			if (scope !=null && scope.hasHandler()) {
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
@@ -1494,7 +1494,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
-			if (scope.hasHandler()) {
+			if (scope !=null && scope.hasHandler()) {
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for request2Talk
@@ -1511,7 +1511,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
-			if (scope.hasHandler()) {
+			if (scope !=null && scope.hasHandler()) {
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for approved the talk

@@ -296,7 +296,7 @@ package
 			return null;
 		}
 		
-		public function onVideoSelected(videoName:String):void {
+		public function onVideoPlaying(videoName:String):void {
 			//logDebug("Now playing="+videoName);
 		}
 		public function onVideoListPopulated(videoNamesArray:Array):void {
