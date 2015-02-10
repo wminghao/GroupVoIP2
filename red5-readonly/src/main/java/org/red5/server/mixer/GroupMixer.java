@@ -99,6 +99,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
+    	    
+    	    log.info("Created all In One connection with sessionId {}", mixerRoom.allInOneSessionId_);
     	}
 	    //kick off createStream event
     	createMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
@@ -201,7 +203,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	int newStreamId = mixerRoom.idLookupTable_.createNewEntry(streamName);
 
     	RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
-    	handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
+    	if( conn != null ) {
+    		handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
+    	} else {
+        	log.info("----------------fatal error allInone stream not found sessionId = {}", mixerRoom.allInOneSessionId_);
+    	}
     }
     
     private int deleteMixedStreamInternal(MixerRoom mixerRoom, String streamName)

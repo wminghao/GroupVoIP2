@@ -250,7 +250,9 @@ public class VisparApp extends ApplicationAdapter implements
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
                 if (conn!=null && conn instanceof RTMPConnection) {
-                	if( ((RTMPConnection)conn).getUser() == userName){
+                	String currentUser = ((RTMPConnection)conn).getUser();
+                	if( currentUser!=null && currentUser.equalsIgnoreCase(userName) ){
+                		log.info("onRequest2TalkApproved userName {} isAllow {}", userName, isAllow);
                 		sendToClient2(conn, "onRequest2TalkApproved", isAllow);
                 	}
                 }

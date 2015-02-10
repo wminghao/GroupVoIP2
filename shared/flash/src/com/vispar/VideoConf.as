@@ -639,6 +639,7 @@ package com.vispar
 		}
 		public function onRequest2TalkApproved(resp:Object):void{
 			var isAllow:Boolean = Boolean(resp);
+			logDebug(" onRequest2TalkApproved! isAllow="+isAllow);
 			if( isAllow ) {
 				closeViewStream();
 				publishNow();
@@ -648,11 +649,11 @@ package com.vispar
 			}
 		}
 		public override function approveRequest2Talk(isAllow:Boolean, user:String):void {
-			netConn.call("clientRequest.approveRequest2Talk", null, user, isAllow);	
+			logDebug(" approveRequest2Talk user="+user+" isAllow="+isAllow);
+			netConn.call("clientRequest.approveRequest2Talk", null, isAllow, user);	
 		}
 		public function onRequest2TalkNeedsApproval(resp:Object):void{
 			var user:String = String(resp);
-			logDebug(" onRequest2TalkNeedsApproval! user="+user);
 			delegate_.onRequest2TalkNeedsApproval(user);
 		}
 	}

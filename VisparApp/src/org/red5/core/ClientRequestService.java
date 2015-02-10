@@ -1,13 +1,9 @@
 package org.red5.core;
 
-import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
-import org.red5.server.api.scope.IScope;
-import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.net.rtmp.RTMPConnection;
 
 public class ClientRequestService {
