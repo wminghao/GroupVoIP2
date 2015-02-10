@@ -2,6 +2,7 @@ package com.vispar
 {
 	import flash.display.Sprite;
 	import flash.net.NetConnection;
+	import flash.events.*;
 	
 	import org.red5.flash.bwcheck.ClientServerBandwidth;
 	import org.red5.flash.bwcheck.ServerClientBandwidth;
@@ -11,9 +12,6 @@ package com.vispar
 	{
 		//parent container
 		protected var container_:Sprite = null;
-		
-		//netconnection
-		protected var netConn:NetConnection = null;	
 		
 		//delegate
 		protected var delegate_:VideoContainerDelegate = null;
@@ -25,8 +23,10 @@ package com.vispar
 		protected var user:String = null;
 		
 		//bw detection
+		private var netBWConn_:NetConnection = null;	
 		private var clientServerService_:String = "checkBandwidthUp"; //must match AbstractScopeAdapter.checkBandwidthUp
 		private var serverClientService_:String = "checkBandwidth";   //must match AbstractScopeAdapter.checkBandwidth
+		private var onBWInitiated_:Function = null;
 		
 		//ip address
 		protected var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";//"192.168.0.61";
@@ -77,12 +77,36 @@ package com.vispar
 		public function approveRequest2Talk(isAllow:Boolean, user:String):void {
 		}
 		
+		protected function initBWEstimator(videoPath:String, onBWInitiated:Function):void {
+			// setup connection code
+			if( netBWConn_ == null ) {
+				netBWConn_ = new NetConnection();
+				netBWConn_.connect(videoPath);
+				netBWConn_.addEventListener(NetStatusEvent.NET_STATUS, onNetBWConnNetStatus);
+				onBWInitiated_ = onBWInitiated;
+			}
+		}
+		protected function stopBWEstimator():void {
+			if( netBWConn_ != null ) {
+				netBWConn_.close();
+				netBWConn_.removeEventListener(NetStatusEvent.NET_STATUS, onNetBWConnNetStatus);
+				netBWConn_ = null;
+			}
+		}
+		
+		private function onNetBWConnNetStatus(event:NetStatusEvent) : void {
+			// did we successfully connect
+			if(event.info.code == "NetConnection.Connect.Success") {
+				onBWInitiated_();
+			}
+		}
+		
 		//Upload speed test is relatively accurate.
-		protected function ClientServer():void
+		protected function uploadSpeedTest():void
 		{
 			var clientServer:ClientServerBandwidth  = new ClientServerBandwidth();
 			//connect();
-			clientServer.connection = netConn;
+			clientServer.connection = netBWConn_;
 			clientServer.service = clientServerService_;
 			clientServer.addEventListener(BandwidthDetectEvent.DETECT_COMPLETE,onClientServerComplete);
 			clientServer.addEventListener(BandwidthDetectEvent.DETECT_STATUS,onClientServerStatus);
@@ -91,11 +115,11 @@ package com.vispar
 		}
 		
 		//Download speed test is NOT accurate.
-		protected function ServerClient():void
+		protected function downloadSpeedTest(netConn:NetConnection):void
 		{
 			var serverClient:ServerClientBandwidth = new ServerClientBandwidth();
 			//connect();
-			serverClient.connection = netConn;
+			serverClient.connection = netBWConn_;
 			serverClient.service = serverClientService_;
 			serverClient.addEventListener(BandwidthDetectEvent.DETECT_COMPLETE,onServerClientComplete);
 			serverClient.addEventListener(BandwidthDetectEvent.DETECT_STATUS,onServerClientStatus);

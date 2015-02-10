@@ -18,6 +18,8 @@ package com.vispar
 	{
 		private var streamPub:NetStream = null; //must declare outside, otherwise, gc will recycle it.
 		private var streamView:NetStream = null; //must declare outside
+		//netconnection
+		private var netConn:NetConnection = null;	
 		
 		private var mic:Microphone = null;
 		private var camera:Camera = null;
@@ -57,11 +59,16 @@ package com.vispar
 			super(container, delegate, room, user, mode);
 		}
 		
+		private function getVideoPath():String{
+			return "rtmp://"+serverIp+"/"+appName+"/"+room;
+		}
+		
 		override public function connectServer():void {
 			if( netConn == null) {
 				//logDebug(" null!");				
 			}			
-			var videoPath:String = "rtmp://"+serverIp+"/"+appName+"/"+room;
+			
+			var videoPath:String = getVideoPath();
 			// setup connection code
 			netConn = new NetConnection();
 			netConn.connect(videoPath);
@@ -266,9 +273,8 @@ package com.vispar
 					
 					addStreamToStringVector(publishDest);
 					
-					uploadSpeedTimer = new Timer(2000);
-					uploadSpeedTimer.addEventListener(TimerEvent.TIMER, onUploadSpeedDetected);
-					uploadSpeedTimer.start();
+					//initiate the speed test
+					this.initBWEstimator( getVideoPath(), startUploadSpeedTimer );
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -592,16 +598,23 @@ package com.vispar
 		}
 		
 		//uplink network speed test
+		private function startUploadSpeedTimer():void {
+			uploadSpeedTimer = new Timer(2000);
+			uploadSpeedTimer.addEventListener(TimerEvent.TIMER, onUploadSpeedDetected);
+			uploadSpeedTimer.start();
+			logDebug("--Started BW estimator");
+		}
 		private function stopUploadSpeedTimer():void{
 			if( uploadSpeedTimer ) {
 				uploadSpeedTimer.stop();
 				uploadSpeedTimer = null;
 			}
+			stopBWEstimator();
 		}
 		private function onUploadSpeedDetected(e:TimerEvent):void
 		{
 			//periodically detect upload speed
-			ClientServer();
+			uploadSpeedTest();
 		}
 		
 		override protected function onClientServerComplete(event:BandwidthDetectEvent):void
