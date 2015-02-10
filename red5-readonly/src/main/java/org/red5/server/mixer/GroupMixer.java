@@ -183,7 +183,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	MixerRoom mixerRoom = getMixerRoom(roomScope);
     	if( deleteMixedStreamInternal(mixerRoom, streamName) != -1 ) {
-        	log.info("----------------after deleting stream {}, idLookupTable cnt={}", streamName, mixerRoom.idLookupTable_.getCount());
+        	log.info("After deleting stream {}, idLookupTable cnt={}", streamName, mixerRoom.idLookupTable_.getCount());
         	//if all streams are removed, remove the special stream and free up the mixer
         	boolean isEmpty = mixerRoom.idLookupTable_.isEmpty();
         	if( !isEmpty && mixerRoom.karaokeGen_!= null ) {
@@ -212,7 +212,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private int deleteMixedStreamInternal(MixerRoom mixerRoom, String streamName)
     {
-    	log.info("----------------try to delete stream {}", streamName);
+    	log.info("deleteMixedStreamInternal {}", streamName);
     	int streamId = mixerRoom.idLookupTable_.deleteEntry(streamName);
     	if ( streamId != -1 ) {        	
     		RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
