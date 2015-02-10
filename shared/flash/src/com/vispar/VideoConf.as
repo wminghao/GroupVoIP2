@@ -643,12 +643,12 @@ package com.vispar
 			logDebug(" onRequest2TalkApproved! isAllow="+isAllow);
 			if( isAllow ) {
 				closeViewStream();
-				publishNow();
-				delegate_.onVideoStarted( isViewOnly_ );			
+				publishNow();		
 			} else {
 				delegate_.showAlert("Request denied to join the conversation!");
 			}
 			delegate_.onRequest2TalkPendingApproval( false );
+			delegate_.onVideoStarted( isViewOnly_ );
 		}
 		public override function approveRequest2Talk(isAllow:Boolean, user:String):void {
 			logDebug(" approveRequest2Talk user="+user+" isAllow="+isAllow);
