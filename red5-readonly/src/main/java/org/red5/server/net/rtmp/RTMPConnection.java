@@ -279,6 +279,19 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private boolean isModerator_;
 	private String user_;
 	
+	/*
+	 * A special flag to indicate whether the current connection is all-in-one connection
+	 * Meaning the lifetime of the connection is controlled by GroupMixer, no need for the following:
+	 *  1) handshake when connection is established.
+	 *  2) KeepAliveTaks, check whether it's active or not.
+	 *  3) scheduleAtFixedRate, check whether it's dead or not
+	 */
+	protected boolean isGroupMixerConn_ = false;
+	
+	public void setGroupMixerFlag() {
+		isGroupMixerConn_ = true;
+	}
+	
 
 	//this is only called if the current connection has a publisher associated with it.
 	//deleteStreamById must be protected with setPublisherStreamInfo, 

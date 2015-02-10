@@ -89,6 +89,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    connAllInOne.setIoSession(null);
     	    // add the handler
     	    connAllInOne.setHandler(handler_);
+    	    //specify it's a special connection
+    	    connAllInOne.setGroupMixerFlag();
     	    
     	    // set it in MixerManager
     	    mixerRoom.allInOneSessionId_ = connAllInOne.getSessionId();
@@ -99,8 +101,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
-    	    
-    	    log.info("Created all In One connection with sessionId {}", mixerRoom.allInOneSessionId_);
     	}
 	    //kick off createStream event
     	createMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
@@ -523,13 +523,17 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	@Override
     public void onVideoPlaying(IScope roomScope, String videoName) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
-    	conn.onVideoPlaying(videoName);
+    	if( conn != null ) {
+    		conn.onVideoPlaying(videoName);
+    	}
     }
 
 	@Override
     public void onVideoListPopulated(IScope roomScope, String streamName, String videoListNames) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
-    	conn.onVideoListPopulated(streamName, videoListNames);
+    	if( conn != null ) {
+    		conn.onVideoListPopulated(streamName, videoListNames);
+    	}
     }
 	
 	//from client to server

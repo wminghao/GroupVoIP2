@@ -313,7 +313,11 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	protected void onInactive() {
-		close();
+		log.info("===>connection inactive! sessionId={}", getSessionId());
+		//don't close the connection if it's from GroupMixer, let it control the lifetime of the RTMPConnection
+		if( !isGroupMixerConn_ ) {
+			close();
+		}
 	}
 
 	/**
