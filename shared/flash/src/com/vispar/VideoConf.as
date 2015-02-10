@@ -552,7 +552,7 @@ package com.vispar
 				}
 			} else {
 				if( isViewOnly_ ) {		
-					if( isAutoMode() ){
+					if( isAutoMode() || ( room == user ) ){
 						onRequest2TalkApproved(true); //join immediately
 					} else {
 						request2Talk(); //requesting moderator to join the talk
