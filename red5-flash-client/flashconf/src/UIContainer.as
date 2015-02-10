@@ -21,6 +21,7 @@ package
 		private var onVideoStarted_:Function;
 		private var onFatalNetworkTooSlowError_:Function;
 		private var onRequest2TalkNeedsApproval_:Function;
+		private var onRequest2TalkPendingApproval_:Function;
 		
 		public function UIContainer()
 		{
@@ -32,7 +33,8 @@ package
 								videoSet:ArrayCollection,
 								onVideoStarted:Function,
 								onFatalNetworkTooSlowError:Function,
-								onRequest2TalkNeedsApproval:Function):void {
+								onRequest2TalkNeedsApproval:Function,
+								onRequest2TalkPendingApproval:Function):void {
 			this.edgeX_ = edgeX;
 			this.edgeY_ = edgeY;
 			this.debugText_ = debugText;	
@@ -40,6 +42,7 @@ package
 			this.onVideoStarted_ = onVideoStarted;
 			this.onFatalNetworkTooSlowError_ = onFatalNetworkTooSlowError;
 			this.onRequest2TalkNeedsApproval_ = onRequest2TalkNeedsApproval;
+			this.onRequest2TalkPendingApproval_ = onRequest2TalkPendingApproval;
 			//logDebug("----screenWidth="+this.width+" screenHeight="+this.height+" screenX="+(this.x + edgeX_)+" screenY="+(this.y + edgeY_));
 		}
 		
@@ -115,6 +118,9 @@ package
 		
 		public function onRequest2TalkNeedsApproval(user:String):void{
 			onRequest2TalkNeedsApproval_(user);
+		}
+		public function onRequest2TalkPendingApproval(isPending:Boolean):void {
+			onRequest2TalkPendingApproval_(isPending);
 		}
 	}
 }

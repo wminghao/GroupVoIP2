@@ -13,8 +13,8 @@
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.core.UIComponent;
-			import mx.events.FlexEvent;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			
 			import spark.events.IndexChangeEvent;
 			
@@ -38,7 +38,7 @@
 			
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
-					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError, onRequest2TalkNeedsApproval );
+					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError, onRequest2TalkNeedsApproval, onRequest2TalkPendingApproval );
 					var room:String = getVideoRoom();
 					var user:String = getUserName();
 					var mode:String = getRoomMode();
@@ -201,6 +201,14 @@
 				Alert.show("A user: "+user+" requested to join the conversation. Allow him?", "Alert",
 					Alert.YES | Alert.NO, this, 
 					addArguments(onRequest2TalkNeedsApprovalAlertListener, [user]), null, Alert.YES);
+			}
+			public function onRequest2TalkPendingApproval(isPending:Boolean):void {
+				if( isPending ) {
+					this.switchViewOnly.enabled = false;
+					this.switchViewOnly.label = "Talker Request Pending Moderator Approval";
+				} else {
+					this.switchViewOnly.enabled = true;					
+				}
 			}
 		]]>
 	</fx:Script>

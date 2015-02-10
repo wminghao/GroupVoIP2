@@ -313,5 +313,8 @@ package
 		public function onRequest2TalkNeedsApproval(user:String):void{
 			//TODO
 		}
+		public function onRequest2TalkPendingApproval(isPending:Boolean):void {
+			//todo
+		}
 	}
 }

@@ -636,6 +636,7 @@ package com.vispar
 		//approval mode
 		public function request2Talk():void{
 			netConn.call("clientRequest.request2Talk", null, user);	
+			delegate_.onRequest2TalkPendingApproval( true );
 		}
 		public function onRequest2TalkApproved(resp:Object):void{
 			var isAllow:Boolean = Boolean(resp);
@@ -647,6 +648,7 @@ package com.vispar
 			} else {
 				delegate_.showAlert("Request denied to join the conversation!");
 			}
+			delegate_.onRequest2TalkPendingApproval( false );
 		}
 		public override function approveRequest2Talk(isAllow:Boolean, user:String):void {
 			logDebug(" approveRequest2Talk user="+user+" isAllow="+isAllow);

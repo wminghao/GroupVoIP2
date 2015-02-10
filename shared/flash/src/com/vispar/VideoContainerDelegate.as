@@ -22,6 +22,7 @@ package com.vispar
 		function onVideoListPopulated(videoNamesArray:Array):void;
 		
 		//request to talk to main UI
+		function onRequest2TalkPendingApproval(isPending:Boolean):void;
 		function onRequest2TalkNeedsApproval(user:String):void;
 	}
 }
