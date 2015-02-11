@@ -551,7 +551,9 @@ package com.vispar
 					//do nothing
 				}
 			} else {
-				if( isViewOnly_ ) {		
+				if( totalPublishers == 0 ) {
+					delegate_.showAlert("There is no moderator!");
+				} else if( isViewOnly_ ) {		
 					if( isAutoMode() || ( room == user ) ){
 						onRequest2TalkApproved(true); //join immediately
 					} else {
