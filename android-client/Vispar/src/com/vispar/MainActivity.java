@@ -7,16 +7,21 @@ import com.vispar.R;
 import com.vispar.share.ShareSheet;
 import com.vispar.schedule.StartEventActivity;
 import com.vispar.schedule.ViewEventActivity;
+import com.vispar.settings.LoginActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,7 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-public class MainActivity extends Activity implements ActionBar.TabListener {
+@SuppressLint("WorldReadableFiles") public class MainActivity extends Activity implements ActionBar.TabListener {
     
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -41,6 +46,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
+
+	/*
+	 * Logged in username
+	 */
+    private static final int REQUEST_LOGIN = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +89,14 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                     actionBar.newTab()
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
+        }
+        
+
+        //Reading values from the Preferences
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
+        if( userName == null ) {
+        	startSignIn();
         }
     }
 
@@ -178,6 +196,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
+        /*
+         * username
+         */
+    	private String mUserName = null;
+    	
         /**
          * Returns a new instance of this fragment for the given section
          * number.
@@ -197,6 +220,13 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = null;
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(PlaceholderFragment.this.getActivity());
+            String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
+            if( userName != null ) {
+            	mUserName = userName;
+            }
+            
             ///////////////////////////////////////
             //for My sessions, show 3 buttons
             ///////////////////////////////////////
@@ -216,7 +246,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://live/rooms/howard/howard/now"; //TODO
+                        String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/now"; //TODO
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -226,7 +256,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                     public void onClick(View v) {
                     	//TODO an activity to list all archived videos
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://vod/rooms/howard/howard/1234567890";//TODO archive ID
+                        String url = "vispar.player://vod/rooms/howard/"+PlaceholderFragment.this.mUserName+"/1234567890";//TODO archive ID
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -277,4 +307,25 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 		System.out.println("MainActivity exited.");	
 		super.onStop();
 	}
+	
+
+    private void startSignIn() {
+        Intent intent = new Intent(this, com.vispar.settings.LoginActivity.class);
+        startActivityForResult(intent, REQUEST_LOGIN);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Check which request we're responding to
+        if (requestCode == REQUEST_LOGIN) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                String userName = data.getStringExtra("UserName");
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                Editor edit = prefs.edit();
+                edit.putString(LoginActivity.USER_NAME_KEY, userName);
+                edit.apply(); 
+            }
+        }
+    }
 }

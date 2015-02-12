@@ -196,7 +196,7 @@ package com.vispar
 			} else {
 				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
 				camera.setMode(delegate_.getVideoWidth(), delegate_.getVideoHeight(), 30); //640*480 30 fps
-				camera.setQuality(16384,0); //0% quality, 16kBytes/sec bw limitation
+				camera.setQuality(16384*2,0); //0% quality, 16kBytes/sec bw limitation
 				streamPub.attachCamera(camera);
 				videoSelf.attachCamera(camera);
 			}
