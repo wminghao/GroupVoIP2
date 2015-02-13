@@ -2,6 +2,7 @@ package org.red5.server.mixer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
@@ -84,7 +85,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	}
     
     private void createAllInOneConn( MixerRoom mixerRoom )
-    {  
+    {
+    	boolean bIsCreatingAllInOneConn = false;
     	if( mixerRoom.allInOneSessionId_ == null ) {
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
@@ -102,6 +104,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    //next assume the session is opened
     	    handler_.connectionOpened(connAllInOne);
     	    
+    	    //b/c the connect event is handled from a different thread
+    	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
+    	    //so it closes the connection before any mixed stream can be created.
+    	    bIsCreatingAllInOneConn = true;
+    	    mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_IN_PROGRESS);
+    	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
     	}
@@ -115,6 +123,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    
 	    //start all other services
 	    mixerRoom.startService();
+	    
+	    if( bIsCreatingAllInOneConn ) {
+	    	mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_CONNECTED);
+	    }
 	    
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }
@@ -144,8 +156,16 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public boolean hasAnythingStarted(IScope roomScope) {
     	if( roomScope != null ) {
     		if( mixerRooms_.containsKey(roomScope) ) {
-    			MixerRoom mixerRoom = getMixerRoom(roomScope);
-    			return !mixerRoom.idLookupTable_.isEmpty();
+    			MixerRoom mixerRoom = mixerRooms_.get(roomScope);
+    			//is all-in-one connection status in progress?
+        	    //b/c the connect event is handled from a different thread
+        	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
+        	    //so it closes the connection before any mixed stream can be created.
+    			if( mixerRoom.allInOneConnStatus_.get() == MixerRoom.ALLINCONN_IN_PROGRESS ) {
+    				return true;
+    			} else {
+    				return !mixerRoom.idLookupTable_.isEmpty();
+    			}
     		} 
     	} 
     	return false;

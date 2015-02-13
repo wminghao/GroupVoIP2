@@ -330,6 +330,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									status.setDescription("Global scope connection disallowed on this server.");
 									pc.setResult(status);
 								}
+								log.info("Global connection denied: {}", scope.getName());
 								disconnectOnReturn = true;
 							}
 							if (scope != null) {
