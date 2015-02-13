@@ -330,6 +330,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									status.setDescription("Global scope connection disallowed on this server.");
 									pc.setResult(status);
 								}
+								log.info("Global connection denied: {}", scope.getName());
 								disconnectOnReturn = true;
 							}
 							if (scope != null) {
@@ -364,7 +365,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
 										disconnectOnReturn = false;
 									} else {
-										log.debug("Connect failed");
+										log.info("Connect failed");
 										call.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
