@@ -1474,7 +1474,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         	log.info("----Non-critical error: onExternalVideoPlaying callback failed: {}", e);
         }
     }
-    public void onExternalVideoStopped(String videoName) {
+    public void onExternalVideoStopped() {
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
@@ -1482,7 +1482,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
-					((IStreamAwareScopeHandler) handler).onExternalVideoStopped(videoName);
+					((IStreamAwareScopeHandler) handler).onExternalVideoStopped();
 				}
 			}
         } catch(Exception e) {

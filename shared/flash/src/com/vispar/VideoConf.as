@@ -528,13 +528,10 @@ package com.vispar
 				delegate_.onExternalVideoPlaying(videoName);
 			}
 		}
-		public function onExternalVideoStopped(resp:Object):void	
+		public function onExternalVideoStopped():void	
 		{
-			var videoName:String = String(resp);
-			if( videoName != null) {
-				totalPublishers--; //consider an external video as one of the publishers
-				delegate_.onExternalVideoStopped(videoName);
-			}
+			totalPublishers--; //consider an external video as one of the publishers
+			delegate_.onExternalVideoStopped();
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
 			var videoListStr:String = String(resp);

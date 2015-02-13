@@ -195,7 +195,16 @@ public class VisparApp extends ApplicationAdapter implements
                 log.debug("sending {} notification to {}", methodName, conn);
             }
         }
-	}	
+	}
+	private void sendToClientNull(IConnection conn, String methodName) {
+		if (conn instanceof IServiceCapableConnection) {
+            ((IServiceCapableConnection) conn).invoke(methodName,
+                    null, this);
+            if (log.isDebugEnabled()) {
+                log.debug("sending {} notification to {}", methodName, conn);
+            }
+        }
+	}
 	
 	private void sendToClient2(IConnection conn, String methodName, Boolean param1) {
 		if (conn instanceof IServiceCapableConnection) {
@@ -219,6 +228,19 @@ public class VisparApp extends ApplicationAdapter implements
             	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
             		log.info("Send onExternalVideoPlaying {} about videoName {}", ((RTMPConnection)conn).getUser(), videoName);
             		sendToClient(conn, "onExternalVideoPlaying", videoName);
+            	}
+            }
+        }
+    }
+    public void onExternalVideoStopped() {
+    	super.onExternalVideoStopped();
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+            	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
+            		log.info("Send onExternalVideoStopped {}", ((RTMPConnection)conn).getUser());
+            		sendToClientNull(conn, "onExternalVideoStopped");
             	}
             }
         }

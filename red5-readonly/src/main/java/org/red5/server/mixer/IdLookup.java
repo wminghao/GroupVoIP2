@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 
 public class IdLookup {
 	public static final int MAX_STREAM_COUNT = 32;
-	//both original karaoke stream and allinone stream should not be mixed, the karaoke delayed stream should be mixed instead
+	//both original karaoke stream and allinone stream should not be mixed
 	public static final int ALL_IN_ONE_STREAM_MIXER_ID = MAX_STREAM_COUNT;
 	private static final int TOTAL_EXCLUDE_COUNT = 1; //exclude all-in-one stream
 	//mapping from original to streamId to newly generated stream

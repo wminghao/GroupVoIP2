@@ -1387,9 +1387,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		// log w3c connect event
 		log.info("W3C x-category:stream x-event:onExternalVideoPlaying c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
     }
-    public void onExternalVideoStopped(String videoName) {
+    public void onExternalVideoStopped() {
 		// log w3c connect event
-		log.info("W3C x-category:stream x-event:onExternalVideoStopped c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
+		log.info("W3C x-category:stream x-event:onExternalVideoStopped c-ip:{}", Red5.getConnectionLocal().getRemoteAddress());
     }
     public void onExternalVideoListPopulated(String streamName, String videoListNames) {
 		// log w3c connect event

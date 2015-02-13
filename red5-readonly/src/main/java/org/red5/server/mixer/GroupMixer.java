@@ -117,26 +117,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    mixerRoom.startService();
 	    
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
-    }	
-
-	//close all-in-one RTMPConnections and all its associated assets
-    private void deleteAllinOneConn( MixerRoom mixerRoom )
-    {
-    	log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
-
-    	mixerRoom.stopService();
-
-	    //shutdown all in one stream
-    	deleteMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
-	    
-	    //shutdown karaoke stream
-	    if( mixerRoom.karaokeGen_!= null ) {
-	    	deleteMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
-	    }
-
-	    //remove connection
-	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
-	    mixerRoom.allInOneSessionId_ = null;
     }
     
     private MixerRoom getMixerRoom(IScope roomScope) {
@@ -182,22 +162,46 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	mixerRoom.populateVideoList(streamName);//send video list to the client
     }  
 
+    /*
+     * deleteMixedStream should avoid a situation that original stream is deleted and idLookupTable_.getCount() becomes 0, 
+     * other thread will treat the connection as closed and free up the whole netconnection.
+     */
     public void deleteMixedStream(IScope roomScope, String streamName)
     {
     	MixerRoom mixerRoom = getMixerRoom(roomScope);
-    	if( deleteMixedStreamInternal(mixerRoom, streamName) != -1 ) {
-        	log.info("After deleting stream {}, idLookupTable cnt={}", streamName, mixerRoom.idLookupTable_.getCount());
-        	//if all streams are removed, remove the special stream and free up the mixer
-        	boolean isEmpty = mixerRoom.idLookupTable_.isEmpty();
-        	if( !isEmpty && mixerRoom.karaokeGen_!= null ) {
-        		//if there is only 1 stream, which is the special stream, also clean up everything
-        		if( mixerRoom.karaokeGen_.isStarted() && mixerRoom.idLookupTable_.getCount() == 1) {
-        			isEmpty = true;
+    	boolean bShouldFreeAllInOne = false;
+    	if ( mixerRoom.idLookupTable_.lookupMixerId(streamName) != -1 ) {
+        	log.info("Before deleting stream {}, idLookupTable cnt={}", streamName, mixerRoom.idLookupTable_.getCount());
+        	//if all streams will be removed, remove the special stream and free up the mixer
+        	int totalCount = mixerRoom.idLookupTable_.getCount();
+    		//if there is only 2 stream, which is the special stream + the original stream, also clean up everything
+        	if( totalCount == 2 && mixerRoom.karaokeGen_!= null ) {
+        		if( mixerRoom.karaokeGen_.isStarted() ) {
+        			bShouldFreeAllInOne = true;
         		}
+        	} else if( totalCount == 1) {
+        		//if there is only 1 stream, which is the original stream, clean up everything.
+        		bShouldFreeAllInOne = true;
         	}
-        	if( isEmpty ) {
-        		deleteAllinOneConn(mixerRoom);
+        	if( bShouldFreeAllInOne ) {
+            	mixerRoom.stopService();
+        	    //shutdown all in one stream
+            	deleteMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
+        	    
+        	    //shutdown karaoke stream
+        	    if( mixerRoom.karaokeGen_!= null ) {
+        	    	deleteMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
+        	    }
+        	}
+        	//delete the original stream last.
+        	deleteMixedStreamInternal(mixerRoom, streamName);
+        	
+        	if( bShouldFreeAllInOne ) {
+        	    //remove connection
+        	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
+        	    mixerRoom.allInOneSessionId_ = null;
         	    mixerRooms_.remove(roomScope);
+        		log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
         	}
     	}
     }
@@ -218,11 +222,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private int deleteMixedStreamInternal(MixerRoom mixerRoom, String streamName)
     {
     	log.info("deleteMixedStreamInternal {}", streamName);
-    	int streamId = mixerRoom.idLookupTable_.deleteEntry(streamName);
+    	int streamId = mixerRoom.idLookupTable_.lookupStreamId(streamName);
     	if ( streamId != -1 ) {        	
     		RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
-    		handleDeleteEvent(conn, streamId);
+    		//it's possible the connection is already deleted from a different thread. don't need to delete it again.
+    		if( conn != null ) {
+    			handleDeleteEvent(conn, streamId);
+    		}
     	}
+    	mixerRoom.idLookupTable_.deleteEntry(streamName);
     	return streamId;
     }
     
@@ -280,65 +288,67 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         		msgHeader.setExtendedTimestamp(0); //extended timestamp
                 		
                 RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
-                switch(msgType) {
-            		case Constants.TYPE_AUDIO_DATA:
-            		{
-            			AudioData msgEvent = new AudioData();
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-                        		
-            			//send karaoke to mixer directly
-            			if( isKaraoke ) {
-            			    IoBuffer buf = msgEvent.getData();
-            			    if( buf != null) {
-            			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
-            			    } else {
-            			    	log.info("----------------onAudioData failed, streamId={}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
-            			    }
-            			}   
-            
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			//log.info("----------------onAudioData, streamId = {}, size={}", streamId, msgSize);         			
-            			break;
-            		}
-            		case Constants.TYPE_VIDEO_DATA:
-            		{
-            			VideoData msgEvent = new VideoData();
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
-                        		
-            			//send Karaoke to mixer directly
-            			if( isKaraoke ) {
-            			    IoBuffer buf = msgEvent.getData();
-            			    if( buf != null) {
-            			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
-            			    } else {
-            			    	log.info("----------------onVideoData failed, streamId = {}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
-            			    }
-            			} 
-                		
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			//log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
-            			break;
-            		}
-            		    
-            		case Constants.TYPE_STREAM_METADATA:
-            		{
-            			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
-            			msgEvent.setHeader(msgHeader);
-            			msgEvent.setTimestamp(msgTimestamp);
-            			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
-            			Packet msg = new Packet(msgHeader, msgEvent);
-            			conn.handleMessageReceived(msg);
-            			//log.info("----------------onCuePoint, streamId = {}, size={}", streamId, msgSize);
-            			break;
-            		}
+                if( conn != null ) { 
+                    switch(msgType) {
+                		case Constants.TYPE_AUDIO_DATA:
+                		{
+                			AudioData msgEvent = new AudioData();
+                			msgEvent.setHeader(msgHeader);
+                			msgEvent.setTimestamp(msgTimestamp);
+                			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);   
+                			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
+                            		
+                			//send karaoke to mixer directly
+                			if( isKaraoke ) {
+                			    IoBuffer buf = msgEvent.getData();
+                			    if( buf != null) {
+                			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+                			    } else {
+                			    	log.info("----------------onAudioData failed, streamId={}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
+                			    }
+                			}   
+                
+                			Packet msg = new Packet(msgHeader, msgEvent);
+                			conn.handleMessageReceived(msg);
+                			//log.info("----------------onAudioData, streamId = {}, size={}", streamId, msgSize);         			
+                			break;
+                		}
+                		case Constants.TYPE_VIDEO_DATA:
+                		{
+                			VideoData msgEvent = new VideoData();
+                			msgEvent.setHeader(msgHeader);
+                			msgEvent.setTimestamp(msgTimestamp);
+                			msgEvent.setDataRemaining(flvFrame, curIndex, msgSize);     
+                			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);   
+                            		
+                			//send Karaoke to mixer directly
+                			if( isKaraoke ) {
+                			    IoBuffer buf = msgEvent.getData();
+                			    if( buf != null) {
+                			    	pushInputMessage(mixerRoom, SPECIAL_STREAM_NAME, msgType, buf, msgTimestamp );
+                			    } else {
+                			    	log.info("----------------onVideoData failed, streamId = {}, flvFrameByte= {}, curIndex={}, size={}", streamId, flvFrame[curIndex], curIndex, msgSize); 			    	
+                			    }
+                			} 
+                    		
+                			Packet msg = new Packet(msgHeader, msgEvent);
+                			conn.handleMessageReceived(msg);
+                			//log.info("----------------onVideoData, streamId = {}, size={}", streamId, msgSize);
+                			break;
+                		}
+                		    
+                		case Constants.TYPE_STREAM_METADATA:
+                		{
+                			Notify msgEvent = new Notify(flvFrame, curIndex, msgSize);
+                			msgEvent.setHeader(msgHeader);
+                			msgEvent.setTimestamp(msgTimestamp);
+                			msgEvent.setSourceType(Constants.SOURCE_TYPE_LIVE);
+                			Packet msg = new Packet(msgHeader, msgEvent);
+                			conn.handleMessageReceived(msg);
+                			//log.info("----------------onCuePoint, streamId = {}, size={}", streamId, msgSize);
+                			break;
+                		}
+                    }
                 }
                 curIndex += (msgSize+4); //4 bytes unused
     	    }
@@ -536,7 +546,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public void onExternalVideoStopped(IScope roomScope, String videoName) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
     	if( conn != null ) {
-    		conn.onExternalVideoStopped(videoName);
+    		conn.onExternalVideoStopped();
     	}
     }
 

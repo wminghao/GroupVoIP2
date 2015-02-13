@@ -301,7 +301,7 @@ package
 		}
 		public function onExternalVideoListPopulated(videoNamesArray:Array):void {
 		}
-		public function onExternalVideoStopped(videoName:String):void {
+		public function onExternalVideoStopped():void {
 			//logDebug("Now stopped="+videoName);
 		}
 		

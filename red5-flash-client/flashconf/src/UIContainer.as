@@ -103,8 +103,8 @@ package
 		public function onExternalVideoPlaying(videoName:String):void {
 			logDebug("Now playing="+videoName+" ");
 		}
-		public function onExternalVideoStopped(videoName:String):void {
-			logDebug("Now stopped="+videoName+" ");
+		public function onExternalVideoStopped():void {
+			logDebug("Now stopped all external video.");
 		}
 		public function onExternalVideoListPopulated(videoNamesArray:Array):void {
 			var arrLen:int = videoNamesArray.length;
