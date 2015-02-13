@@ -557,10 +557,11 @@ package com.vispar
 					//do nothing
 				}
 			} else {
-				if( totalPublishers == 0 ) {
+				var isInAutoMode:Boolean = isAutoMode();
+				if( !isInAutoMode && totalPublishers == 0 ) {
 					delegate_.showAlert("There is no moderator!");
 				} else if( isViewOnly_ ) {		
-					if( isAutoMode() || ( room == user ) ){
+					if( isInAutoMode || ( room == user ) ){
 						onRequest2TalkApproved(true); //join immediately
 					} else {
 						request2Talk(); //requesting moderator to join the talk
