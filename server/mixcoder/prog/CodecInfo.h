@@ -1,8 +1,8 @@
 #ifndef __CODECINFOCOMMON_H__
 #define __CODECINFOCOMMON_H__
 
-const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 6; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
-const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 3; //78ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
+const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 10; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
+const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 5; //78ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
 
 const u32 TIMESTAMP_JUMP_THRESHOLD = 100;
 const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
@@ -25,7 +25,7 @@ const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE
 const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
 
 //Force AAC encoding for all-in-one stream
-#define FORCE_AAC_ALL_IN_ONE
+//#define FORCE_AAC_ALL_IN_ONE
 
 typedef  enum VideoLayout {
     kEvenLayout, //evenly distribute streams across the screen
