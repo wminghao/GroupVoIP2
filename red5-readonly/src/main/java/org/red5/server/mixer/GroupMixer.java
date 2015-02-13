@@ -53,11 +53,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private String inputSegPath;	
 	private String karaokeFilePath;
 	
-	private AtomicInteger allInOneConnStatus_ = new AtomicInteger(ALLINCONN_NOT_STARTED);
-    public static final int ALLINCONN_NOT_STARTED = 0;
-    public static final int ALLINCONN_IN_PROGRESS = 1;
-    public static final int ALLINCONN_CONNECTED   = 2;
-	
 	//map to different rooms
 	private Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
 	
@@ -113,7 +108,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
     	    //so it closes the connection before any mixed stream can be created.
     	    bIsCreatingAllInOneConn = true;
-    	    allInOneConnStatus_.set(ALLINCONN_IN_PROGRESS);
+    	    mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_IN_PROGRESS);
     	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
@@ -130,7 +125,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    mixerRoom.startService();
 	    
 	    if( bIsCreatingAllInOneConn ) {
-	    	allInOneConnStatus_.set(ALLINCONN_CONNECTED);
+	    	mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_CONNECTED);
 	    }
 	    
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
@@ -161,14 +156,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     public boolean hasAnythingStarted(IScope roomScope) {
     	if( roomScope != null ) {
     		if( mixerRooms_.containsKey(roomScope) ) {
+    			MixerRoom mixerRoom = mixerRooms_.get(roomScope);
     			//is all-in-one connection status in progress?
         	    //b/c the connect event is handled from a different thread
         	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
         	    //so it closes the connection before any mixed stream can be created.
-    			if( allInOneConnStatus_.get() == ALLINCONN_IN_PROGRESS ) {
+    			if( mixerRoom.allInOneConnStatus_.get() == MixerRoom.ALLINCONN_IN_PROGRESS ) {
     				return true;
     			} else {
-        			MixerRoom mixerRoom = mixerRooms_.get(roomScope);
     				return !mixerRoom.idLookupTable_.isEmpty();
     			}
     		} 
