@@ -365,7 +365,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
 										disconnectOnReturn = false;
 									} else {
-										log.info("Connect failed");
+										log.debug("Connect failed");
 										call.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;

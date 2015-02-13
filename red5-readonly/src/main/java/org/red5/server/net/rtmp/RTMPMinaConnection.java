@@ -111,7 +111,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void close() {
 		super.close();
-		log.info("IO Session closing: {}", (ioSession != null ? ioSession.isClosing() : null));
+		log.debug("IO Session closing: {}", (ioSession != null ? ioSession.isClosing() : null));
 		if (ioSession != null && !ioSession.isClosing()) {
 			// accept no further incoming data
 			//ioSession.suspendRead();
@@ -121,7 +121,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			IoFutureListener<CloseFuture> listener = new IoFutureListener<CloseFuture>() {
 				public void operationComplete(CloseFuture future) {
 					if (future.isClosed()) {
-						log.info("Connection is closed");
+						log.debug("Connection is closed");
 						log.trace("Session id - local: {} session: {}", getSessionId(), (String) ioSession.removeAttribute(RTMPConnection.RTMP_SESSION_ID));
 						RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 						if (conn != null) {
