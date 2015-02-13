@@ -28,7 +28,7 @@ package com.vispar
 		private const appName:String = "VisparApp";
 		private const defaultVideo:String = "Default"; //default means video stopped
 		private const allinone:String = "allinone";
-		private const maxPublishers:int = 4-1; //excluding the external video source, TODO 
+		private const maxPublishers:int = 4; //excluding the external video source, TODO 
 		private var totalPublishers:int = 0;
 		
 		private var publishDest:String = null;
@@ -508,31 +508,40 @@ package com.vispar
 		public function removeStream(resp:Object):void {
 			removeElementFromStringVector(String(resp), publishedStreamArray);
 		}
-		override public function selectVideo(videoName:String):void {
+		override public function selectExternalVideo(videoName:String):void {
 			if( publishDest != null ) {
-				netConn.call("clientRequest.selectVideo", null, videoName);	
+				netConn.call("clientRequest.selectExternalVideo", null, videoName);	
 			}
 		}
-		override public function stopVideo():void {
+		override public function stopExternalVideo():void {
 			if( publishDest != null ) {
-				netConn.call("clientRequest.selectVideo", null, defaultVideo);	
+				netConn.call("clientRequest.stopExternalVideo", null);	
 			}
 		}
 		
 		//notify external video is playing
-		public function onVideoPlaying(resp:Object):void	
+		public function onExternalVideoPlaying(resp:Object):void	
 		{
 			var videoName:String = String(resp);
 			if( videoName != null) {
-				delegate_.onVideoPlaying(videoName);
+				totalPublishers++; //consider an external video as one of the publishers
+				delegate_.onExternalVideoPlaying(videoName);
 			}
 		}
-		public function onVideoListPopulated(resp:Object):void	{
+		public function onExternalVideoStopped(resp:Object):void	
+		{
+			var videoName:String = String(resp);
+			if( videoName != null) {
+				totalPublishers--; //consider an external video as one of the publishers
+				delegate_.onExternalVideoStopped(videoName);
+			}
+		}
+		public function onExternalVideoListPopulated(resp:Object):void	{
 			var videoListStr:String = String(resp);
 			//logDebug("videoPopulated = "+videoListStr);
 			if( videoListStr != "") {
 				var videoNamesArray:Array = videoListStr.split(",");
-				delegate_.onVideoListPopulated(videoNamesArray);	
+				delegate_.onExternalVideoListPopulated(videoNamesArray);	
 			}
 		}
 		

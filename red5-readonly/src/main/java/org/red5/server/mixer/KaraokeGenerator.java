@@ -53,8 +53,9 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     
     public interface Delegate {
         public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len);
-        public void onVideoPlaying(IScope roomScope, String videoName);
-        public void onVideoListPopulated(IScope roomScope, String streamName, String videoListNames);
+        public void onExternalVideoPlaying(IScope roomScope, String videoName);
+        public void onExternalVideoStopped(IScope roomScope, String videoName);
+        public void onExternalVideoListPopulated(IScope roomScope, String streamName, String videoListNames);
     }
     
     public KaraokeGenerator(KaraokeGenerator.Delegate delegate, IScope roomScope, String karaokeFilePath){
@@ -72,6 +73,9 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     }
     public void tryToStop() {
     	bStarted_.set(false);
+    }
+    public boolean isStarted() {
+    	return bStarted_.get();
     }
     
     private void loadASong(String fileName) {
@@ -91,7 +95,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	        //skip 13 bytes header
     	        byte[] header = new byte[13];
     	        input.read(header);
-    	        log.info("---->Start timestamp:  {}", startTime);
+    	        log.info("---->Start timestamp:  {}, {}, {}", startTime, bCancelCurrentSong.get(), bStarted_.get());
     	        //read frame by frame
     	        while( (bytesTotal < fileLen || flvFrameQueue_.size() > 0 ) && !bCancelCurrentSong.get() && bStarted_.get() ) {
     	        	if( flvFrameQueue_.size() > 0) {
@@ -144,8 +148,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
         	if( bStarted_.get() ) {
                 lastTimestamp_ += 20; //advance a little bit      
         	}
-            bCancelCurrentSong.compareAndSet(true, false); //set it back to false;
-	    
+            bCancelCurrentSong.compareAndSet(true, false); //set it back to false;	    
         }
         catch (FileNotFoundException ex) {
         	log.info("File not found:  {}", ex);
@@ -164,13 +167,14 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	//read a segment file and send it over
     	log.info("Reading in karaoke filePath: {}", karaokeFilePath_);
     	while( bStarted_.get() ) {
-            delegate_.onVideoPlaying(scope_, curSongName_);
+            delegate_.onExternalVideoPlaying(scope_, curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
     	}
 
         flvFrameQueue_.clear(); //delete everything.
 		lastTimestamp_ = 0;
 		firstPTS_ = 0xffffffff;
+		delegate_.onExternalVideoStopped(scope_, curSongName_);
     	log.info("Karaoke thread is stopped");
     }
 
@@ -226,12 +230,12 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	}
     }
     
-    public void selectVideo(String videoName) {
+    public void selectExternalVideo(String videoName) {
     	String fileName = songMappingTable_.get(videoName);
     	if(fileName != null ) {
     	    curSongFile_ = fileName;
     	    curSongName_ = videoName;
-    	    bCancelCurrentSong.set(true);
+    	    bCancelCurrentSong.set(isStarted());
     	    log.info("-------A song selected: Key : {}, Value : {}", fileName, videoName);
     	}
     }
@@ -247,6 +251,6 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     		videoListStr += entry.getKey();
     		videoListStr += ",";
     	}
-        delegate_.onVideoListPopulated(scope_, streamName, videoListStr.substring(0, videoListStr.length()-1));
+        delegate_.onExternalVideoListPopulated(scope_, streamName, videoListStr.substring(0, videoListStr.length()-1));
     }
 }

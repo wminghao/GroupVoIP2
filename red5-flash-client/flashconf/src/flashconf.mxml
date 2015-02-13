@@ -137,9 +137,9 @@
 				}
 				return mode;
 			}
-			protected function stopVideo_clickHandler(event:MouseEvent):void
+			protected function stopExternalVideo_clickHandler(event:MouseEvent):void
 			{
-				vidInstance_.stopVideo();	
+				vidInstance_.stopExternalVideo();	
 				videoList.selectedIndex = 0;
 			}
 			
@@ -147,7 +147,7 @@
 			{
 				if( videoList.selectedIndex != 0) {
 					//status.text = "Video selected="+videoList.selectedItem.value;
-					vidInstance_.selectVideo(videoList.selectedItem.value);	
+					vidInstance_.selectExternalVideo(videoList.selectedItem.value);	
 					videoList.selectedIndex = 0;
 				}
 			}
@@ -232,5 +232,5 @@
 					change="videoList_changeHandler(event)" color="#000000"
 					dataProvider="{videoSet}" labelField="value" selectedIndex="0"/>
 	<s:Button id="stopVideo" x="855" y="1" width="100" height="25" label="Stop"
-			  click="stopVideo_clickHandler(event)" color="#4800FF" fontSize="14"/>
+			  click="stopExternalVideo_clickHandler(event)" color="#4800FF" fontSize="14"/>
 </s:Application>

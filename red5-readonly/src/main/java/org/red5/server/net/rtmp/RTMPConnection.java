@@ -1445,9 +1445,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	}
 	
-	//from flash client to select a video to play.
-	public void selectVideo(String videoName) {
-		GroupMixer.getInstance().selectVideo(scope, videoName);
+	//from flash client to select a external video to play.
+	public void selectExternalVideo(String videoName) {
+		GroupMixer.getInstance().selectExternalVideo(scope, videoName);
+	}
+	public void stopExternalVideo() {
+		GroupMixer.getInstance().stopExternalVideo(scope);
 	}
 	//from flash client to detect whether an allinone connection's streams are empty or not.
 	public Boolean isEmptyStream() {
@@ -1456,7 +1459,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	//notify client a video is playing
-    public void onVideoPlaying(String videoName) {
+    public void onExternalVideoPlaying(String videoName) {
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
@@ -1464,16 +1467,31 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
-					((IStreamAwareScopeHandler) handler).onVideoPlaying(videoName);
+					((IStreamAwareScopeHandler) handler).onExternalVideoPlaying(videoName);
 				}
 			}
         } catch(Exception e) {
-        	log.info("----Non-critical error: onVideoPlaying callback failed: {}", e);
+        	log.info("----Non-critical error: onExternalVideoPlaying callback failed: {}", e);
+        }
+    }
+    public void onExternalVideoStopped(String videoName) {
+		Red5.setConnectionLocal(this);
+        try {
+			IScope scope = ((IConnection) this).getScope();
+			if (scope !=null && scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for song playing
+					((IStreamAwareScopeHandler) handler).onExternalVideoStopped(videoName);
+				}
+			}
+        } catch(Exception e) {
+        	log.info("----Non-critical error: onExternalVideoStopped callback failed: {}", e);
         }
     }
 
 	//notify client a video is playing
-    public void onVideoListPopulated(String streamName, String videoListNames) {
+    public void onExternalVideoListPopulated(String streamName, String videoListNames) {
 		Red5.setConnectionLocal(this);
         try {
 			IScope scope = ((IConnection) this).getScope();
@@ -1481,7 +1499,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				final Object handler = scope.getHandler();
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for song playing
-					((IStreamAwareScopeHandler) handler).onVideoListPopulated(streamName, videoListNames);
+					((IStreamAwareScopeHandler) handler).onExternalVideoListPopulated(streamName, videoListNames);
 				}
 			}
         } catch(Exception e) {

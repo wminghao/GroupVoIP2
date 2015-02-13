@@ -18,8 +18,9 @@ package com.vispar
 		
 		function onVideoStarted(isViewOnly:Boolean):void; //return whether it's viewer mode or talker mode
 		
-		function onVideoPlaying(videoName:String):void;
-		function onVideoListPopulated(videoNamesArray:Array):void;
+		function onExternalVideoPlaying(videoName:String):void;
+		function onExternalVideoStopped(videoName:String):void;
+		function onExternalVideoListPopulated(videoNamesArray:Array):void;
 		
 		//request to talk to main UI
 		function onRequest2TalkPendingApproval(isPending:Boolean):void;

@@ -296,10 +296,13 @@ package
 			return null;
 		}
 		
-		public function onVideoPlaying(videoName:String):void {
+		public function onExternalVideoPlaying(videoName:String):void {
 			//logDebug("Now playing="+videoName);
 		}
-		public function onVideoListPopulated(videoNamesArray:Array):void {
+		public function onExternalVideoListPopulated(videoNamesArray:Array):void {
+		}
+		public function onExternalVideoStopped(videoName:String):void {
+			//logDebug("Now stopped="+videoName);
 		}
 		
 		public function onVideoStarted(isViewOnly:Boolean):void{

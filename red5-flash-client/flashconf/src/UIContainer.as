@@ -100,10 +100,13 @@ package
 			onVideoStarted_( isViewOnly );
 		}
 		
-		public function onVideoPlaying(videoName:String):void {
+		public function onExternalVideoPlaying(videoName:String):void {
 			logDebug("Now playing="+videoName+" ");
 		}
-		public function onVideoListPopulated(videoNamesArray:Array):void {
+		public function onExternalVideoStopped(videoName:String):void {
+			logDebug("Now stopped="+videoName+" ");
+		}
+		public function onExternalVideoListPopulated(videoNamesArray:Array):void {
 			var arrLen:int = videoNamesArray.length;
 			for (var i:int = 0; i<arrLen; i++) {
 				var vidName:String = videoNamesArray[i];

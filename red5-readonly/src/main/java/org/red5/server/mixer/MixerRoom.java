@@ -50,22 +50,17 @@ public class MixerRoom {
 	    if( mixerPipe_ != null) {
 	    	bMixerOpenedSuccess_ = mixerPipe_.open(); 
 	    }
-	    
-		//start the karaoke thread
-	    if( karaokeGen_!= null ) {
-    		karaokeGen_.tryToStart();
-    	}
 
 	    if( flvArchiver_!=null ) {
 	    	flvArchiver_.startArchive();
 	    }
+
+    	if( karaokeGen_ != null ) {
+    		karaokeGen_.tryToStart();
+    	}
     }
     
     public void stopService() {
-		//stop the karaoke thread
-    	if( karaokeGen_ != null ) {
-    		karaokeGen_.tryToStop();
-    	}
     	//close the process pipe
     	if( mixerPipe_ != null ) {
     		mixerPipe_.close();
@@ -73,6 +68,12 @@ public class MixerRoom {
 	    if( flvArchiver_!=null ) {
 	    	flvArchiver_.stopArchive();
 	    }
+    	if( karaokeGen_ != null ) {
+    		karaokeGen_.tryToStop();
+    	}
+    }
+    public boolean isExternalVideoStarted() {
+    	return karaokeGen_.isStarted();
     }
     
     public void populateVideoList(String streamName){

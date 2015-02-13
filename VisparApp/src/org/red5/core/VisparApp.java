@@ -210,22 +210,22 @@ public class VisparApp extends ApplicationAdapter implements
 	/*
 	 * Notification when a video is playing
 	 */
-    public void onVideoPlaying(String videoName) {
-    	super.onVideoPlaying(videoName);
+    public void onExternalVideoPlaying(String videoName) {
+    	super.onExternalVideoPlaying(videoName);
     	IConnection current = Red5.getConnectionLocal();
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
             for (IConnection conn: connections) {
             	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
-            		log.info("Send onVideoPlaying {} about videoName {}", ((RTMPConnection)conn).getUser(), videoName);
-            		sendToClient(conn, "onVideoPlaying", videoName);
+            		log.info("Send onExternalVideoPlaying {} about videoName {}", ((RTMPConnection)conn).getUser(), videoName);
+            		sendToClient(conn, "onExternalVideoPlaying", videoName);
             	}
             }
         }
     }
 
-    public void onVideoListPopulated(String streamName, String videoListNames) {
-    	super.onVideoListPopulated(streamName, videoListNames);
+    public void onExternalVideoListPopulated(String streamName, String videoListNames) {
+    	super.onExternalVideoListPopulated(streamName, videoListNames);
     	IConnection current = Red5.getConnectionLocal();
     	IScope roomScope = current.getScope(); //RoomScope 
         for(Set<IConnection> connections : roomScope.getConnections()) {
@@ -235,7 +235,7 @@ public class VisparApp extends ApplicationAdapter implements
             		String publisherName = rtmpConn.getPublisherStreamName();
             		if( publisherName!=null && publisherName.equals(streamName) ) {
                     	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
-                    		sendToClient(conn, "onVideoListPopulated", videoListNames);
+                    		sendToClient(conn, "onExternalVideoListPopulated", videoListNames);
                     	}
             		}
             	}

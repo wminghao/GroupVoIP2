@@ -57,6 +57,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	
 	//mixcoder bridge is shared among all rooms, singleton, created only once
     private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
+    
+    //current supported mixing threshold TODO change it to be larger
+    private static int CURRENT_SUPPORTED_THRESHOLD = IdLookup.MAX_STREAM_COUNT-28; //for now, only 4 streams supported
 	
     private GroupMixer() {
     }
@@ -188,7 +191,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	boolean isEmpty = mixerRoom.idLookupTable_.isEmpty();
         	if( !isEmpty && mixerRoom.karaokeGen_!= null ) {
         		//if there is only 1 stream, which is the special stream, also clean up everything
-        		if( mixerRoom.idLookupTable_.getCount() == 1) {
+        		if( mixerRoom.karaokeGen_.isStarted() && mixerRoom.idLookupTable_.getCount() == 1) {
         			isEmpty = true;
         		}
         	}
@@ -200,13 +203,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     }
     
     private void createMixedStreamInternal(MixerRoom mixerRoom, String streamName) {
-    	int newStreamId = mixerRoom.idLookupTable_.createNewEntry(streamName);
-
-    	RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
-    	if( conn != null ) {
-    		handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
-    	} else {
-        	log.info("----------------fatal error allInone stream not found sessionId = {}", mixerRoom.allInOneSessionId_);
+    	if( mixerRoom.idLookupTable_.lookupMixerId(streamName) == -1 ) {
+        	int newStreamId = mixerRoom.idLookupTable_.createNewEntry(streamName);
+        
+        	RTMPMinaConnection conn = getAllInOneConn(mixerRoom);
+        	if( conn != null ) {
+        		handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
+        	} else {
+            	log.info("----------------fatal error allInone stream not found sessionId = {}", mixerRoom.allInOneSessionId_);
+        	}
     	}
     }
     
@@ -521,25 +526,47 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	}
 
 	@Override
-    public void onVideoPlaying(IScope roomScope, String videoName) {
+    public void onExternalVideoPlaying(IScope roomScope, String videoName) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
     	if( conn != null ) {
-    		conn.onVideoPlaying(videoName);
+    		conn.onExternalVideoPlaying(videoName);
+    	}
+    }
+	@Override
+    public void onExternalVideoStopped(IScope roomScope, String videoName) {
+    	RTMPConnection conn = getAllInOneConn(roomScope);
+    	if( conn != null ) {
+    		conn.onExternalVideoStopped(videoName);
     	}
     }
 
 	@Override
-    public void onVideoListPopulated(IScope roomScope, String streamName, String videoListNames) {
+    public void onExternalVideoListPopulated(IScope roomScope, String streamName, String videoListNames) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
     	if( conn != null ) {
-    		conn.onVideoListPopulated(streamName, videoListNames);
+    		conn.onExternalVideoListPopulated(streamName, videoListNames);
     	}
     }
 	
 	//from client to server
-	public void selectVideo(IScope roomScope, String videoName) {
+	public void selectExternalVideo(IScope roomScope, String videoName) {
     	MixerRoom mixerRoom = getMixerRoom(roomScope);
-    	mixerRoom.karaokeGen_.selectVideo(videoName);
+    	if( mixerRoom.karaokeGen_ != null ) {
+    		mixerRoom.karaokeGen_.selectExternalVideo(videoName);
+    		if( !mixerRoom.karaokeGen_.isStarted() && mixerRoom.idLookupTable_.getCount() < CURRENT_SUPPORTED_THRESHOLD) {
+    	    	createMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
+    			mixerRoom.karaokeGen_.tryToStart();
+    		}
+    	}
+	}
+	public void stopExternalVideo(IScope roomScope) {
+		MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	if( mixerRoom.karaokeGen_ != null ) {
+    		if( mixerRoom.karaokeGen_.isStarted() ) {
+    			mixerRoom.karaokeGen_.tryToStop();
+    	    	deleteMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
+    		}
+    	}	
 	}
 
 	//from client to server

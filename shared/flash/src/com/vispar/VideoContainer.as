@@ -55,9 +55,9 @@ package com.vispar
 		public function disconnectServer():void {
 		}
 		
-		public function selectVideo(videoName:String):void {
+		public function selectExternalVideo(videoName:String):void {
 		}
-		public function stopVideo():void {
+		public function stopExternalVideo():void {
 		}
 		
 		public function isViewOnly():Boolean {

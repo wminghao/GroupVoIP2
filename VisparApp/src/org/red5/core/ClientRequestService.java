@@ -8,12 +8,16 @@ import org.red5.server.net.rtmp.RTMPConnection;
 
 public class ClientRequestService {
     protected static Logger log = LoggerFactory.getLogger(VisparApp.class);
-	public void selectVideo(String videoName) {
-
+	public void selectExternalVideo(String videoName) {
 		IConnection conn = Red5.getConnectionLocal();
-
         if (conn instanceof RTMPConnection) {
-        	((RTMPConnection) conn).selectVideo(videoName);
+        	((RTMPConnection) conn).selectExternalVideo(videoName);
+        }
+	}	
+	public void stopExternalVideo() {
+		IConnection conn = Red5.getConnectionLocal();
+        if (conn instanceof RTMPConnection) {
+        	((RTMPConnection) conn).stopExternalVideo();
         }
 	}
 	public Boolean isEmptyStream() {

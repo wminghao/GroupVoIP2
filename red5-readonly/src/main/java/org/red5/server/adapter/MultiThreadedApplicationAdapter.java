@@ -1383,13 +1383,17 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/*
 	 * Notification when a video is playing
 	 */
-    public void onVideoPlaying(String videoName) {
+    public void onExternalVideoPlaying(String videoName) {
 		// log w3c connect event
-		log.info("W3C x-category:stream x-event:onVideoPlaying c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
+		log.info("W3C x-category:stream x-event:onExternalVideoPlaying c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
     }
-    public void onVideoListPopulated(String streamName, String videoListNames) {
+    public void onExternalVideoStopped(String videoName) {
 		// log w3c connect event
-		log.info("W3C x-category:stream x-onVideoListPopulated c-ip:{} x-sname:{} for stream {}", Red5.getConnectionLocal().getRemoteAddress(), videoListNames, streamName);
+		log.info("W3C x-category:stream x-event:onExternalVideoStopped c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), videoName);
+    }
+    public void onExternalVideoListPopulated(String streamName, String videoListNames) {
+		// log w3c connect event
+		log.info("W3C x-category:stream x-onExternalVideoListPopulated c-ip:{} x-sname:{} for stream {}", Red5.getConnectionLocal().getRemoteAddress(), videoListNames, streamName);
     }
 	/*
 	 * Moderator process
