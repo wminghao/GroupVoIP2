@@ -59,6 +59,6 @@ SmartPtr<SmartBuffer> AudioSpitter::spit(u32& outputTs)
     if( totalOutputFramesCount_ == GCD_AAC ) {
         totalOutputFramesCount_ = 0;
     }
-    LOG( "===audioSpitter, spit a full frame, numSamplesRemaining_=%d, outputPts=%d.", numSamplesRemaining_, outputTs );
+    //LOG( "===audioSpitter, spit a full frame, numSamplesRemaining_=%d, outputPts=%d.", numSamplesRemaining_, outputTs );
     return res;
 }
