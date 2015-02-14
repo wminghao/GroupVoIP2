@@ -53,6 +53,7 @@ package com.vispar
 		private var emptyRoomNotification_:TextField = null;
 		
 		private var fatalError_:Boolean = false;
+		private var bOnVideoListPopulated_:Boolean = false;
 		
 		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
 		{ 
@@ -540,11 +541,15 @@ package com.vispar
 			logDebug(" totalPublishers="+totalPublishers+"!");
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
-			var videoListStr:String = String(resp);
-			//logDebug("videoPopulated = "+videoListStr);
-			if( videoListStr != "") {
-				var videoNamesArray:Array = videoListStr.split(",");
-				delegate_.onExternalVideoListPopulated(videoNamesArray);	
+			//only populate video list once for now.TODO make it dynamic in the future.
+			if( !bOnVideoListPopulated_ ) {
+				var videoListStr:String = String(resp);
+				//logDebug("videoPopulated = "+videoListStr);
+				if( videoListStr != "") {
+					var videoNamesArray:Array = videoListStr.split(",");
+					delegate_.onExternalVideoListPopulated(videoNamesArray);	
+				}
+				bOnVideoListPopulated_ = true;
 			}
 		}
 		
