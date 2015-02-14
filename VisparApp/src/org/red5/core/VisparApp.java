@@ -232,6 +232,19 @@ public class VisparApp extends ApplicationAdapter implements
             }
         }
     }
+    public void onExternalVideoStarted() {
+    	super.onExternalVideoStarted();
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+            	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
+            		log.info("Send onExternalVideoStarted {}", ((RTMPConnection)conn).getUser());
+            		sendToClientNull(conn, "onExternalVideoStarted");
+            	}
+            }
+        }
+    }
     public void onExternalVideoStopped() {
     	super.onExternalVideoStopped();
     	IConnection current = Red5.getConnectionLocal();

@@ -62,10 +62,12 @@ public class MixerRoom {
 	    if( flvArchiver_!=null ) {
 	    	flvArchiver_.startArchive();
 	    }
-
+	    /*
+    	don't start external video immediately
     	if( karaokeGen_ != null ) {
     		karaokeGen_.tryToStart();
     	}
+    	*/
     }
     
     public void stopService() {

@@ -54,7 +54,8 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     public interface Delegate {
         public void onKaraokeFrameParsed(IScope roomScope, ByteBuffer frame, int len);
         public void onExternalVideoPlaying(IScope roomScope, String videoName);
-        public void onExternalVideoStopped(IScope roomScope, String videoName);
+        public void onExternalVideoStarted(IScope roomScope);
+        public void onExternalVideoStopped(IScope roomScope);
         public void onExternalVideoListPopulated(IScope roomScope, String streamName, String videoListNames);
     }
     
@@ -166,6 +167,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
     	log.info("Karaoke thread is started");
     	//read a segment file and send it over
     	log.info("Reading in karaoke filePath: {}", karaokeFilePath_);
+		delegate_.onExternalVideoStarted(scope_);
     	while( bStarted_.get() ) {
             delegate_.onExternalVideoPlaying(scope_, curSongName_);
             loadASong(karaokeFilePath_+"/"+curSongFile_+".flv");
@@ -174,7 +176,7 @@ public class KaraokeGenerator implements Runnable, FLVParser.Delegate {
         flvFrameQueue_.clear(); //delete everything.
 		lastTimestamp_ = 0;
 		firstPTS_ = 0xffffffff;
-		delegate_.onExternalVideoStopped(scope_, curSongName_);
+		delegate_.onExternalVideoStopped(scope_);
     	log.info("Karaoke thread is stopped");
     }
 

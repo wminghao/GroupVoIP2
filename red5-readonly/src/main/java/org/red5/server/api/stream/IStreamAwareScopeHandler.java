@@ -126,6 +126,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * Notification when a video is playing
 	 */
 	public void onExternalVideoPlaying(String videoName);
+	public void onExternalVideoStarted();
 	public void onExternalVideoStopped();
     public void onExternalVideoListPopulated(String streamName, String videoListNames);
     

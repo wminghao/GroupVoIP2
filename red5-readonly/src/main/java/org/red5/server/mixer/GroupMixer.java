@@ -180,6 +180,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
     	createMixedStreamInternal(mixerRoom, streamName);
     	mixerRoom.populateVideoList(streamName);//send video list to the client
+    	if( mixerRoom.karaokeGen_.isStarted() ) {
+    		onExternalVideoStarted(roomScope); //notify external video is playing
+    	}
     }  
 
     /*
@@ -563,7 +566,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
     }
 	@Override
-    public void onExternalVideoStopped(IScope roomScope, String videoName) {
+    public void onExternalVideoStarted(IScope roomScope) {
+    	RTMPConnection conn = getAllInOneConn(roomScope);
+    	if( conn != null ) {
+    		conn.onExternalVideoStarted();
+    	}
+    }
+	@Override
+    public void onExternalVideoStopped(IScope roomScope) {
     	RTMPConnection conn = getAllInOneConn(roomScope);
     	if( conn != null ) {
     		conn.onExternalVideoStopped();

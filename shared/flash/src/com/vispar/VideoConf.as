@@ -524,9 +524,13 @@ package com.vispar
 		{
 			var videoName:String = String(resp);
 			if( videoName != null) {
-				totalPublishers++; //consider an external video as one of the publishers
 				delegate_.onExternalVideoPlaying(videoName);
 			}
+		}
+		public function onExternalVideoStarted():void	
+		{		
+			totalPublishers++; //consider an external video as one of the publishers
+			delegate_.onExternalVideoStarted();
 		}
 		public function onExternalVideoStopped():void	
 		{

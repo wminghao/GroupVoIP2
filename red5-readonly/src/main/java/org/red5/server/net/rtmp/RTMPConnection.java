@@ -1474,6 +1474,22 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         	log.info("----Non-critical error: onExternalVideoPlaying callback failed: {}", e);
         }
     }
+    public void onExternalVideoStarted() {
+		Red5.setConnectionLocal(this);
+        try {
+			IScope scope = ((IConnection) this).getScope();
+			if (scope !=null && scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for song playing
+					((IStreamAwareScopeHandler) handler).onExternalVideoStarted();
+				}
+			}
+        } catch(Exception e) {
+        	log.info("----Non-critical error: onExternalVideoStarted callback failed: {}", e);
+        }
+    }
+
     public void onExternalVideoStopped() {
 		Red5.setConnectionLocal(this);
         try {

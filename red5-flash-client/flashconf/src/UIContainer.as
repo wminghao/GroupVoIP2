@@ -103,6 +103,9 @@ package
 		public function onExternalVideoPlaying(videoName:String):void {
 			logDebug("Now playing="+videoName+" ");
 		}
+		public function onExternalVideoStarted():void {
+			logDebug("Now started an external video.");
+		}
 		public function onExternalVideoStopped():void {
 			logDebug("Now stopped all external video.");
 		}

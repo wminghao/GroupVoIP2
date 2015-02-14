@@ -301,6 +301,9 @@ package
 		}
 		public function onExternalVideoListPopulated(videoNamesArray:Array):void {
 		}
+		public function onExternalVideoStarted():void {
+			//logDebug("Now started an external video.");
+		}
 		public function onExternalVideoStopped():void {
 			//logDebug("Now stopped="+videoName);
 		}
