@@ -180,11 +180,17 @@
 				}
 			}
 			
-			public function onFatalNetworkTooSlowError():void{
-				this.switchAudioOnly.enabled = false;
-				this.switchViewOnly.enabled = false;
-				this.videoList.enabled = false;
-				this.stopVideo.enabled = false;
+			public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
+				if( isAudioOnlyMode ) {
+					Alert.show("Your network speed is too slow, switch to audio only mode!");
+					this.switchAudioOnly.enabled = false;
+					this.switchAudioOnly.label = "Audio Only";
+				} else {
+					this.switchAudioOnly.enabled = false;
+					this.switchViewOnly.enabled = false;
+					this.videoList.enabled = false;
+					this.stopVideo.enabled = false;
+				}
 			}
 			private function onRequest2TalkNeedsApprovalAlertListener(eventObj:CloseEvent, parameter:String):void {
 				if (eventObj.detail == Alert.YES) {

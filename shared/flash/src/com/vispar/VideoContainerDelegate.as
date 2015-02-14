@@ -5,7 +5,7 @@ package com.vispar
 	{
 		function logDebug(str:String):void;
 		function showAlert(str:String):void;
-		function onFatalNetworkTooSlowError():void;
+		function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void;
 		
 		function tryGetFrontCamera():Camera;
 		

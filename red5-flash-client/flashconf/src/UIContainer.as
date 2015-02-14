@@ -118,8 +118,8 @@ package
 			}
 		}
 		
-		public function onFatalNetworkTooSlowError():void {
-			onFatalNetworkTooSlowError_();
+		public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void {
+			onFatalNetworkTooSlowError_(isAudioOnlyMode);
 		}
 		
 		public function onRequest2TalkNeedsApproval(user:String):void{

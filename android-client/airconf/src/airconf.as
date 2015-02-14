@@ -312,7 +312,7 @@ package
 			//TODO
 		}
 		
-		public function onFatalNetworkTooSlowError():void{
+		public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
 			//TODO
 		}
 		

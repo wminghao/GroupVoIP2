@@ -6,7 +6,9 @@ package com.vispar.network
 		private var stopVideoCallback_:Function;
 		private var logDebug_:Function;
 		private const maxArraySize_:int = 10;
-		private const bwThreshold_:int = 500; //less than 500kbps
+		private const audioOnlyBWThreshold_:int = 500; //less than 500kbps
+		private const shutdownAllBWThreshold_:int = 100; //less than 100kbps
+		private var hasAudioOnlyCallbackSent_:Boolean = false; //only sent once
 		
 		public function LowPublishBWDetector(stopVideoCallback:Function, logDebug:Function)
 		{
@@ -26,8 +28,14 @@ package com.vispar.network
 				avgBW = totalBW/maxArraySize_;
 				//this.logDebug_("---avg="+avgBW+"kbps" );
 				bwArray_.shift();
-				if( avgBW < bwThreshold_ ) {
-					this.stopVideoCallback_("upload");
+				//it can be shut down or it can be audio only
+				if( avgBW < shutdownAllBWThreshold_ ) {
+					this.stopVideoCallback_(false, "upload");
+				} else if( avgBW < audioOnlyBWThreshold_ ) {
+					if( !hasAudioOnlyCallbackSent_ ) {
+						this.stopVideoCallback_(true, "upload");
+						hasAudioOnlyCallbackSent_ = true;
+					}
 				}
 			}
 		}

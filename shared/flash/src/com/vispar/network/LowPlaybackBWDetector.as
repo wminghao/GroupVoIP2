@@ -24,7 +24,7 @@ package com.vispar.network
 				var firstBWNotificationTs:Number = lowBWNotificationArray_.shift();
 				this.logDebug_("---diff="+(currentTs - firstBWNotificationTs) );
 				if( currentTs < (firstBWNotificationTs + timeIntervalThreshold_) ) {
-					this.stopVideoCallback_("download");
+					this.stopVideoCallback_(false, "download");
 				}
 			}
 		}
