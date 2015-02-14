@@ -424,9 +424,9 @@ package com.vispar
 		private function addStreamToStringVector(publishedStream:String):void {
 			if( publishedStreamArray.indexOf(publishedStream) == -1 && 
 				publishedStream.indexOf(mixedStreamPrefix) < 0 ){ 
-				logDebug(publishedStream+" joined!");
-				publishedStreamArray.push(publishedStream);
 				totalPublishers++;
+				logDebug(publishedStream+" joined="+totalPublishers+"!");
+				publishedStreamArray.push(publishedStream);
 				//remove the notification
 				if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
 					container_.removeChild(emptyRoomNotification_);
@@ -436,8 +436,8 @@ package com.vispar
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
 			if(vector.indexOf(element) > -1){  
 				vector.splice(vector.indexOf(element), 1);
-				logDebug(element+" removed!");
 				totalPublishers--;
+				logDebug(element+" removed="+totalPublishers+"!");
 				//detect whether empty room or not after 1 second
 				if( !fatalError_ ) {
 					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
@@ -531,11 +531,13 @@ package com.vispar
 		{		
 			totalPublishers++; //consider an external video as one of the publishers
 			delegate_.onExternalVideoStarted();
+			logDebug(" totalPublishers="+totalPublishers+"!");
 		}
 		public function onExternalVideoStopped():void	
 		{
 			totalPublishers--; //consider an external video as one of the publishers
 			delegate_.onExternalVideoStopped();
+			logDebug(" totalPublishers="+totalPublishers+"!");
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
 			var videoListStr:String = String(resp);
