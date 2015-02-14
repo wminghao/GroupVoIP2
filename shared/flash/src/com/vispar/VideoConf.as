@@ -54,6 +54,7 @@ package com.vispar
 		
 		private var fatalError_:Boolean = false;
 		private var bOnVideoListPopulated_:Boolean = false;
+		private var bOnVideoPlaybackStarted_:Boolean = false;
 		
 		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
 		{ 
@@ -530,15 +531,21 @@ package com.vispar
 		}
 		public function onExternalVideoStarted():void	
 		{		
-			totalPublishers++; //consider an external video as one of the publishers
-			delegate_.onExternalVideoStarted();
-			logDebug(" totalPublishers="+totalPublishers+"!");
+			if( !bOnVideoPlaybackStarted_ ) {
+				totalPublishers++; //consider an external video as one of the publishers
+				delegate_.onExternalVideoStarted();
+				logDebug(" totalPublishers="+totalPublishers+"!");
+				bOnVideoPlaybackStarted_ = true;
+			}
 		}
 		public function onExternalVideoStopped():void	
 		{
-			totalPublishers--; //consider an external video as one of the publishers
-			delegate_.onExternalVideoStopped();
-			logDebug(" totalPublishers="+totalPublishers+"!");
+			if( bOnVideoPlaybackStarted_ ) {
+				totalPublishers--; //consider an external video as one of the publishers
+				delegate_.onExternalVideoStopped();
+				logDebug(" totalPublishers="+totalPublishers+"!");
+				bOnVideoPlaybackStarted_ = false;
+			}
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
 			//only populate video list once for now.TODO make it dynamic in the future.
