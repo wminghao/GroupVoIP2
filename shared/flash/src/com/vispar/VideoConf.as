@@ -515,6 +515,9 @@ package com.vispar
 		}
 		
 		public function detectAllAudioOnly():void {
+			if( videoOthers ) {
+				videoOthers.clear();
+			}
 			var bAllAudioOnly:Boolean = true;
 			var length:uint = publishedStreamArray.length;
 			for ( var i:uint=0; i<length; i++ ) {
@@ -743,6 +746,8 @@ package com.vispar
 				} else {
 					audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(user), 1);					
 				}
+				//detect all audio stream
+				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
 			} catch(e:Error) {
 				logDebug("---onUserJoinedTalk Exception="+e);
 			}
