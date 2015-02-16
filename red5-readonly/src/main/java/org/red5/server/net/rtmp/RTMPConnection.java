@@ -278,6 +278,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private boolean isModerator_;
 	private String user_;
+	private int avFlag_;
 	
 	/*
 	 * A special flag to indicate whether the current connection is all-in-one connection
@@ -1527,8 +1528,31 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     public void setAsUser(String user, boolean isModerator){
     	user_ = user;
     	isModerator_ = isModerator;
-		log.info("setAsUser user {}, isModerator_ {}", user, isModerator_);
+    	avFlag_ = 0;
+		log.info("setAsUser user {}, isModerator_ {}, avFlag_ {}", user_, isModerator_, avFlag_);
     }
+    public void switchAVFlag(int avFlag){
+    	avFlag_ = avFlag;
+    	onUserJoinedTalk();
+		log.info("switchAVFlag user {}, isModerator_ {}, avFlag_ {}", user_, isModerator_, avFlag_);
+    }
+    
+    private void onUserJoinedTalk() {
+    	Red5.setConnectionLocal(this);
+        try {
+			IScope scope = ((IConnection) this).getScope();
+			if (scope !=null && scope.hasHandler()) {
+				final Object handler = scope.getHandler();
+				if (handler instanceof IStreamAwareScopeHandler) {
+					// callback for approved the talk
+					((IStreamAwareScopeHandler) handler).onUserJoinedTalk(user_, avFlag_);
+				}
+			}
+        } catch(Exception e) {
+        	log.info("----Non-critical error: approveRequest2Talk callback failed: {}", e);
+        }
+    }
+    
     public boolean isModerator(){
     	return isModerator_;
     }

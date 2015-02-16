@@ -128,5 +128,9 @@ package
 		public function onRequest2TalkPendingApproval(isPending:Boolean):void {
 			onRequest2TalkPendingApproval_(isPending);
 		}
+		
+		public function onUserJoinedTalk(user:String, avFlag:int):void {
+			logDebug("onUserJoinedTalk "+user+"="+avFlag);
+		}
 	}
 }

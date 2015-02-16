@@ -45,6 +45,9 @@ package
 		private static var alertBoxWidth:int = 400;
 		private static var alertBoxHeight:int = 400;
 		
+		//indicate whether it's audio only
+		private var forceAudioOnly_:Boolean = false;
+		
 		public function airconf()
 		{
 			super();
@@ -113,11 +116,16 @@ package
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				mode = arg.substring(0, endIndex);
+				
+				//skip the next parameter
+				arg = arg.substr(endIndex + 1);
+				endIndex = arg.indexOf("/");
+				forceAudioOnly_ = (arg.substring(0, endIndex) == "true");
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this, room, user, mode);
+				vidInstance_ = new VideoPlayer(this, this, room, user, mode, forceAudioOnly_);
 			} else {				
-				vidInstance_ = new VideoConf(this, this, room, user, mode);
+				vidInstance_ = new VideoConf(this, this, room, user, mode, forceAudioOnly_);
 			}
 		}		
 		
@@ -321,6 +329,9 @@ package
 		}
 		public function onRequest2TalkPendingApproval(isPending:Boolean):void {
 			//todo
+		}
+		public function onUserJoinedTalk(user:String, avFlag:int):void {
+			logDebug("onUserJoinedTalk "+user+"="+avFlag);
 		}
 	}
 }

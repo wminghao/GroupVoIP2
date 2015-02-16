@@ -56,9 +56,16 @@ package com.vispar
 		private var bOnVideoListPopulated_:Boolean = false;
 		private var bOnVideoPlaybackStarted_:Boolean = false;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
+		private const AUDIO_ON_FLAG:int = 0x1;
+		private const VIDEO_ON_FLAG:int = 0x2;
+		
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean)
 		{ 
-			super(container, delegate, room, user, mode);
+			super(container, delegate, room, user, mode, forceAudioOnly);
+			
+			if( forceAudioOnly ) {
+				isAudioOnly_ = true;
+			}
 		}
 		
 		private function getVideoPath():String{
@@ -105,7 +112,8 @@ package com.vispar
 			stopReconnTimer();
 			// did we successfully connect
 			if(event.info.code == "NetConnection.Connect.Success") {
-				netConn.call("clientRequest.setAsUser", null, user, (!isAutoMode()  && (room == user)));	
+				netConn.call("clientRequest.setAsUser", null, user, 
+														(!isAutoMode()  && (room == user)));	
 				if( room == user ) {
 					delayedFunctionCall(1000, function(e:Event):void { 
 						publishNow();
@@ -243,8 +251,11 @@ package com.vispar
 					
 					streamPub = new NetStream(netConn);
 					videoSelf = new Video();
-					attachCamera();	
 					
+					//if it's audio only mode, don't attach camera
+					if( !isAudioOnly_ ) {
+						attachCamera();	
+					}					
 					var h264settings:H264VideoStreamSettings = new H264VideoStreamSettings(); 
 					h264settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_1_2);
 					streamPub.videoStreamSettings = h264settings; 
@@ -277,6 +288,9 @@ package com.vispar
 					
 					//initiate the speed test
 					this.initBWEstimator( getVideoPath(), startUploadSpeedTimer );
+					
+					//tell the server it's in audio mode or av mode.
+					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -598,6 +612,7 @@ package com.vispar
 				if( !isAudioOnly_ ) {
 					detachCamera();
 					isAudioOnly_ = true;
+					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
 				} else{
 					//do nothing
 				}
@@ -605,6 +620,7 @@ package com.vispar
 				if( isAudioOnly_ ) {
 					attachCamera();
 					isAudioOnly_ = false;
+					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
 				} else {
 					//do nothing
 				}
@@ -688,6 +704,15 @@ package com.vispar
 		public function onRequest2TalkNeedsApproval(resp:Object):void{
 			var user:String = String(resp);
 			delegate_.onRequest2TalkNeedsApproval(user);
+		}
+		public function onUserJoinedTalk(resp1:Object, resp2:Object):void {
+			try {
+				var user:String = String(resp1);
+				var avFlag:int = int(resp2);
+				delegate_.onUserJoinedTalk(user, avFlag);
+			} catch(e:Error) {
+				logDebug("---onUserJoinedTalk Exception="+e);
+			}
 		}
 	}
 }

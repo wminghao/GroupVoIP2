@@ -29,6 +29,9 @@
 			//vidContainer class
 			private var vidInstance_:VideoContainer = null;
 			
+			//indicate whether it's audio only
+			private var forceAudioOnly_:Boolean = false;
+			
 			[Bindable]
 			private var videoSet:ArrayCollection = new ArrayCollection(
 				[   
@@ -42,14 +45,19 @@
 					var room:String = getVideoRoom();
 					var user:String = getUserName();
 					var mode:String = getRoomMode();
+					forceAudioOnly_ = getForceAudioOnly();
 					if( getIsArchive() ) {
 						this.switchAudioOnly.visible = false;
 						this.switchViewOnly.visible = false;
 						this.videoList.visible = false;
 						this.stopVideo.visible = false;
-						vidInstance_ = new VideoPlayer(container, container, room, user, mode);
+						vidInstance_ = new VideoPlayer(container, container, room, user, mode, forceAudioOnly_);
 					} else {				
-						vidInstance_ = new VideoConf(container, container, room, user, mode);
+						if( forceAudioOnly_ ) {
+							this.switchAudioOnly.label = "Audio Only";	
+							this.switchAudioOnly.enabled = false;
+						}
+						vidInstance_ = new VideoConf(container, container, room, user, mode, forceAudioOnly_);
 					}
 					vidInstance_.connectServer();	
 				} catch (error:Error) {
@@ -137,6 +145,25 @@
 				}
 				return mode;
 			}
+			
+			private function getForceAudioOnly():Boolean {
+				var forceAudioOnly:Boolean = false;
+				try
+				{
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						forceAudioOnly = ExternalInterface.call("forceAudioOnly");
+						//Alert.show("forceAudioOnly="+forceAudioOnly);
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return forceAudioOnly;
+			}
+			
 			protected function stopExternalVideo_clickHandler(event:MouseEvent):void
 			{
 				vidInstance_.stopExternalVideo();	
@@ -162,7 +189,9 @@
 					this.switchAudioOnly.enabled = false;
 					this.switchViewOnly.label = "Go To Talker Mode";
 				} else {
-					this.switchAudioOnly.enabled = true;
+					if( !forceAudioOnly_ ) {
+						this.switchAudioOnly.enabled = true;
+					}
 					this.switchViewOnly.label = "Go To Viewer Mode";					
 				}
 			}

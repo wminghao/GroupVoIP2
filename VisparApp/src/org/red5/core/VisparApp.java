@@ -70,7 +70,7 @@ public class VisparApp extends ApplicationAdapter implements
 				publisherListNames += ",";
 			}
 		}
-        sendToClient(conn, "initStreams", publisherListNames);
+        sendToClient(conn, "initStreams", new Object[] {publisherListNames});
     	return true;
 	}
     
@@ -92,7 +92,7 @@ public class VisparApp extends ApplicationAdapter implements
                     continue;
                 }
 
-                sendToClient(conn, "addStream", stream.getPublishedName());
+                sendToClient(conn, "addStream", new Object[] {stream.getPublishedName()});
             }
         }
         publisherList.add(stream.getPublishedName());
@@ -118,7 +118,7 @@ public class VisparApp extends ApplicationAdapter implements
                     // Don't notify current client
                     continue;
                 }
-                sendToClient(conn, "removeStream", stream.getPublishedName());
+                sendToClient(conn, "removeStream", new Object[] {stream.getPublishedName()});
             }
 		}
 
@@ -187,29 +187,10 @@ public class VisparApp extends ApplicationAdapter implements
 	/*
 	 * Server calling (flash) client events such as: onSongSelected, addStream, removeStream, initStream, etc.
 	 */
-	private void sendToClient(IConnection conn, String methodName, String param) {
+	private void sendToClient(IConnection conn, String methodName, Object[] obj) {
 		if (conn instanceof IServiceCapableConnection) {
             ((IServiceCapableConnection) conn).invoke(methodName,
-                    new Object[] { param }, this);
-            if (log.isDebugEnabled()) {
-                log.debug("sending {} notification to {}", methodName, conn);
-            }
-        }
-	}
-	private void sendToClientNull(IConnection conn, String methodName) {
-		if (conn instanceof IServiceCapableConnection) {
-            ((IServiceCapableConnection) conn).invoke(methodName,
-                    null, this);
-            if (log.isDebugEnabled()) {
-                log.debug("sending {} notification to {}", methodName, conn);
-            }
-        }
-	}
-	
-	private void sendToClient2(IConnection conn, String methodName, Boolean param1) {
-		if (conn instanceof IServiceCapableConnection) {
-            ((IServiceCapableConnection) conn).invoke(methodName,
-                    new Object[] { param1 }, this);
+                    obj, this);
             if (log.isDebugEnabled()) {
                 log.debug("sending {} notification to {}", methodName, conn);
             }
@@ -227,7 +208,7 @@ public class VisparApp extends ApplicationAdapter implements
             for (IConnection conn: connections) {
             	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
             		log.info("Send onExternalVideoPlaying {} about videoName {}", ((RTMPConnection)conn).getUser(), videoName);
-            		sendToClient(conn, "onExternalVideoPlaying", videoName);
+            		sendToClient(conn, "onExternalVideoPlaying",  new Object[] { videoName });
             	}
             }
         }
@@ -240,7 +221,7 @@ public class VisparApp extends ApplicationAdapter implements
             for (IConnection conn: connections) {
             	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
             		log.info("Send onExternalVideoStarted {}", ((RTMPConnection)conn).getUser());
-            		sendToClientNull(conn, "onExternalVideoStarted");
+            		sendToClient(conn, "onExternalVideoStarted", null);
             	}
             }
         }
@@ -253,7 +234,7 @@ public class VisparApp extends ApplicationAdapter implements
             for (IConnection conn: connections) {
             	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
             		log.info("Send onExternalVideoStopped {}", ((RTMPConnection)conn).getUser());
-            		sendToClientNull(conn, "onExternalVideoStopped");
+            		sendToClient(conn, "onExternalVideoStopped", null);
             	}
             }
         }
@@ -270,7 +251,7 @@ public class VisparApp extends ApplicationAdapter implements
             		String publisherName = rtmpConn.getPublisherStreamName();
             		if( publisherName!=null && publisherName.equals(streamName) ) {
                     	if( conn!=null && conn instanceof RTMPConnection && ((RTMPConnection)conn).getUser() != null ) {
-                    		sendToClient(conn, "onExternalVideoListPopulated", videoListNames);
+                    		sendToClient(conn, "onExternalVideoListPopulated", new Object[] { videoListNames});
                     	}
             		}
             	}
@@ -288,7 +269,7 @@ public class VisparApp extends ApplicationAdapter implements
                 	String currentUser = ((RTMPConnection)conn).getUser();
                 	if( currentUser!=null && currentUser.equalsIgnoreCase(userName) ){
                 		log.info("onRequest2TalkApproved userName {} isAllow {}", userName, isAllow);
-                		sendToClient2(conn, "onRequest2TalkApproved", isAllow);
+                		sendToClient(conn, "onRequest2TalkApproved", new Object[] {isAllow});
                 	}
                 }
             }
@@ -304,7 +285,23 @@ public class VisparApp extends ApplicationAdapter implements
                 if (conn instanceof RTMPConnection) {
                 	if( conn!=null && ((RTMPConnection)conn).isModerator()){
                 		log.info("Find moderator, send to {} to approve {}", ((RTMPConnection)conn).getUser(), user);
-                		sendToClient(conn, "onRequest2TalkNeedsApproval", user);
+                		sendToClient(conn, "onRequest2TalkNeedsApproval", new Object[] {user});
+                	}
+                }
+            }
+        }
+    }
+    
+    public void onUserJoinedTalk(String user, int avFlag) {
+    	super.onRequest2TalkNeedsApproval(user);
+    	IConnection current = Red5.getConnectionLocal();
+    	IScope roomScope = current.getScope(); //RoomScope 
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection conn: connections) {
+                if (conn instanceof RTMPConnection) {
+                	if( conn != null && ((RTMPConnection)conn).getUser() != null ){
+                		log.info("onUserJoinedTalk, send to {} that {} is in {} avflag", ((RTMPConnection)conn).getUser(), user, avFlag);
+                		sendToClient(conn, "onUserJoinedTalk", new Object[] {user, avFlag});
                 	}
                 }
             }

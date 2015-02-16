@@ -1408,6 +1408,15 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     }
     public void onRequest2TalkNeedsApproval(String user){
 		// log w3c connect event
-		log.info("W3C x-category:stream x-onRequest2TalkNeedsApproval c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), user);    	
+		log.info("W3C x-category:stream x-onRequest2TalkNeedsApproval c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), user);    	
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see org.red5.server.api.stream.IStreamAwareScopeHandler#onUserJoinedTalk(java.lang.String, int)
+     */
+    public void onUserJoinedTalk(String user, int avFlag) {
+    	// log w3c connect event
+    	log.info("W3C x-category:stream x-onUserJoinedTalk c-ip:{} x-sname:{}, {}", Red5.getConnectionLocal().getRemoteAddress(), user, avFlag);
     }
 }

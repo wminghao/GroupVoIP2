@@ -16,6 +16,8 @@ package com.vispar
 		function getScreenX():int;
 		function getScreenY():int;
 		
+		function onUserJoinedTalk(user:String, avFlag:int):void; //when a user joins the talk, show whether he's in audio mode or av mode
+		
 		function onVideoStarted(isViewOnly:Boolean):void; //return whether it's viewer mode or talker mode
 		
 		function onExternalVideoPlaying(videoName:String):void;

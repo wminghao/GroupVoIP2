@@ -135,4 +135,9 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
      */
     public void onRequest2TalkApproved(Boolean isAllow, String user);
     public void onRequest2TalkNeedsApproval(String user);
+    
+    /*
+     * Notify when a user is in audio only mode or video mode, etc
+     */
+    public void onUserJoinedTalk(String user, int avFlag);
 }

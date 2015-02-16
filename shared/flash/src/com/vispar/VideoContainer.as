@@ -1,8 +1,8 @@
 package com.vispar
 {
 	import flash.display.Sprite;
-	import flash.net.NetConnection;
 	import flash.events.*;
+	import flash.net.NetConnection;
 	
 	import org.red5.flash.bwcheck.ClientServerBandwidth;
 	import org.red5.flash.bwcheck.ServerClientBandwidth;
@@ -33,6 +33,8 @@ package com.vispar
 		
 		protected var roomMode_:String; //either auto mode or moderator mode
 		
+		protected var forceAudioOnly_:Boolean;
+		
 		protected function logDebug(str:String):void {
 			delegate_.logDebug(str);
 		}
@@ -40,13 +42,14 @@ package com.vispar
 			delegate_.showAlert(str);
 		}
 		
-		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String)
+		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean)
 		{ 
 			this.container_ = container;
 			this.delegate_ = delegate;
 			this.room = room;
 			this.user = user;
 			this.roomMode_ = mode;
+			this.forceAudioOnly_ = forceAudioOnly;
 		}
 		
 		public function connectServer():void {

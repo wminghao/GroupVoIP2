@@ -36,6 +36,12 @@ public class ClientRequestService {
         	((RTMPConnection)conn).setAsUser(user, isModerator);
         }		
 	}
+	public void switchAVFlag(int avFlag) {
+		IConnection conn = Red5.getConnectionLocal();
+        if (conn instanceof RTMPConnection) {
+        	((RTMPConnection)conn).switchAVFlag(avFlag);
+        }		
+	}
 	public void request2Talk(String user) {
 		IConnection conn = Red5.getConnectionLocal();
         if (conn instanceof RTMPConnection) {
