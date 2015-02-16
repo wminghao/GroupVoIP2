@@ -76,9 +76,6 @@ package com.vispar
 		public function isAutoMode():Boolean {
 			return roomMode_=="auto";
 		}
-		public function isAudioOnlyMode():Boolean {
-			return roomMode_=="auto";
-		}
 		
 		public function approveRequest2Talk(isAllow:Boolean, user:String):void {
 		}
