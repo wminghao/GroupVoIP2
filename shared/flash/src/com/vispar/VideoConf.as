@@ -33,6 +33,7 @@ package com.vispar
 		
 		private var publishDest:String = null;
 		private var publishedStreamArray:Vector.<String> = new Vector.<String>();
+		private var audioOnlyPublisherArray:Vector.<String> = new Vector.<String>();
 		
 		private var videoSelf:Video = null;
 		private var videoOthers:Video = null;
@@ -105,6 +106,7 @@ package com.vispar
 			logDebug("=>disconnect from server!");
 			
 			publishedStreamArray = new Vector.<String>();
+			audioOnlyPublisherArray = new Vector.<String>();
 		}
 		
 		private function onConnectionNetStatus(event:NetStatusEvent) : void {
@@ -291,6 +293,9 @@ package com.vispar
 					
 					//tell the server it's in audio mode or av mode.
 					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
+					
+					//detect all audio stream
+					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -443,10 +448,7 @@ package com.vispar
 				totalPublishers++;
 				logDebug(publishedStream+" joined="+totalPublishers+"!");
 				publishedStreamArray.push(publishedStream);
-				//remove the notification
-				if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
-					container_.removeChild(emptyRoomNotification_);
-				}
+				removeEmptyNotification();
 			}
 		}
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
@@ -480,6 +482,12 @@ package com.vispar
 				}
 			}
 		}
+		private function removeEmptyNotification():void {
+			//remove the notification
+			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
+				container_.removeChild(emptyRoomNotification_);
+			}			
+		}
 		private function showEmptyNotification(message:String):void {
 			if( videoOthers ) {
 				videoOthers.clear();
@@ -505,12 +513,32 @@ package com.vispar
 			emptyRoomNotification_.wordWrap = true;
 			container_.addChild(emptyRoomNotification_);
 		}
+		
+		public function detectAllAudioOnly():void {
+			var bAllAudioOnly:Boolean = true;
+			var length:uint = publishedStreamArray.length;
+			for ( var i:uint=0; i<length; i++ ) {
+				//check if the stream is already published
+				if ( audioOnlyPublisherArray.indexOf( publishedStreamArray[ i ]) == -1 ) {
+					bAllAudioOnly = false;
+					//logDebug(publishedStreamArray[ i ]+" not audio only");
+					break;
+				}
+			}
+			if( bAllAudioOnly ) {
+				showEmptyNotification("All talkers are in audio only mode!");						
+			} else {
+				removeEmptyNotification();				
+			}
+		}
+		
 		public function detectEmptyStream():void {
 			var onResult:Function = function (result:Object):void {
 				var isEmpty:Boolean = Boolean(result);
 				if( isEmpty ) {
 					showEmptyNotification("You are in viewer mode. There is no body joining the session right now.\n\n" +
 						"You can either go to talker mode or wait until others join!");
+				} else {
 				}
 			}
 			// Create a responder object
@@ -710,6 +738,11 @@ package com.vispar
 				var user:String = String(resp1);
 				var avFlag:int = int(resp2);
 				delegate_.onUserJoinedTalk(user, avFlag);
+				if( avFlag == AUDIO_ON_FLAG ) {
+					audioOnlyPublisherArray.push(user);
+				} else {
+					audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(user), 1);					
+				}
 			} catch(e:Error) {
 				logDebug("---onUserJoinedTalk Exception="+e);
 			}

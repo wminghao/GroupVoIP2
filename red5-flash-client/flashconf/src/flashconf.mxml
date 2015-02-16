@@ -211,9 +211,11 @@
 			
 			public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
 				if( isAudioOnlyMode ) {
-					Alert.show("Your network speed is too slow, switch to audio only mode!");
-					this.switchAudioOnly.enabled = false;
-					this.switchAudioOnly.label = "Audio Only";
+					if( !vidInstance_.isAudioOnly() ) {
+						Alert.show("Your network speed is too slow, switch to audio only mode!");
+						this.switchAudioOnly.enabled = false;
+						this.switchAudioOnly.label = "Audio Only";
+					}
 				} else {
 					this.switchAudioOnly.enabled = false;
 					this.switchViewOnly.enabled = false;
