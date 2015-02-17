@@ -279,6 +279,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private boolean isModerator_;
 	private String user_;
 	private int avFlag_;
+	private static final int AUDIO_ON_FLAG = 0x1;
+	private static final int VIDEO_ON_FLAG = 0x2;
+	
 	
 	/*
 	 * A special flag to indicate whether the current connection is all-in-one connection
@@ -1546,6 +1549,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				if (handler instanceof IStreamAwareScopeHandler) {
 					// callback for approved the talk
 					((IStreamAwareScopeHandler) handler).onUserJoinedTalk(user_, avFlag_);
+				}
+				//if it's audio only, clear the video frame
+				if( avFlag_ == AUDIO_ON_FLAG) {
+					GroupMixer.getInstance().clearVideoFrame(scope, this.publisherStreamName);
 				}
 			}
         } catch(Exception e) {

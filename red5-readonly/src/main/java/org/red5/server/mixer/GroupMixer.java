@@ -185,6 +185,15 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
     }  
 
+    public void clearVideoFrame(IScope roomScope, String streamName)
+    {
+    	MixerRoom mixerRoom = null;
+    	if( mixerRooms_.containsKey(roomScope) ) {
+    		mixerRoom = mixerRooms_.get(roomScope);
+    		mixerRoom.idLookupTable_.setClearVideoFrameFlag(streamName);
+    	}    	
+    }
+
     /*
      * deleteMixedStream should avoid a situation that original stream is deleted and idLookupTable_.getCount() becomes 0, 
      * other thread will treat the connection as closed and free up the whole netconnection.
