@@ -35,6 +35,11 @@ public class NativeProcessPipe implements SegmentParser.Delegate, MixCoderBridge
     private MixCoderBridge mixCoderBridge = null;
     private int procId = -1;
     
+    /*
+     * clear cached video frame
+     */
+    private boolean bShouldClearCachedVideoFrame_ = false;
+    
     public NativeProcessPipe(SegmentParser.Delegate delegate, IScope scope, MixCoderBridge mixCoderBridge, boolean bSaveToDisc, String outputFilePath, boolean bLoadFromDisc, String inputFilePath)
     {
     	this.delegate = delegate;
