@@ -20,6 +20,8 @@ class FLVSegmentParserDelegate
 
     //segment parser specific
     virtual void onStreamOffline(int index) = 0;
+    virtual void onVideoFrameClear(int index) = 0;
+
     virtual StreamStatus getVideoStreamStatus(int index) = 0;
     virtual StreamStatus getAudioStreamStatus(int index) = 0;
     virtual void setVideoStreamStatus(StreamStatus status, int index) = 0;

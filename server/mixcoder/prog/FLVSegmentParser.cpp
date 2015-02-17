@@ -96,7 +96,9 @@ bool FLVSegmentParser::readData(SmartPtr<SmartBuffer> input)
 
                     u32 curStreamSource = (curBuf_[0]&0x7); //last 3 bits
                     ASSERT( curStreamSource < kTotalStreamSource);
-                    ASSERT(curBuf_[1] == 0x0); //ignore the special property
+                    if( ((u8)curBuf_[1]) == 0xff ) { //if it's 0xff, meaning clear the cached video frame for audio only mode
+                        delegate_->onVideoFrameClear( curStreamId_ );
+                    } //ignore all other cases
 
                     memcpy(&curStreamLen_, curBuf_.data()+2, 4); //read the len
                     if( curStreamLen_ > 0 ) {

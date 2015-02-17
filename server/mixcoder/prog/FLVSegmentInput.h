@@ -25,7 +25,7 @@ using namespace std;
 // Content * NoOfStreams:
 //  streamId = 5 bits
 //  streamSource = 3 bits //desktop or mobile
-//  special property = 1 byte //Main layout, whether it's main
+//  special property = 1 byte //0x1 = Main layout, whether it's main screen, 0xff = video frame cache clear.(starts audio only mode)
 //  LengthOfStream = 4 bytes
 //  StreamData = n bytes
 ///////////////////////////////////
@@ -112,6 +112,7 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     virtual u32 getGlobalAudioTimestamp() { return globalAudioTimestamp_;}
 
     virtual void onStreamOffline(int index);
+    virtual void onVideoFrameClear(int index);
     virtual StreamStatus getVideoStreamStatus(int index) { return videoStreamStatus_[index]; }
     virtual StreamStatus getAudioStreamStatus(int index) { return audioStreamStatus_[index]; }
     virtual void setVideoStreamStatus(StreamStatus status, int index) { videoStreamStatus_[index] = status; }

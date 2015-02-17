@@ -168,7 +168,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     rawVideoData_[i]->rawVideoSettings_.ss= flvSegInput_->getStreamSource(i);
                     rawVideoData_[i]->rawVideoSettings_.bIsValid = bIsStreamStarted && bIsValidFrame;
                     if( rawVideoData_[i]->rawVideoSettings_.bIsValid ) {
-                        //LOG("------rawVideoData_[%d] is valid\r\n", i);
+                        LOG("------rawVideoData_[%d] is valid\r\n", i);
                         totalStreams++;
                         if( kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss ) {
                             totalMobileStreams++;
@@ -299,6 +299,11 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
 void MixCoder::onStreamEnded(int streamId)
 {
     flvSegOutput_->onStreamEnded(streamId);
+}
+
+void MixCoder::onVideoFrameClear(int index) {
+    LOG("--------onVideoFrameClear for index=%d-----", index);
+    rawVideoData_[index] = NULL;    
 }
 
 //at the end. flush the input
