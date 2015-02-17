@@ -45,6 +45,9 @@ class MixCoder: public FLVSegmentInputDelegate
     //delegate for flvSegmentInput
     virtual void onStreamEnded(int streamId);
 
+    //clear cache video frame
+    virtual void onVideoFrameClear(int index);
+
  private:
     //output settings
     int vBitrate_;

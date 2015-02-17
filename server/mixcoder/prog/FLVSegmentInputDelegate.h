@@ -5,6 +5,7 @@ class FLVSegmentInputDelegate
 {
  public:
     virtual void onStreamEnded(int streamId) = 0;
+    virtual void onVideoFrameClear(int streamId) = 0;
 };
 
 #endif

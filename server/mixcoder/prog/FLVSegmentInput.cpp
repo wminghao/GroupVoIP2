@@ -451,6 +451,10 @@ void FLVSegmentInput::onStreamOffline(int index)
     delegate_->onStreamEnded(index);
 }
 
+void FLVSegmentInput::onVideoFrameClear(int index) {
+    videoQueue_[index].clear();
+    delegate_->onVideoFrameClear(index);
+}
 void FLVSegmentInput::restoreVideoMomentoTimestamp(int i)
 {
     if( momentoBucketTimestamp_[i] != MAX_U32 ) {
