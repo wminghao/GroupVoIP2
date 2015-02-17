@@ -1566,6 +1566,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     public String getUser(){
     	return user_;
     }
+    public boolean isAudioOnly() {
+    	return avFlag_ == AUDIO_ON_FLAG;
+    }
     
 	//notify moderator someone is requesting to talk
     public void request2Talk(String user) {

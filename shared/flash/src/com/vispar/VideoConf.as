@@ -11,6 +11,7 @@ package com.vispar
 	import flash.system.*;
 	import flash.text.*;
 	import flash.utils.*;
+	import flash.display.*;
 	
 	import org.red5.flash.bwcheck.events.BandwidthDetectEvent;
 	
@@ -293,9 +294,6 @@ package com.vispar
 					
 					//tell the server it's in audio mode or av mode.
 					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
-					
-					//detect all audio stream
-					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -482,6 +480,19 @@ package com.vispar
 				}
 			}
 		}
+		public function initAudioOnlyStreams(resp:Object):void {
+			var streamListStr:String = String(resp);
+			//logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
+			if( streamListStr != "") {
+				var streamListArr:Array = streamListStr.split(",");
+				var arrLen:int = streamListArr.length;
+				for (var i:int = 0; i<arrLen; i++) {
+					audioOnlyPublisherArray.push(streamListArr[i]);
+				}
+				//detect all audio stream
+				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+			}
+		}
 		private function removeEmptyNotification():void {
 			//remove the notification
 			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
@@ -515,9 +526,6 @@ package com.vispar
 		}
 		
 		public function detectAllAudioOnly():void {
-			if( videoOthers ) {
-				videoOthers.clear();
-			}
 			var bAllAudioOnly:Boolean = true;
 			var length:uint = publishedStreamArray.length;
 			for ( var i:uint=0; i<length; i++ ) {
@@ -531,7 +539,7 @@ package com.vispar
 			if( bAllAudioOnly ) {
 				showEmptyNotification("All talkers are in audio only mode!");						
 			} else {
-				removeEmptyNotification();				
+				removeEmptyNotification();
 			}
 		}
 		
