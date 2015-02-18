@@ -76,6 +76,9 @@ class MixCoder: public FLVSegmentInputDelegate
     //raw audio frame in case data is late to arrive
     SmartPtr<AudioRawData> rawAudioData_[MAX_XCODING_INSTANCES];
 
+    //indicates whether a stream is audio only or not
+    int audioOnly_[MAX_XCODING_INSTANCES];
+
     //AudioSpitter converts MP3 frame samples into AAC frame samples
     AudioSpitter* audioSpitter_;
 };
