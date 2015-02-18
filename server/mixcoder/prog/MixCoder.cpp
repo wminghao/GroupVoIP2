@@ -169,7 +169,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     rawVideoData_[i]->rawVideoSettings_.ss= flvSegInput_->getStreamSource(i);
                     rawVideoData_[i]->rawVideoSettings_.bIsValid = bIsStreamStarted && bIsValidFrame;
                     if( rawVideoData_[i]->rawVideoSettings_.bIsValid ) {
-                        LOG("------rawVideoData_[%d] is valid\r\n", i);
+                        //LOG("------rawVideoData_[%d] is valid\r\n", i);
                         totalStreams++;
                         if( kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss ) {
                             totalMobileStreams++;
