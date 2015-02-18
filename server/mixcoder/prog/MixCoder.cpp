@@ -155,6 +155,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                         v = flvSegInput_->getNextVideoFrame(i);
                         if( v ) {
                             rawVideoData_[i] = v;
+                            audioOnly_[i] = false;
                         }
                     } while (v); //pop a few frames with timestamp smaller than nextVideoTimestamp_[i]
 
@@ -174,7 +175,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                             totalMobileStreams++;
                         }
                     }
-                }
+                } 
             }
 
             if ( totalStreams > 0 ) {
@@ -199,6 +200,8 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                                     flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
                                 }
                                 //LOG("------totalVideoStreams = %d, totalMobileStreams=%d\n", totalStreams, totalMobileStreams );
+                                flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
+                            } else if( audioOnly_[i] ) {
                                 flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
                             }
                         }
@@ -304,6 +307,7 @@ void MixCoder::onStreamEnded(int streamId)
 void MixCoder::onVideoFrameClear(int index) {
     LOG("--------onVideoFrameClear for index=%d-----", index);
     rawVideoData_[index] = NULL;    
+    audioOnly_[index] = true;
 }
 
 //at the end. flush the input
