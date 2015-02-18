@@ -46,7 +46,12 @@ class SegmentParser
     private int curStreamId_ = 0;
     private int curStreamLen_ = 0;
     private int curStreamCnt_ = 0;
+    private boolean curStreamIsVideo_ = false;
     private int numStreams_ = 0;
+    
+    //allinonestream backup
+    private ByteBuffer allInOneBuf_ = ByteBuffer.allocate(1<<20); //1 Meg of memory
+    private int allInOneBufLen_ = 0;
     
     boolean readData(byte[] src, int srcLen)
     {
@@ -75,23 +80,24 @@ class SegmentParser
                 }
             case SEARCHING_STREAM_MASK:
                 {
-                    if ( curLen_ < 4 ) {
-                        int cpLen = Math.min(srcLen, 4-curLen_);
+                    if ( curLen_ < 5 ) {
+                        int cpLen = Math.min(srcLen, 5-curLen_);
                         curBuf_.put(src, srcIndex, cpLen); //concatenate the string
                         srcLen -= cpLen;
                         srcIndex += cpLen; //advance
                         curLen_+=cpLen;
                     }
 
-                    if ( curLen_ >= 4 ) {
+                    if ( curLen_ >= 5 ) {
                     	curBuf_.flip();
                         int streamMask = curBuf_.getInt();
+                        curStreamIsVideo_ = curBuf_.get() == 0x01; //1 means video stream
                         
                         //handle mask here 
                         numStreams_ = count_bits(streamMask)+1;
                         assert(numStreams_ < MAX_XCODING_INSTANCES);
                         
-                        //log.info("---streamMask={} numStreams_={}", streamMask, numStreams_);
+                        //log.info("---streamMask={} numStreams_={}, curStreamIsVideo_={}", streamMask, numStreams_, curStreamIsVideo_);
                         //System.out.println("---streamMask="+streamMask+" numStreams_="+numStreams_);
                         int index = 0;
                         while( streamMask !=0 ) {
@@ -123,31 +129,13 @@ class SegmentParser
                     if ( curLen_ >= 5 ) {
                     	curBuf_.flip();
                         curStreamId_ = curBuf_.get();
-                        assert(curStreamId_ <= MAX_XCODING_INSTANCES);                    
-                        int bufLen = curBuf_.getInt();
-                        
-                        if( bufLen != 0xffffffff ) {
-                        	curStreamLen_ = bufLen;
-                        	//log.info("---curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_);
-                        	//System.out.println("---curBuf_[0]="+curBuf_.array()[0]+", curStreamId_="+curStreamId_ + " curStreamLen_="+ curStreamLen_);
-                        	curBuf_.clear();
-                        	parsingState_ = SEARCHING_STREAM_DATA;
-                        } else {
-                        	//it's ditto, repeat the same buffer as previous stream
-                            if( curStreamLen_ > 0 ) {
-                            	curBuf_.flip();
-                                delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
-                            }
-                            curStreamCnt_--;
-                            if ( curStreamCnt_ > 0 ) {
-                                parsingState_ = SEARCHING_STREAM_HEADER;
-                            } else {
-                            	curBuf_.clear();
-                            	curStreamLen_ = 0;
-                                parsingState_ = SEARCHING_SEGHEADER;
-                            }
-                        }
-                    	curLen_ = 0;
+                        assert(curStreamId_ <= MAX_XCODING_INSTANCES);    
+                    	curStreamLen_ = curBuf_.getInt();
+                    	//log.info("---curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_);                    
+                    	//System.out.println("---curBuf_[0]="+curBuf_.array()[0]+", curStreamId_="+curStreamId_ + " curStreamLen_="+ curStreamLen_);
+                    	curBuf_.clear();
+                    	curLen_ = 0;		
+                    	parsingState_ = SEARCHING_STREAM_DATA;
                     }
                     break;
                 }
@@ -162,20 +150,53 @@ class SegmentParser
                         curLen_+=cpLen;
                     }
                     if ( curLen_ >= curStreamLen_ ) {
-                    	//log.info("---curStreamId_={} curStreamLen_={}", curStreamId_, curStreamLen_);
+                    	//log.info("---curStreamId_={} curStreamLen_={} curStreamCnt_={} curStreamIsVideo_={} ", curStreamId_, curStreamLen_, curStreamCnt_, curStreamIsVideo_);
                     	//System.out.println("---curStreamId_="+curStreamId_+" curStreamLen_="+curStreamLen_);
-                        //read the actual buffer
-                        if( curStreamLen_ > 0 ) {
-                        	curBuf_.flip();
-                            delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
-                        }
+                        
+                    	if( curStreamIsVideo_ ) {
+                            if( curStreamId_ == MAX_XCODING_INSTANCES ) {
+                            	//read the actual buffer
+                            	if( curStreamLen_ > 0 ) {
+                            		curBuf_.flip();
+                            		delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
+                            	}
+                            	//log.info("---backup allinone curStreamId_={}, len={}\r\n", curStreamId_, curStreamLen_);
+                            	//make a copy of Allinone buffer
+                            	allInOneBuf_.clear();
+                            	allInOneBuf_.put(curBuf_.array(), 0, curStreamLen_);
+                            	allInOneBufLen_ = curStreamLen_;
+                            	allInOneBuf_.flip();
+                            } else {
+                            	//it's ditto stream for any stream that's not all-in-one.
+                            	if( curStreamLen_ != 1 ) {
+                            		assert( curStreamLen_ > 1 );
+                                	//it's ditto+cuepoint, read the cuepoint
+                            		 if( curStreamLen_ > 1 ) {
+                            			 curBuf_.flip();
+                            			 delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_-1); 
+                                    	 //log.info("---indirect copy of metadata curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_-1);
+                                     }
+                            	}
+                            	//it's ditto, repeat the same buffer as previous stream
+                                if( allInOneBufLen_ > 0 ) {
+                                	//log.info("---direct copy of allinone curBuf_[0]={}, curStreamId_={}, len={} allInOneBufLen_={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_, allInOneBufLen_);
+                                    delegate.onFrameParsed(scope_, curStreamId_, allInOneBuf_, allInOneBufLen_); 
+                                	allInOneBuf_.flip();
+                                }
+                            }
+                    	} else { //for audio frames
+                        	//read the actual buffer
+                        	if( curStreamLen_ > 0 ) {
+                        		curBuf_.flip();
+                        		delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
+                        	}
+                    	}
+                    	curBuf_.clear();
                         curLen_ = 0;
                         curStreamCnt_--;
                         if ( curStreamCnt_ > 0 ) {
                             parsingState_ = SEARCHING_STREAM_HEADER;
                         } else {
-                        	curBuf_.clear();
-                        	curStreamLen_ = 0;
                             parsingState_ = SEARCHING_SEGHEADER;
                         }
                     }
