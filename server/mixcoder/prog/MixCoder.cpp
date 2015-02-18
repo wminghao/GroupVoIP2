@@ -190,20 +190,18 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                         flvSegOutput_->saveVideoHeader( videoHeader );
                     }
 
-                    //for each individual mobile stream
-                    if ( totalMobileStreams ) { 
-                        //for non-mobile stream, there is nothing to mix
-                        for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
-                            if( rawVideoData_[i] &&  rawVideoData_[i]->rawVideoSettings_.bIsValid && kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss) {
-                                if( bIsKeyFrame ) {
-                                    //every key frame insert a cuepoint
-                                    flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
-                                }
-                                //LOG("------totalVideoStreams = %d, totalMobileStreams=%d\n", totalStreams, totalMobileStreams );
-                                flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
-                            } else if( audioOnly_[i] ) {
-                                flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
+                    //for each individual mobile stream, always mix
+                    //for non-mobile stream, there is nothing to mix, except for all-audio stream where others video needs to be displayed
+                    for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
+                        if( rawVideoData_[i] &&  rawVideoData_[i]->rawVideoSettings_.bIsValid && kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss) {
+                            if( bIsKeyFrame ) {
+                                //every key frame insert a cuepoint
+                                flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
                             }
+                            //LOG("------totalVideoStreams = %d, totalMobileStreams=%d\n", totalStreams, totalMobileStreams );
+                            flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
+                        } else if( audioOnly_[i] ) {
+                            flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
                         }
                     }
                     //for the all-in stream
