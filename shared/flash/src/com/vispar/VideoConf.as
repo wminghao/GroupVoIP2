@@ -538,7 +538,7 @@ package com.vispar
 					break;
 				}
 			}
-			if( bAllAudioOnly ) {
+			if( bAllAudioOnly && !bOnVideoPlaybackStarted_ ) {
 				showEmptyNotification("All talkers are in audio only mode!");						
 			} else {
 				removeEmptyNotification();

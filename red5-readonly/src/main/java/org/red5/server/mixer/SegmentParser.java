@@ -124,12 +124,30 @@ class SegmentParser
                     	curBuf_.flip();
                         curStreamId_ = curBuf_.get();
                         assert(curStreamId_ <= MAX_XCODING_INSTANCES);                    
-                        curStreamLen_ = curBuf_.getInt();
-                        //log.info("---curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_);
-                        //System.out.println("---curBuf_[0]="+curBuf_.array()[0]+", curStreamId_="+curStreamId_ + " curStreamLen_="+ curStreamLen_);
-                        curBuf_.clear();
-                        curLen_ = 0;
-                        parsingState_ = SEARCHING_STREAM_DATA;
+                        int bufLen = curBuf_.getInt();
+                        
+                        if( bufLen != 0xffffffff ) {
+                        	curStreamLen_ = bufLen;
+                        	//log.info("---curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_);
+                        	//System.out.println("---curBuf_[0]="+curBuf_.array()[0]+", curStreamId_="+curStreamId_ + " curStreamLen_="+ curStreamLen_);
+                        	curBuf_.clear();
+                        	parsingState_ = SEARCHING_STREAM_DATA;
+                        } else {
+                        	//it's ditto, repeat the same buffer as previous stream
+                            if( curStreamLen_ > 0 ) {
+                            	curBuf_.flip();
+                                delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
+                            }
+                            curStreamCnt_--;
+                            if ( curStreamCnt_ > 0 ) {
+                                parsingState_ = SEARCHING_STREAM_HEADER;
+                            } else {
+                            	curBuf_.clear();
+                            	curStreamLen_ = 0;
+                                parsingState_ = SEARCHING_SEGHEADER;
+                            }
+                        }
+                    	curLen_ = 0;
                     }
                     break;
                 }
@@ -151,12 +169,13 @@ class SegmentParser
                         	curBuf_.flip();
                             delegate.onFrameParsed(scope_, curStreamId_, curBuf_, curStreamLen_); 
                         }
-                        curBuf_.clear();
                         curLen_ = 0;
                         curStreamCnt_--;
                         if ( curStreamCnt_ > 0 ) {
                             parsingState_ = SEARCHING_STREAM_HEADER;
                         } else {
+                        	curBuf_.clear();
+                        	curStreamLen_ = 0;
                             parsingState_ = SEARCHING_SEGHEADER;
                         }
                     }
