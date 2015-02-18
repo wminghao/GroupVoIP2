@@ -71,6 +71,23 @@ public class VisparApp extends ApplicationAdapter implements
 			}
 		}
         sendToClient(conn, "initStreams", new Object[] {publisherListNames});
+        
+        //send the list of talker only mode to the client as well
+    	IScope roomScope = conn.getScope(); //RoomScope 
+    	String audioOnlyListNames = "";
+        for(Set<IConnection> connections : roomScope.getConnections()) {
+            for (IConnection iConnection: connections) {
+                if (iConnection instanceof RTMPConnection) {
+                	if( iConnection != null && 
+                		((RTMPConnection)iConnection).getUser() != null && 
+                		((RTMPConnection)iConnection).isAudioOnly() ){
+                		audioOnlyListNames+= ((RTMPConnection)iConnection).getUser();
+                		audioOnlyListNames+=",";
+                	}
+                }
+            }
+        }
+        sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
     	return true;
 	}
     

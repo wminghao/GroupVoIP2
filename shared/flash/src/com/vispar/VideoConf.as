@@ -11,6 +11,7 @@ package com.vispar
 	import flash.system.*;
 	import flash.text.*;
 	import flash.utils.*;
+	import flash.display.*;
 	
 	import org.red5.flash.bwcheck.events.BandwidthDetectEvent;
 	
@@ -206,19 +207,32 @@ package com.vispar
 				logDebug("----camera null");
 				Security.showSettings(SecurityPanel.CAMERA) ;
 			} else {
+				videoSelf = new Video();
 				camera.addEventListener(StatusEvent.STATUS, onCameraStatus);
 				camera.setMode(delegate_.getVideoWidth(), delegate_.getVideoHeight(), 30); //640*480 30 fps
 				camera.setQuality(16384*2,0); //0% quality, 16kBytes/sec bw limitation
 				streamPub.attachCamera(camera);
 				videoSelf.attachCamera(camera);
+				
+				videoSelf.x = delegate_.getScreenX();
+				videoSelf.y = delegate_.getScreenY();
+				videoSelf.width = delegate_.getScreenWidth()-2*delegate_.getScreenX();
+				videoSelf.height = delegate_.getScreenHeight()-2*delegate_.getScreenY();
+				videoSelf.visible = true;
+				container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 			}
 		}
 		private function detachCamera():void {			
 			if( camera ) {
 				camera.removeEventListener(StatusEvent.STATUS, onCameraStatus);
 				streamPub.attachCamera(null);
-				videoSelf.attachCamera(null);
 				camera = null;
+			}
+			if( videoSelf ) {
+				videoSelf.attachCamera(null);
+				videoSelf.clear();
+				container_.removeChild(videoSelf);
+				videoSelf = null;
 			}
 		}
 		
@@ -252,8 +266,6 @@ package com.vispar
 					mic.addEventListener(StatusEvent.STATUS, onMicStatus);
 					
 					streamPub = new NetStream(netConn);
-					videoSelf = new Video();
-					
 					//if it's audio only mode, don't attach camera
 					if( !isAudioOnly_ ) {
 						attachCamera();	
@@ -264,13 +276,6 @@ package com.vispar
 					streamPub.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
 					streamPub.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
 					streamPub.publish(publishDest, "live");
-					
-					videoSelf.x = delegate_.getScreenX();
-					videoSelf.y = delegate_.getScreenY();
-					videoSelf.width = delegate_.getScreenWidth()-2*delegate_.getScreenX();
-					videoSelf.height = delegate_.getScreenHeight()-2*delegate_.getScreenY();
-					videoSelf.visible = true;
-					container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
 					
 					mic.setSilenceLevel(0,200);
 					//Speex settings
@@ -293,9 +298,6 @@ package com.vispar
 					
 					//tell the server it's in audio mode or av mode.
 					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
-					
-					//detect all audio stream
-					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
 				}				
 			} catch(e:Error) {
 				logDebug("---Exception="+e);
@@ -309,12 +311,6 @@ package com.vispar
 				mic = null;
 			}
 			detachCamera();
-			if( videoSelf ) {
-				videoSelf.attachCamera(null);
-				videoSelf.clear();
-				container_.removeChild(videoSelf);
-				videoSelf = null;
-			}
 			if( streamPub ) {
 				streamPub.dispose();
 				streamPub.removeEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
@@ -427,19 +423,23 @@ package com.vispar
 				}
 			}
 			
-			videoSelf.x = ((x*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth()) + delegate_.getScreenX();
-			videoSelf.y = ((y*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight()) + delegate_.getScreenY();
-			videoSelf.width = (width*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth();
-			videoSelf.height = (height*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight();
-			/*
-			logDebug("videoSelf.x = " + videoSelf.x);
-			logDebug("videoSelf.y = " + videoSelf.y);
-			logDebug("videoSelf.width = " + videoSelf.width);			
-			logDebug("videoSelf.height = " + videoSelf.height);
-			*/
-			
-			container_.addChild(videoOthers);
-			container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
+			if( videoOthers != null ) {
+				container_.addChild(videoOthers);
+			}
+			if( videoSelf != null ) {
+				videoSelf.x = ((x*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth()) + delegate_.getScreenX();
+				videoSelf.y = ((y*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight()) + delegate_.getScreenY();
+				videoSelf.width = (width*(delegate_.getScreenWidth()-2*delegate_.getScreenX()))/delegate_.getVideoWidth();
+				videoSelf.height = (height*(delegate_.getScreenHeight()-2*delegate_.getScreenY()))/delegate_.getVideoHeight();
+				/*
+				logDebug("videoSelf.x = " + videoSelf.x);
+				logDebug("videoSelf.y = " + videoSelf.y);
+				logDebug("videoSelf.width = " + videoSelf.width);			
+				logDebug("videoSelf.height = " + videoSelf.height);
+				*/
+				
+				container_.addChildAt(videoSelf, container_.getChildIndex(videoOthers));
+			}
 		};
 		//server call to client
 		private function addStreamToStringVector(publishedStream:String):void {
@@ -482,6 +482,19 @@ package com.vispar
 				}
 			}
 		}
+		public function initAudioOnlyStreams(resp:Object):void {
+			var streamListStr:String = String(resp);
+			//logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
+			if( streamListStr != "") {
+				var streamListArr:Array = streamListStr.split(",");
+				var arrLen:int = streamListArr.length;
+				for (var i:int = 0; i<arrLen; i++) {
+					audioOnlyPublisherArray.push(streamListArr[i]);
+				}
+				//detect all audio stream
+				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+			}
+		}
 		private function removeEmptyNotification():void {
 			//remove the notification
 			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
@@ -515,9 +528,6 @@ package com.vispar
 		}
 		
 		public function detectAllAudioOnly():void {
-			if( videoOthers ) {
-				videoOthers.clear();
-			}
 			var bAllAudioOnly:Boolean = true;
 			var length:uint = publishedStreamArray.length;
 			for ( var i:uint=0; i<length; i++ ) {
@@ -531,7 +541,7 @@ package com.vispar
 			if( bAllAudioOnly ) {
 				showEmptyNotification("All talkers are in audio only mode!");						
 			} else {
-				removeEmptyNotification();				
+				removeEmptyNotification();
 			}
 		}
 		
