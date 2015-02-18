@@ -37,7 +37,8 @@ void FLVSegmentOutput::saveVideoHeader( SmartPtr<SmartBuffer> videoHeader )
 
 bool FLVSegmentOutput::packageVideoFrame(SmartPtr<SmartBuffer> videoPacket, u32 ts, bool bIsKeyFrame, int streamId )
 {
-    SmartPtr<SmartBuffer> result = output_[streamId]->packageVideoFrame(videoPacket, ts, bIsKeyFrame);
+    //if it's allinone stream, package the data, otherwise, it's 1 bytes of empty data, meaning it's the same as all-in-one stream.
+    SmartPtr<SmartBuffer> result = (MAX_XCODING_INSTANCES == streamId)?output_[streamId]->packageVideoFrame(videoPacket, ts, bIsKeyFrame): new SmartBuffer(1);
 
     if( outputBuffer_[streamId] ) {
         //if cuepoint data is there
@@ -60,12 +61,12 @@ bool FLVSegmentOutput::packageCuePoint( int streamId, VideoRect* videoRect, u32 
     return true;
 }
 
-SmartPtr<SmartBuffer> FLVSegmentOutput::getOneFrameForAllStreams()
+SmartPtr<SmartBuffer> FLVSegmentOutput::getOneFrameForAllStreams(bool bIsVideo)
 {
     u32 streamMask = 0;
     u32 totalLen = 0;
     int totalStreams = 0;
-    for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
+    for( u32 i = 0; i <= MAX_XCODING_INSTANCES; i++ ) {
         if( outputBuffer_[i] && outputBuffer_[i]->dataLength() ) {
             totalLen += outputBuffer_[i]->dataLength();
             totalStreams++;
@@ -86,23 +87,26 @@ SmartPtr<SmartBuffer> FLVSegmentOutput::getOneFrameForAllStreams()
         //Headers
         //  Meta data = 3 bytes //starting with SGO //segment output
         //  StreamMask = 4 byte //max of 32 output streams
+        //  Special flag = 1 byte //indicate whether it's video or audio
         // Content * (NoOfStreams+1): //MAX_ID is the all-mixed stream, 1-NoOfStreams are for each mobile stream
         //  streamId = 1 byte
         //  LengthOfStream = 4 bytes
         //  StreamData = n bytes
-        result = new SmartBuffer(7 + 5*totalStreams + totalLen);
+        result = new SmartBuffer(8 + 5*totalStreams + totalLen);
         u8* data = result->data();
         data[0] = 'S';
         data[1] = 'G';
         data[2] = 'O';
         memcpy(data+3, &streamMask, sizeof(streamMask));
-        int offset = 7;
-        for( u32 i = 0; i < MAX_XCODING_INSTANCES+1; i++ ) {
+        data[7] = bIsVideo;
+        int offset = 8;
+        
+        for( int i = MAX_XCODING_INSTANCES;  i >= 0; i-- ) {
             if( outputBuffer_[i] && outputBuffer_[i]->dataLength() ) {
-                //LOG( "------streamId=%d, dataLen=%ld\r\n", i, outputBuffer_[i]->dataLength());
                 u8 streamIdByte = i;
                 memcpy(data+offset, &streamIdByte, sizeof(u8));
                 offset += sizeof(u8);
+                //LOG( "------streamId=%d, dataLen=%ld, bIsVideo=%d\r\n", i, outputBuffer_[i]->dataLength(), bIsVideo);
                 int len = outputBuffer_[i]->dataLength();
                 memcpy(data+offset, &len, sizeof(u32));
                 offset += sizeof(u32);

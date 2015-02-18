@@ -190,6 +190,9 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                         flvSegOutput_->saveVideoHeader( videoHeader );
                     }
 
+                    //for the all-in stream
+                    flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, MAX_XCODING_INSTANCES);
+
                     //for each individual mobile stream, always mix
                     //for non-mobile stream, there is nothing to mix, except for all-audio stream where others video needs to be displayed
                     for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
@@ -204,9 +207,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                             flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, i);
                         }
                     }
-                    //for the all-in stream
-                    flvSegOutput_->packageVideoFrame(encodedFrame, videoPts, bIsKeyFrame, MAX_XCODING_INSTANCES);
-                    resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams();
+                    resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams(true);
                 }
             } 
         } else {
@@ -290,7 +291,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     flvSegOutput_->packageAudioFrame(encodedFrame, audioPts, MAX_XCODING_INSTANCES);
                 }
 #endif //FORCE_AAC_ALL_IN_ONE
-                resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams();
+                resultFlvPacket = flvSegOutput_->getOneFrameForAllStreams(false);
             }
         }
     }
