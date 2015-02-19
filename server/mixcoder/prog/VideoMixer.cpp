@@ -183,7 +183,7 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                 }
             } else if( totalStreams == 5 ) {
                 int startingOffsetY = (scaledWidth + outputWidth*scaledHeight)/2;
-                int startingOffsetUV = (scaledWidth + outputWidth*scaledHeight)/8;
+                int startingOffsetUV = scaledWidth/4 + (outputWidth*scaledHeight)/8;
                 fillWithBlack(outputWidth,
                               outputHeight,
                               out);
