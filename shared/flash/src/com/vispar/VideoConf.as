@@ -29,7 +29,7 @@ package com.vispar
 		private const appName:String = "VisparApp";
 		private const defaultVideo:String = "Default"; //default means video stopped
 		private const allinone:String = "allinone";
-		private const maxPublishers:int = 4; //excluding the external video source, TODO 
+		private const maxPublishers:int = 9; //including the external video
 		private var totalPublishers:int = 0;
 		
 		private var publishDest:String = null;
