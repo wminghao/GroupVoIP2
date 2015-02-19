@@ -14,7 +14,9 @@ extern "C" {
 class AudioMixer
 {
  public:
-    AudioMixer() {}
+    AudioMixer() {
+        memset(cachedVal_, 0, MAX_SAMPLES_PER_FRAME*2);
+    }
     //do the mixing, for now, always mix n streams into 1 stream
     SmartPtr<SmartBuffer> mixStreams(SmartPtr<AudioRawData>* rawData,
                                      int sampleSize,
@@ -73,5 +75,11 @@ class AudioMixer
                      u32 excludeStreamId,
                      int* indexArr);
 
+    void readCachedStream(SmartPtr<AudioRawData>* rawData,
+                          u32 excludeStreamId,
+                          short* valShort,
+                          int sampleSize);
+
+    int cachedVal_[MAX_SAMPLES_PER_FRAME*2]; //a large enough buffer
 };
 #endif

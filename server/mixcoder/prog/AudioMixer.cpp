@@ -168,6 +168,8 @@ void AudioMixer::mixThreeStreams(SmartPtr<AudioRawData>* rawData,
             val += cData[i/2];
         }
 
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -216,6 +218,9 @@ void AudioMixer::mixFourStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += dData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -273,6 +278,9 @@ void AudioMixer::mixFiveStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += eData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -339,6 +347,9 @@ void AudioMixer::mixSixStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += fData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -413,6 +424,9 @@ void AudioMixer::mixSevenStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += gData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -495,6 +509,9 @@ void AudioMixer::mixEightStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += hData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
@@ -585,9 +602,31 @@ void AudioMixer::mixNineStreams(SmartPtr<AudioRawData>* rawData,
         } else {
             val += iData[i/2];
         }
+
+        cachedVal_[i] = val; //cache value
+
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
+
+void AudioMixer::readCachedStream(SmartPtr<AudioRawData>* rawData,
+                                  u32 excludeStreamId, 
+                                  short* valShort,
+                                  int sampleSize)
+{
+    short* iData = (short*)rawData[excludeStreamId]->rawAudioFrame_->data();
+    bool iIsStereo = rawData[excludeStreamId]->bIsStereo;
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = cachedVal_[i];
+        if( iIsStereo ) {
+            val -= iData[i];
+        } else {
+            val -= iData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
 
 void AudioMixer::findIndexes(SmartPtr<AudioRawData>* rawData,
                              u32 excludeStreamId,
@@ -634,76 +673,76 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
                 break;
             }
             case 3: {
-                int index[3];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixTwoStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[3];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixThreeStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 4: {
-                int index[4];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixThreeStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[4];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixFourStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 5: {
-                int index[5];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixFourStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[5];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixFiveStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 6: {
-                int index[6];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixFiveStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[6];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixSixStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 7: {
-                int index[7];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixSixStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[7];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixSevenStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 8: {
-                int index[8];
-                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    mixSevenStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[8];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixEightStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 9: {
-                int index[9];
-                findIndexes(rawData, excludeStreamId, index);
-
                 if( excludeStreamId != MAX_U32 ) {
-                    mixEightStreams(rawData, index, valShort, sampleSize);
+                    readCachedStream(rawData, excludeStreamId, valShort, sampleSize);
                 } else {
+                    int index[9];
+                    findIndexes(rawData, excludeStreamId, index);
                     mixNineStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
+              
             /* Brutal force algorithm
             for ( u32 i = 0; i < frameTotalLen; i+=2 ) {
                 int val = 0;

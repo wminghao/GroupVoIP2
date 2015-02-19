@@ -67,7 +67,7 @@ class MixCoder: public FLVSegmentInputDelegate
     VideoEncoder* videoEncoder_;
 
     //mixer
-    AudioMixer* audioMixer_[ MAX_XCODING_INSTANCES+1 ]; //need max+1 audio mixer since the mobile viewer should not hear his own voice from the mixing
+    AudioMixer* audioMixer_;
     VideoMixer* videoMixer_;
 
     //raw video frame in case it does not exist, yuv 3 planes
