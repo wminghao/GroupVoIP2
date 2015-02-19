@@ -24,6 +24,9 @@ const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
 const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
 const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
 
+//max samples per frame
+const int MAX_SAMPLES_PER_FRAME = MP3_FRAME_SAMPLE_SIZE;
+
 //Force AAC encoding for all-in-one stream
 //#define FORCE_AAC_ALL_IN_ONE
 

@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string>
 #include "fwk/log.h"
+#include "fwk/SmartBuffer.h"
 
 using namespace std;
 
@@ -58,6 +59,8 @@ u32 curStreamLen_;
 u32 curStreamCnt_;
 u32 numStreams_;
 bool curStreamIsVideo_;
+SmartPtr<SmartBuffer> allInOneBuf_;
+int allInOneBufLen_;
 
 bool readData(u8* data, u32 len)
 {
@@ -148,9 +151,37 @@ bool readData(u8* data, u32 len)
                 }
                 if ( curBuf_.size() >= curStreamLen_ ) {
                     //LOG( "---curStreamId_=%d curStreamLen_=%d\r\n", curStreamId_, curStreamLen_);
-                    //read the actual buffer
-                    if( curStreamLen_ ) {
-                        writer_[curStreamId_].writeData(curBuf_.data(), curStreamLen_); 
+                    if( curStreamIsVideo_ ) {
+                        if( curStreamId_ == MAX_XCODING_INSTANCES ) {
+                            //read the actual buffer
+                            if( curStreamLen_ > 0 ) {
+                                writer_[curStreamId_].writeData(curBuf_.data(), curStreamLen_); 
+                            }
+                            //log.info("---backup allinone curStreamId_={}, len={}\r\n", curStreamId_, curStreamLen_);
+                            //make a copy of Allinone buffer
+                            allInOneBuf_ = new SmartBuffer(curStreamLen_, curBuf_.data());
+                            allInOneBufLen_ = curStreamLen_;
+                        } else {
+                            //it's ditto stream for any stream that's not all-in-one.
+                            if( curStreamLen_ != 1 ) {
+                                assert( curStreamLen_ > 1 );
+                                //it's ditto+cuepoint, read the cuepoint
+                                if( curStreamLen_ > 1 ) {
+                                    writer_[curStreamId_].writeData(curBuf_.data(), curStreamLen_-1); 
+                                    //log.info("---indirect copy of metadata curBuf_[0]={}, curStreamId_={}, len={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_-1);
+                                }
+                            }
+                            //it's ditto, repeat the same buffer as previous stream
+                            if( allInOneBufLen_ > 0 ) {
+                                //log.info("---direct copy of allinone curBuf_[0]={}, curStreamId_={}, len={} allInOneBufLen_={}\r\n", curBuf_.array()[0], curStreamId_, curStreamLen_, allInOneBufLen_);
+                                writer_[curStreamId_].writeData((const char*)allInOneBuf_->data(), allInOneBufLen_); 
+                            }
+                        }
+                    } else { //for audio streams
+                        //read the actual buffer
+                        if( curStreamLen_ ) {
+                            writer_[curStreamId_].writeData(curBuf_.data(), curStreamLen_); 
+                        }
                     }
                     curBuf_.clear();
                     curSegTagSize_ = 0;
