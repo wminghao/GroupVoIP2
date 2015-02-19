@@ -25,9 +25,17 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import com.vispar.R;
+import com.vispar.VisparApplication;
 
 /**
  * A login screen that offers login via email/password.
@@ -38,13 +46,17 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	 */
 	private UserLoginTask mAuthTask = null;
 
+	//RESTful API for login request
+	private static String LOGIN_URL = "/login";
+	
 	// UI references.
 	private AutoCompleteTextView mEmailView;
 	private EditText mPasswordView;
 	private View mProgressView;
-	private View mLoginFormView;
+	private View mLoginFormView;	
 	
 	public static String USER_NAME_KEY = "UserName";
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -257,15 +269,30 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
 		@Override
 		protected String doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
-
+			HttpURLConnection urlConnection = null;
 			try {
-				// Simulate network access.
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				return null;
+				URL url = new URL(VisparApplication.WebServerDomainName +LOGIN_URL+"?email="+mEmail+"&password="+mPassword);
+				urlConnection = (HttpURLConnection) url.openConnection();
+				InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+			    byte[] buffer = new byte[1024];//assume JSON is big enough
+			    int totalRead = in.read(buffer);
+			    byte[] bufferFinal = new byte[totalRead];			    
+			    String jsonStr = new String(bufferFinal, "UTF-8");
+			    
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				if( urlConnection!= null) {
+					urlConnection.disconnect();
+				}
 			}
-
 			//TODO simulate user name
 			String[] pieces = mEmail.split("@");
 			return pieces[0];

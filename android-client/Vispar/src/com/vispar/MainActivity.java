@@ -239,14 +239,14 @@ import android.widget.Button;
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
-    	           		 String msgToShare = getString(R.string.invite_session_message) + " http://www.vispar.com/rooms/howard"; //TODO
+    	           		 String msgToShare = getString(R.string.invite_session_message) + " "+VisparApplication.WebServerDomainName+"rooms/howard"; //TODO
     	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, false);
                     }
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/now"; //TODO
+                        String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/"; //TODO
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -256,7 +256,7 @@ import android.widget.Button;
                     public void onClick(View v) {
                     	//TODO an activity to list all archived videos
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://vod/rooms/howard/"+PlaceholderFragment.this.mUserName+"/1234567890";//TODO archive ID
+                        String url = "vispar.player://vod/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/";//TODO archive ID
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);

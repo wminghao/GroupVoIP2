@@ -81,8 +81,8 @@ package
 		private function onInvoke(event:InvokeEvent):void
 		{	
 			//example parameters
-			//live: "vispar.player://live/rooms/howard/howard/now";
-			//vod: "vispar.player://vod/rooms/howard/betsy/1234567890";
+			//live: "vispar.player://live/rooms/howard/howard/mode/false/sessionId";
+			//vod: "vispar.player://vod/rooms/howard/betsy/mode/false/sessionId";
 			var room:String = null;
 			var user:String = null;
 			var bIsArchive:Boolean = false;
@@ -123,9 +123,9 @@ package
 				forceAudioOnly_ = (arg.substring(0, endIndex) == "true");
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this, room, user, mode, forceAudioOnly_);
+				vidInstance_ = new VideoPlayer(this, this, room, user, mode, forceAudioOnly_, true);
 			} else {				
-				vidInstance_ = new VideoConf(this, this, room, user, mode, forceAudioOnly_);
+				vidInstance_ = new VideoConf(this, this, room, user, mode, forceAudioOnly_, true);
 			}
 		}		
 		

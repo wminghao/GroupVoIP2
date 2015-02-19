@@ -51,13 +51,13 @@
 						this.switchViewOnly.visible = false;
 						this.videoList.visible = false;
 						this.stopVideo.visible = false;
-						vidInstance_ = new VideoPlayer(container, container, room, user, mode, forceAudioOnly_);
+						vidInstance_ = new VideoPlayer(container, container, room, user, mode, forceAudioOnly_, false);
 					} else {				
 						if( forceAudioOnly_ ) {
 							this.switchAudioOnly.label = "Audio Only";	
 							this.switchAudioOnly.enabled = false;
 						}
-						vidInstance_ = new VideoConf(container, container, room, user, mode, forceAudioOnly_);
+						vidInstance_ = new VideoConf(container, container, room, user, mode, forceAudioOnly_, false);
 					}
 					vidInstance_.connectServer();	
 				} catch (error:Error) {
@@ -212,8 +212,6 @@
 			public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
 				if( isAudioOnlyMode ) {
 					if( !vidInstance_.isAudioOnly() ) {
-						Alert.show("Your network speed is too slow, switch to audio only mode!");
-						this.switchAudioOnly.enabled = false;
 						this.switchAudioOnly.label = "Audio Only";
 					}
 				} else {

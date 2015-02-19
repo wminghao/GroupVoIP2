@@ -62,9 +62,9 @@ package com.vispar
 		private const AUDIO_ON_FLAG:int = 0x1;
 		private const VIDEO_ON_FLAG:int = 0x2;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
 		{ 
-			super(container, delegate, room, user, mode, forceAudioOnly);
+			super(container, delegate, room, user, mode, forceAudioOnly, autoPublish);
 			
 			if( forceAudioOnly ) {
 				isAudioOnly_ = true;
@@ -118,7 +118,7 @@ package com.vispar
 			if(event.info.code == "NetConnection.Connect.Success") {
 				netConn.call("clientRequest.setAsUser", null, user, 
 														(!isAutoMode()  && (room == user)));	
-				if( room == user ) {
+				if( room == user || autoPublish_ ) {
 					delayedFunctionCall(1000, function(e:Event):void { 
 						publishNow();
 						delegate_.onVideoStarted( isViewOnly_);
@@ -747,6 +747,7 @@ package com.vispar
 			this.delegate_.onFatalNetworkTooSlowError(isAudioOnlyMode);	
 			if( isAudioOnlyMode ) {
 				switchToAudioOnly( true );
+				delegate_.showAlert("Your network upload speed is too slow, we have to shut off video and switch to audio only mode!");
 			} else {
 				fatalError_ = true;
 				closeViewStream();
