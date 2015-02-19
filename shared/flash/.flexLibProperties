@@ -2,8 +2,8 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="com.vispar.network.LowPlaybackBWDetector"/>
-    <classEntry path="com.vispar.network.NetworkDisconnectDetector"/>
     <classEntry path="com.vispar.network.LowPublishBWDetector"/>
+    <classEntry path="com.vispar.network.NetworkDisconnectDetector"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
