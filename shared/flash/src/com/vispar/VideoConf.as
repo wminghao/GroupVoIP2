@@ -709,6 +709,7 @@ package com.vispar
 		
 		//stop video if either uplink speed or downlink speed is too bad
 		private function stopVideoCallbackOnLowBW(isAudioOnlyMode:Boolean, str:String):void {
+			this.delegate_.onFatalNetworkTooSlowError(isAudioOnlyMode);	
 			if( isAudioOnlyMode ) {
 				switchToAudioOnly( true );
 			} else {
@@ -718,7 +719,6 @@ package com.vispar
 				showEmptyNotification("Your video has to stop now since your "+str+ " speed is either slow or unstable.\n\n" +
 					"Please make sure you have a reliable network of at least 1Mbps uplink and downlink speed for best service!");		
 			}
-			this.delegate_.onFatalNetworkTooSlowError(isAudioOnlyMode);	
 		}
 		
 		//approval mode
