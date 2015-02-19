@@ -26,6 +26,23 @@ class VideoMixer
     bool tryToInitSws(SmartPtr<VideoRawData>* rawData, int totalStreams);
     void releaseSws();
 
+    void fillWithBlack( int outputWidth,
+                        int outputHeight,
+                        u8* out );
+
+    void mixStreamsInternal( int curStreamId,
+                             SmartPtr<SmartBuffer> scaledVideoPlanes[][3],
+                             int scaledVideoStrides[][3],
+                             VideoRect* videoRect,
+                             int startingOffsetY,
+                             int startingOffsetUV,
+                             int scaledWidth,
+                             int scaledHeight,
+                             int outputWidth,
+                             int outputHeight,
+                             u8* out,
+                             u32& offsetOut);
+
  private:
     VideoStreamSetting outputSetting_;
     SwsContext* swsCtx_[MAX_XCODING_INSTANCES];

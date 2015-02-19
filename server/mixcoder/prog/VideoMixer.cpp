@@ -5,13 +5,13 @@
 int mappingToScalingWidth(int totalStream) {
     if(totalStream == 1) {
         return 640;
-    } else if(totalStream < 4) {
+    } else if(totalStream <= 4) {
         return 320;
-    } else if(totalStream < 9) {
+    } else if(totalStream <= 9) {
         return 213;
-    } else if(totalStream < 16) {
+    } else if(totalStream <= 16) {
         return 160;
-    } else if(totalStream < 25) {
+    } else if(totalStream <= 25) {
         return 128;
     } else {
         return 106;
@@ -20,13 +20,13 @@ int mappingToScalingWidth(int totalStream) {
 int mappingToScalingHeight(int totalStream) {
     if(totalStream == 1) {
         return 480;
-    } else if(totalStream < 4) {
+    } else if(totalStream <= 4) {
         return 240;
-    } else if(totalStream < 9) {
+    } else if(totalStream <= 9) {
         return 160;
-    } else if(totalStream < 16) {
+    } else if(totalStream <= 16) {
         return 120;
-    } else if(totalStream < 25) {
+    } else if(totalStream <= 25) {
         return 96;
     } else {
         return 80;
@@ -86,145 +86,65 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                 int curStreamId = validStreamId[0];
                 ASSERT( curStreamId != -1 );
 
-                if(videoRect) {
-                    videoRect[curStreamId].x = 0;
-                    videoRect[curStreamId].y = 0;
-                    videoRect[curStreamId].width = outputWidth;
-                    videoRect[curStreamId].height = outputHeight;
-                    //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
-                }
-                    
-                //convert from AV_PIX_FMT_YUV420P
-                //3 planes combined into 1 buffer
-                u8* in = scaledVideoPlanes[curStreamId][0]->data();            
-                u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
-                u32 offsetInY = 0;                                                                                                                                                                                         
-                for(int i = 0; i < outputHeight; i ++ ) {          
-                    memcpy( out+offsetOut, in+offsetInY, outputWidth);
-                    offsetInY += bytesPerLineInY;
-                    offsetOut += outputWidth;
-                }                                                                                                                                                                                              
-                in = scaledVideoPlanes[curStreamId][1]->data();
-                u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
-                u32 offsetInU = 0;                                                                                                                                                                                         
-                for(int i = 0; i < outputHeight/2; i ++ ) {
-                    memcpy( out+offsetOut, in+offsetInU, outputWidth/2);                                                                
-                    offsetInU += bytesPerLineInU;
-                    offsetOut += outputWidth/2;                                                                                                                                                               
-                }                                                       
-                in = scaledVideoPlanes[curStreamId][2]->data();
-                u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
-                u32 offsetInV = 0; 
-                for(int i = 0; i < outputHeight/2; i ++ ) {
-                    memcpy( out+offsetOut, in+offsetInV, outputWidth/2);
-                    offsetInV += bytesPerLineInV;
-                    offsetOut += outputWidth/2;
-                }
+                mixStreamsInternal( curStreamId, 
+                                    scaledVideoPlanes,
+                                    scaledVideoStrides,
+                                    videoRect,
+                                    0,
+                                    0,
+                                    scaledWidth,
+                                    scaledHeight,
+                                    outputWidth,
+                                    outputHeight,
+                                    out,
+                                    offsetOut);
             } else if( totalStreams == 2 ) {                
-                int startingOffsetY = 0;
-                int startingOffsetUV = 0;
-                //somehow it's green
-                int blackY = 16;
-                memset(out, blackY, outputWidth*outputHeight);
-                int blackUV = 128;
-                memset(out+outputWidth*outputHeight, blackUV, outputWidth*outputHeight/2);
+                int startingOffsetY = (outputWidth*scaledHeight)/2;
+                int startingOffsetUV = (outputWidth*scaledHeight)/8;
+
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
                 
                 for(int index=0; index<totalStreams; index++) {
-
                     int curStreamId = validStreamId[index];
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
 
-                    if(videoRect) {
-                        videoRect[curStreamId].x = startingOffsetY%outputWidth;
-                        videoRect[curStreamId].y = outputHeight/4;
-                        videoRect[curStreamId].width = scaledWidth;
-                        videoRect[curStreamId].height = scaledHeight;
-                        //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
-                    }
-
-                    //convert from AV_PIX_FMT_YUV420P
-                    //3 planes combined into 1 buffer
-                    offsetOut = outputWidth*outputHeight/4 + startingOffsetY;
-                    u8* in = scaledVideoPlanes[curStreamId][0]->data();            
-                    u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
-                    u32 offsetInY = 0;                                                                                                                                                                                         
-                    for(int i = 0; i < scaledHeight; i ++ ) {          
-                        memcpy( out+offsetOut, in+offsetInY, scaledWidth);
-                        offsetInY += bytesPerLineInY; 
-                        offsetOut += outputWidth;                                                                                                                                                  
-                    }
-             
-                    offsetOut = outputWidth*outputHeight*17/16 + startingOffsetUV;
-                    in = scaledVideoPlanes[curStreamId][1]->data();
-                    u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
-                    u32 offsetInU = 0;                                                                                                                                                                                         
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInU, scaledWidth/2);                                                                
-                        offsetInU += bytesPerLineInU;
-                        offsetOut += outputWidth/2;                                                                                                                                              
-                    }                                                     
-
-                    offsetOut = outputWidth*outputHeight*21/16 + startingOffsetUV;  
-                    in = scaledVideoPlanes[curStreamId][2]->data();
-                    u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
-                    u32 offsetInV = 0; 
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInV, scaledWidth/2);
-                        offsetInV += bytesPerLineInV;
-                        offsetOut += outputWidth/2;
-                    }
                     startingOffsetY += scaledWidth;
                     startingOffsetUV += scaledWidth/2;                    
                 } 
             } else if( totalStreams == 3 ) {                
                 int startingOffsetY = scaledWidth/2;
                 int startingOffsetUV = scaledWidth/4;
-                //somehow it's green
-                int blackY = 16;
-                memset(out, blackY, outputWidth*outputHeight);
-                int blackUV = 128;
-                memset(out+outputWidth*outputHeight, blackUV, outputWidth*outputHeight/2);
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
                 
                 for(int index=0; index<totalStreams; index++) {
                     int curStreamId = validStreamId[index];
-                    if(videoRect) {
-                        videoRect[curStreamId].x = startingOffsetY%outputWidth;
-                        videoRect[curStreamId].y = startingOffsetY/outputWidth;
-                        videoRect[curStreamId].width = scaledWidth;
-                        videoRect[curStreamId].height = scaledHeight;
-                        //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
-                    }
-
-                    //convert from AV_PIX_FMT_YUV420P
-                    //3 planes combined into 1 buffer
-                    offsetOut = startingOffsetY;
-                    u8* in = scaledVideoPlanes[curStreamId][0]->data();            
-                    u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
-                    u32 offsetInY = 0;                                                                                                                                                            
-                    for(int i = 0; i < scaledHeight; i ++ ) {          
-                        memcpy( out+offsetOut, in+offsetInY, scaledWidth);
-                        offsetInY += bytesPerLineInY;                                                                                                               
-                        offsetOut += outputWidth;                                                                                                                                   
-                    }
-             
-                    offsetOut = outputWidth*outputHeight + startingOffsetUV;
-                    in = scaledVideoPlanes[curStreamId][1]->data();
-                    u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
-                    u32 offsetInU = 0;                                                                                                                                                              
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInU, scaledWidth/2);                                                                
-                        offsetInU += bytesPerLineInU;
-                        offsetOut += outputWidth/2;       
-                    }                                                     
-
-                    offsetOut = outputWidth*outputHeight*5/4 + startingOffsetUV;  
-                    in = scaledVideoPlanes[curStreamId][2]->data();
-                    u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
-                    u32 offsetInV = 0; 
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInV, scaledWidth/2);
-                        offsetInV += bytesPerLineInV;
-                        offsetOut += outputWidth/2;
-                    }
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
                     
                     if( index == 0 ) {
                         startingOffsetY = outputWidth*outputHeight/2;
@@ -234,57 +154,24 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                         startingOffsetUV += scaledWidth/2;                    
                     }
                 }
-            } else if( totalStreams == 4 ) {
-         
+            } else if( totalStreams == 4 ) {         
                 int startingOffsetY = 0;
                 int startingOffsetUV = 0;
-                //somehow it's green
-                int blackY = 16;
-                memset(out, blackY, outputWidth*outputHeight);
-                int blackUV = 128;
-                memset(out+outputWidth*outputHeight, blackUV, outputWidth*outputHeight/2);
                 
                 for(int index=0; index<totalStreams; index++) {
                     int curStreamId = validStreamId[index];
-                    if(videoRect) {
-                        videoRect[curStreamId].x = startingOffsetY%outputWidth;
-                        videoRect[curStreamId].y = startingOffsetY/outputWidth;
-                        videoRect[curStreamId].width = scaledWidth;
-                        videoRect[curStreamId].height = scaledHeight;
-                        //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", 
-                        //curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
-                    }
-                    //convert from AV_PIX_FMT_YUV420P
-                    //3 planes combined into 1 buffer
-                    offsetOut = startingOffsetY;
-                    u8* in = scaledVideoPlanes[curStreamId][0]->data();            
-                    u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
-                    u32 offsetInY = 0;                                                                                                                                                             
-                    for(int i = 0; i < scaledHeight; i ++ ) {          
-                        memcpy( out+offsetOut, in+offsetInY, scaledWidth);
-                        offsetInY += bytesPerLineInY;                                                                                                                     
-                        offsetOut += outputWidth;                                                                                                                      
-                    }
-
-                    offsetOut = outputWidth*outputHeight + startingOffsetUV;  
-                    in = scaledVideoPlanes[curStreamId][1]->data();
-                    u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
-                    u32 offsetInU = 0;                                                                                                                                                                
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInU, scaledWidth/2);                                                                
-                        offsetInU += bytesPerLineInU;
-                        offsetOut += outputWidth/2;                                                                                                                                               
-                    }                                                     
-
-                    offsetOut = outputWidth*outputHeight*5/4 + startingOffsetUV;  
-                    in = scaledVideoPlanes[curStreamId][2]->data();
-                    u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
-                    u32 offsetInV = 0; 
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInV, scaledWidth/2);
-                        offsetInV += bytesPerLineInV;
-                        offsetOut += outputWidth/2;
-                    }
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
                     
                     if((index + 1) == 2) {
                         startingOffsetY = outputWidth*outputHeight/2;
@@ -297,54 +184,24 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
             } else if( totalStreams == 5 ) {
                 int startingOffsetY = (scaledWidth + outputWidth*scaledHeight)/2;
                 int startingOffsetUV = (scaledWidth + outputWidth*scaledHeight)/4;
-                //somehow it's green
-                int blackY = 16;
-                memset(out, blackY, outputWidth*outputHeight);
-                int blackUV = 128;
-                memset(out+outputWidth*outputHeight, blackUV, outputWidth*outputHeight/2);
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
                 
                 for(int index=0; index<totalStreams; index++) {
                     int curStreamId = validStreamId[index];
-                    if(videoRect) {
-                        videoRect[curStreamId].x = startingOffsetY%outputWidth;
-                        videoRect[curStreamId].y = startingOffsetY/outputWidth;
-                        videoRect[curStreamId].width = scaledWidth;
-                        videoRect[curStreamId].height = scaledHeight;
-                        //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
-                    }
-
-                    //convert from AV_PIX_FMT_YUV420P
-                    //3 planes combined into 1 buffer
-                    offsetOut = startingOffsetY;
-                    u8* in = scaledVideoPlanes[curStreamId][0]->data();            
-                    u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
-                    u32 offsetInY = 0;                                                                                                                                                            
-                    for(int i = 0; i < scaledHeight; i ++ ) {          
-                        memcpy( out+offsetOut, in+offsetInY, scaledWidth);
-                        offsetInY += bytesPerLineInY;                                                                                                               
-                        offsetOut += outputWidth;                                                                                                                                   
-                    }
-             
-                    offsetOut = outputWidth*outputHeight + startingOffsetUV;
-                    in = scaledVideoPlanes[curStreamId][1]->data();
-                    u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
-                    u32 offsetInU = 0;                                                                                                                                                              
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInU, scaledWidth/2);                                                                
-                        offsetInU += bytesPerLineInU;
-                        offsetOut += outputWidth/2;       
-                    }                                                     
-
-                    offsetOut = outputWidth*outputHeight*5/4 + startingOffsetUV;  
-                    in = scaledVideoPlanes[curStreamId][2]->data();
-                    u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
-                    u32 offsetInV = 0; 
-                    for(int i = 0; i < scaledHeight/2; i ++ ) {
-                        memcpy( out+offsetOut, in+offsetInV, scaledWidth/2);
-                        offsetInV += bytesPerLineInV;
-                        offsetOut += outputWidth/2;
-                    }
-                    
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
                     if( index == 1 ) {
                         startingOffsetY = outputWidth*outputHeight/2;
                         startingOffsetUV = outputWidth*outputHeight/8;
@@ -359,6 +216,67 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
         }
     }
     return result;
+}
+void VideoMixer::fillWithBlack( int outputWidth,
+                                int outputHeight,
+                                u8* out ) {
+    int blackY = 16;
+    memset(out, blackY, outputWidth*outputHeight);
+    int blackUV = 128;
+    memset(out+outputWidth*outputHeight, blackUV, outputWidth*outputHeight/2);    
+}
+void VideoMixer::mixStreamsInternal( int curStreamId,
+                                     SmartPtr<SmartBuffer> scaledVideoPlanes[][3],
+                                     int scaledVideoStrides[][3],
+                                     VideoRect* videoRect,
+                                     int startingOffsetY,
+                                     int startingOffsetUV,
+                                     int scaledWidth,
+                                     int scaledHeight,
+                                     int outputWidth,
+                                     int outputHeight,
+                                     u8* out,
+                                     u32& offsetOut)
+{
+    if(videoRect) {
+        videoRect[curStreamId].x = startingOffsetY%outputWidth;
+        videoRect[curStreamId].y = startingOffsetY/outputWidth;
+        videoRect[curStreamId].width = scaledWidth;
+        videoRect[curStreamId].height = scaledHeight;
+        //LOG("----i=%d, x=%d, y=%d, w=%d,h=%d\r\n", curStreamId, videoRect[curStreamId].x, videoRect[curStreamId].y, videoRect[curStreamId].width, videoRect[curStreamId].height);
+    }
+    
+    //convert from AV_PIX_FMT_YUV420P
+    //3 planes combined into 1 buffer
+    offsetOut = startingOffsetY;
+    u8* in = scaledVideoPlanes[curStreamId][0]->data();            
+    u32 bytesPerLineInY = scaledVideoStrides[curStreamId][0];                                                                                                                            
+    u32 offsetInY = 0;                                                                                                                                                            
+    for(int i = 0; i < scaledHeight; i ++ ) {          
+        memcpy( out+offsetOut, in+offsetInY, scaledWidth);
+        offsetInY += bytesPerLineInY;                                                                                                               
+        offsetOut += outputWidth;                                                                                                                                   
+    }
+    
+    offsetOut = outputWidth*outputHeight + startingOffsetUV;
+    in = scaledVideoPlanes[curStreamId][1]->data();
+    u32 bytesPerLineInU = scaledVideoStrides[curStreamId][1];
+    u32 offsetInU = 0;                                                                                                                                                              
+    for(int i = 0; i < scaledHeight/2; i ++ ) {
+        memcpy( out+offsetOut, in+offsetInU, scaledWidth/2);                                                                
+        offsetInU += bytesPerLineInU;
+        offsetOut += outputWidth/2;       
+    }                                                     
+    
+    offsetOut = outputWidth*outputHeight*5/4 + startingOffsetUV;  
+    in = scaledVideoPlanes[curStreamId][2]->data();
+    u32 bytesPerLineInV = scaledVideoStrides[curStreamId][2];
+    u32 offsetInV = 0; 
+    for(int i = 0; i < scaledHeight/2; i ++ ) {
+        memcpy( out+offsetOut, in+offsetInV, scaledWidth/2);
+        offsetInV += bytesPerLineInV;
+        offsetOut += outputWidth/2;
+    }
 }
 VideoMixer::~VideoMixer()
 {
