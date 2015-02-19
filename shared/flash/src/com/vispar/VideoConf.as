@@ -4,6 +4,7 @@ package com.vispar
 	import com.vispar.network.LowPublishBWDetector;
 	import com.vispar.network.NetworkDisconnectDetector;
 	
+	import flash.display.*;
 	import flash.display.Sprite;
 	import flash.events.*;
 	import flash.media.*;
@@ -11,7 +12,6 @@ package com.vispar
 	import flash.system.*;
 	import flash.text.*;
 	import flash.utils.*;
-	import flash.display.*;
 	
 	import org.red5.flash.bwcheck.events.BandwidthDetectEvent;
 	
@@ -53,6 +53,7 @@ package com.vispar
 		private var uploadSpeedTimer:Timer = null;
 		
 		private var emptyRoomNotification_:TextField = null;
+		private var emptyRoomNotificationButton_ : Sprite = null;
 		
 		private var fatalError_:Boolean = false;
 		private var bOnVideoListPopulated_:Boolean = false;
@@ -500,6 +501,9 @@ package com.vispar
 			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
 				container_.removeChild(emptyRoomNotification_);
 			}			
+			if( emptyRoomNotificationButton_!=null && container_.contains(emptyRoomNotificationButton_)) {
+				container_.removeChild(emptyRoomNotificationButton_);
+			}			
 		}
 		private function showEmptyNotification(message:String):void {
 			if( videoOthers ) {
@@ -525,6 +529,37 @@ package com.vispar
 			emptyRoomNotification_.border = true;
 			emptyRoomNotification_.wordWrap = true;
 			container_.addChild(emptyRoomNotification_);
+			
+			/*
+			function dismissEmptyRoomNotificationHandler(eventType : String) : void {
+				try {
+					removeEmptyNotification();
+				} catch(err:Error) {
+					logDebug(err.toString());
+				}
+			}
+			try {
+				var textField:TextField = new TextField();
+				textField.defaultTextFormat = format;
+				textField.text = "OK";
+				emptyRoomNotificationButton_ = new Sprite();
+				emptyRoomNotificationButton_.width = 120;
+				emptyRoomNotificationButton_.height = 28;
+				const g:Graphics = emptyRoomNotificationButton_.graphics;
+				g.clear();
+				g.lineStyle(1, 0x0000CC);   
+				g.beginFill(0x0000FF);
+				g.drawCircle(0, 0, 40);
+				g.endFill();
+				emptyRoomNotificationButton_.addChild(textField);
+				emptyRoomNotificationButton_.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent) : void {
+					dismissEmptyRoomNotificationHandler(event);
+				});
+				container_.addChild(emptyRoomNotificationButton_);
+			} catch(err:Error) {
+				logDebug(err.toString());
+			}
+			*/
 		}
 		
 		public function detectAllAudioOnly():void {
