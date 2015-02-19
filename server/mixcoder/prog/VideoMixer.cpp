@@ -183,7 +183,7 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                 }
             } else if( totalStreams == 5 ) {
                 int startingOffsetY = (scaledWidth + outputWidth*scaledHeight)/2;
-                int startingOffsetUV = (scaledWidth + outputWidth*scaledHeight)/4;
+                int startingOffsetUV = (scaledWidth + outputWidth*scaledHeight)/8;
                 fillWithBlack(outputWidth,
                               outputHeight,
                               out);
@@ -209,6 +209,132 @@ SmartPtr<SmartBuffer> VideoMixer::mixStreams(SmartPtr<VideoRawData>* rawData,
                         startingOffsetY += scaledWidth;
                         startingOffsetUV += scaledWidth/2;                    
                     }
+                }
+            } else if( totalStreams == 6 ) {
+                int startingOffsetY = (outputWidth*scaledHeight)/2;
+                int startingOffsetUV = (outputWidth*scaledHeight)/8;
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
+                
+                for(int index=0; index<totalStreams; index++) {
+                    int curStreamId = validStreamId[index];
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
+                    if( index == 2 ) {
+                        startingOffsetY = outputWidth*outputHeight/2;
+                        startingOffsetUV = outputWidth*outputHeight/8;
+                    } else {
+                        startingOffsetY += scaledWidth;
+                        startingOffsetUV += scaledWidth/2;                    
+                    }
+                }
+            }else if( totalStreams == 7 ) {
+                int startingOffsetY = outputWidth/3;
+                int startingOffsetUV = outputWidth/6;
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
+                
+                for(int index=0; index<totalStreams; index++) {
+                    int curStreamId = validStreamId[index];
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
+                    if( index == 0 ) {
+                        startingOffsetY = outputWidth*outputHeight/3;
+                        startingOffsetUV = outputWidth*outputHeight/12;
+                    } else if( index == 3) {
+                        startingOffsetY = (outputWidth*outputHeight*2)/3;
+                        startingOffsetUV = (outputWidth*outputHeight*2)/12;
+                    } else {
+                        startingOffsetY += scaledWidth;
+                        startingOffsetUV += scaledWidth/2;                    
+                    }
+                }
+            } else if( totalStreams == 8 ) {
+                int startingOffsetY = outputWidth/6;
+                int startingOffsetUV = outputWidth/12;
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
+                
+                for(int index=0; index<totalStreams; index++) {
+                    int curStreamId = validStreamId[index];
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
+                    if( index == 1 ) {
+                        startingOffsetY = outputWidth*outputHeight/3;
+                        startingOffsetUV = outputWidth*outputHeight/12;
+                    } else if( index == 4) {
+                        startingOffsetY = (outputWidth*outputHeight*2)/3;
+                        startingOffsetUV = (outputWidth*outputHeight*2)/12;
+                    } else {
+                        startingOffsetY += scaledWidth;
+                        startingOffsetUV += scaledWidth/2;                    
+                    }
+                }
+
+            }else if( totalStreams == 9 ) {
+                int startingOffsetY = 0;
+                int startingOffsetUV = 0;
+                fillWithBlack(outputWidth,
+                              outputHeight,
+                              out);
+                
+                for(int index=0; index<totalStreams; index++) {
+                    int curStreamId = validStreamId[index];
+                    mixStreamsInternal( curStreamId, 
+                                        scaledVideoPlanes,
+                                        scaledVideoStrides,
+                                        videoRect,
+                                        startingOffsetY,
+                                        startingOffsetUV,
+                                        scaledWidth,
+                                        scaledHeight,
+                                        outputWidth,
+                                        outputHeight,
+                                        out,
+                                        offsetOut);
+                    if( index == 2 ) {
+                        startingOffsetY = outputWidth*outputHeight/3;
+                        startingOffsetUV = outputWidth*outputHeight/12;
+                    } else if( index == 5) {
+                        startingOffsetY = (outputWidth*outputHeight*2)/3;
+                        startingOffsetUV = (outputWidth*outputHeight*2)/12;
+                    } else {
+                        startingOffsetY += scaledWidth;
+                        startingOffsetUV += scaledWidth/2;                    
+                    }                    
                 }
             } else {
                 //TODO do mixing for other cases
