@@ -104,16 +104,16 @@ void AudioMixer::mixOneStreams(SmartPtr<AudioRawData>* rawData,
 }
 
 void AudioMixer::mixTwoStreams(SmartPtr<AudioRawData>* rawData,
-                   int* twoIndex,
+                   int* index,
                    short* valShort,
                    int sampleSize)
 {
-    int a = twoIndex[0];
-    int b = twoIndex[1];
+    int a = index[0];
+    int b = index[1];
     short* aData = (short*)rawData[a]->rawAudioFrame_->data();
     short* bData = (short*)rawData[b]->rawAudioFrame_->data();
     
-    //fprintf(stderr, "--------two index=%d %d, len=%ld %ld\r\n", twoIndex[0], twoIndex[1], rawData[a]->rawAudioFrame_->dataLength(), rawData[b]->rawAudioFrame_->dataLength());
+    //fprintf(stderr, "--------two index=%d %d, len=%ld %ld\r\n", index[0], index[1], rawData[a]->rawAudioFrame_->dataLength(), rawData[b]->rawAudioFrame_->dataLength());
     bool aIsStereo = rawData[a]->bIsStereo;
     bool bIsStereo = rawData[b]->bIsStereo;
     for(int i = sampleSize*2-1; i >= 0; i-- ) {
@@ -134,13 +134,13 @@ void AudioMixer::mixTwoStreams(SmartPtr<AudioRawData>* rawData,
 }
 
 void AudioMixer::mixThreeStreams(SmartPtr<AudioRawData>* rawData,
-                   int* threeIndex,
+                   int* index,
                    short* valShort,
                    int sampleSize)
 {
-    int a = threeIndex[0];
-    int b = threeIndex[1];
-    int c = threeIndex[2];
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
     short* aData = (short*)rawData[a]->rawAudioFrame_->data();
     short* bData = (short*)rawData[b]->rawAudioFrame_->data();
     short* cData = (short*)rawData[c]->rawAudioFrame_->data();
@@ -173,14 +173,14 @@ void AudioMixer::mixThreeStreams(SmartPtr<AudioRawData>* rawData,
 }
 
 void AudioMixer::mixFourStreams(SmartPtr<AudioRawData>* rawData,
-                                int* fourIndex,
+                                int* index,
                                 short* valShort,
                                 int sampleSize)
 {
-    int a = fourIndex[0];
-    int b = fourIndex[1];
-    int c = fourIndex[2];
-    int d = fourIndex[3];
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
     short* aData = (short*)rawData[a]->rawAudioFrame_->data();
     short* bData = (short*)rawData[b]->rawAudioFrame_->data();
     short* cData = (short*)rawData[c]->rawAudioFrame_->data();
@@ -219,6 +219,376 @@ void AudioMixer::mixFourStreams(SmartPtr<AudioRawData>* rawData,
         valShort[i] = CLIP(val, 32767, -32768);
     }
 }
+
+void AudioMixer::mixFiveStreams(SmartPtr<AudioRawData>* rawData,
+                                int* index,
+                                short* valShort,
+                                int sampleSize)
+{
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
+    int e = index[4];
+    short* aData = (short*)rawData[a]->rawAudioFrame_->data();
+    short* bData = (short*)rawData[b]->rawAudioFrame_->data();
+    short* cData = (short*)rawData[c]->rawAudioFrame_->data();
+    short* dData = (short*)rawData[d]->rawAudioFrame_->data();
+    short* eData = (short*)rawData[e]->rawAudioFrame_->data();
+
+    bool aIsStereo = rawData[a]->bIsStereo;
+    bool bIsStereo = rawData[b]->bIsStereo;
+    bool cIsStereo = rawData[c]->bIsStereo;
+    bool dIsStereo = rawData[d]->bIsStereo;
+    bool eIsStereo = rawData[e]->bIsStereo;
+
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = 0;
+        if( aIsStereo ) {
+            val += aData[i];
+        } else {
+            val += aData[i/2];
+        }
+
+        if( bIsStereo ) {
+            val += bData[i];
+        } else {
+            val += bData[i/2];
+        }
+
+        if( cIsStereo ) {
+            val += cData[i];
+        } else {
+            val += cData[i/2];
+        }
+
+        if( dIsStereo ) {
+            val += dData[i];
+        } else {
+            val += dData[i/2];
+        }
+
+        if( eIsStereo ) {
+            val += eData[i];
+        } else {
+            val += eData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
+void AudioMixer::mixSixStreams(SmartPtr<AudioRawData>* rawData,
+                                int* index,
+                                short* valShort,
+                                int sampleSize)
+{
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
+    int e = index[4];
+    int f = index[5];
+    short* aData = (short*)rawData[a]->rawAudioFrame_->data();
+    short* bData = (short*)rawData[b]->rawAudioFrame_->data();
+    short* cData = (short*)rawData[c]->rawAudioFrame_->data();
+    short* dData = (short*)rawData[d]->rawAudioFrame_->data();
+    short* eData = (short*)rawData[e]->rawAudioFrame_->data();
+    short* fData = (short*)rawData[f]->rawAudioFrame_->data();
+
+    bool aIsStereo = rawData[a]->bIsStereo;
+    bool bIsStereo = rawData[b]->bIsStereo;
+    bool cIsStereo = rawData[c]->bIsStereo;
+    bool dIsStereo = rawData[d]->bIsStereo;
+    bool eIsStereo = rawData[e]->bIsStereo;
+    bool fIsStereo = rawData[f]->bIsStereo;
+
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = 0;
+        if( aIsStereo ) {
+            val += aData[i];
+        } else {
+            val += aData[i/2];
+        }
+
+        if( bIsStereo ) {
+            val += bData[i];
+        } else {
+            val += bData[i/2];
+        }
+
+        if( cIsStereo ) {
+            val += cData[i];
+        } else {
+            val += cData[i/2];
+        }
+
+        if( dIsStereo ) {
+            val += dData[i];
+        } else {
+            val += dData[i/2];
+        }
+
+        if( eIsStereo ) {
+            val += eData[i];
+        } else {
+            val += eData[i/2];
+        }
+
+        if( fIsStereo ) {
+            val += fData[i];
+        } else {
+            val += fData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
+void AudioMixer::mixSevenStreams(SmartPtr<AudioRawData>* rawData,
+                                int* index,
+                                short* valShort,
+                                int sampleSize)
+{
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
+    int e = index[4];
+    int f = index[5];
+    int g = index[6];
+    short* aData = (short*)rawData[a]->rawAudioFrame_->data();
+    short* bData = (short*)rawData[b]->rawAudioFrame_->data();
+    short* cData = (short*)rawData[c]->rawAudioFrame_->data();
+    short* dData = (short*)rawData[d]->rawAudioFrame_->data();
+    short* eData = (short*)rawData[e]->rawAudioFrame_->data();
+    short* fData = (short*)rawData[f]->rawAudioFrame_->data();
+    short* gData = (short*)rawData[g]->rawAudioFrame_->data();
+
+    bool aIsStereo = rawData[a]->bIsStereo;
+    bool bIsStereo = rawData[b]->bIsStereo;
+    bool cIsStereo = rawData[c]->bIsStereo;
+    bool dIsStereo = rawData[d]->bIsStereo;
+    bool eIsStereo = rawData[e]->bIsStereo;
+    bool fIsStereo = rawData[f]->bIsStereo;
+    bool gIsStereo = rawData[g]->bIsStereo;
+
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = 0;
+        if( aIsStereo ) {
+            val += aData[i];
+        } else {
+            val += aData[i/2];
+        }
+
+        if( bIsStereo ) {
+            val += bData[i];
+        } else {
+            val += bData[i/2];
+        }
+
+        if( cIsStereo ) {
+            val += cData[i];
+        } else {
+            val += cData[i/2];
+        }
+
+        if( dIsStereo ) {
+            val += dData[i];
+        } else {
+            val += dData[i/2];
+        }
+
+        if( eIsStereo ) {
+            val += eData[i];
+        } else {
+            val += eData[i/2];
+        }
+
+        if( fIsStereo ) {
+            val += fData[i];
+        } else {
+            val += fData[i/2];
+        }
+        if( gIsStereo ) {
+            val += gData[i];
+        } else {
+            val += gData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
+void AudioMixer::mixEightStreams(SmartPtr<AudioRawData>* rawData,
+                                int* index,
+                                short* valShort,
+                                int sampleSize)
+{
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
+    int e = index[4];
+    int f = index[5];
+    int g = index[6];
+    int h = index[7];
+    short* aData = (short*)rawData[a]->rawAudioFrame_->data();
+    short* bData = (short*)rawData[b]->rawAudioFrame_->data();
+    short* cData = (short*)rawData[c]->rawAudioFrame_->data();
+    short* dData = (short*)rawData[d]->rawAudioFrame_->data();
+    short* eData = (short*)rawData[e]->rawAudioFrame_->data();
+    short* fData = (short*)rawData[f]->rawAudioFrame_->data();
+    short* gData = (short*)rawData[g]->rawAudioFrame_->data();
+    short* hData = (short*)rawData[h]->rawAudioFrame_->data();
+
+    bool aIsStereo = rawData[a]->bIsStereo;
+    bool bIsStereo = rawData[b]->bIsStereo;
+    bool cIsStereo = rawData[c]->bIsStereo;
+    bool dIsStereo = rawData[d]->bIsStereo;
+    bool eIsStereo = rawData[e]->bIsStereo;
+    bool fIsStereo = rawData[f]->bIsStereo;
+    bool gIsStereo = rawData[g]->bIsStereo;
+    bool hIsStereo = rawData[h]->bIsStereo;
+
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = 0;
+        if( aIsStereo ) {
+            val += aData[i];
+        } else {
+            val += aData[i/2];
+        }
+
+        if( bIsStereo ) {
+            val += bData[i];
+        } else {
+            val += bData[i/2];
+        }
+
+        if( cIsStereo ) {
+            val += cData[i];
+        } else {
+            val += cData[i/2];
+        }
+
+        if( dIsStereo ) {
+            val += dData[i];
+        } else {
+            val += dData[i/2];
+        }
+
+        if( eIsStereo ) {
+            val += eData[i];
+        } else {
+            val += eData[i/2];
+        }
+
+        if( fIsStereo ) {
+            val += fData[i];
+        } else {
+            val += fData[i/2];
+        }
+        if( gIsStereo ) {
+            val += gData[i];
+        } else {
+            val += gData[i/2];
+        }
+        if( hIsStereo ) {
+            val += hData[i];
+        } else {
+            val += hData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
+void AudioMixer::mixNineStreams(SmartPtr<AudioRawData>* rawData,
+                                int* index,
+                                short* valShort,
+                                int sampleSize)
+{
+    int a = index[0];
+    int b = index[1];
+    int c = index[2];
+    int d = index[3];
+    int e = index[4];
+    int f = index[5];
+    int g = index[6];
+    int h = index[7];
+    int i = index[8];
+    short* aData = (short*)rawData[a]->rawAudioFrame_->data();
+    short* bData = (short*)rawData[b]->rawAudioFrame_->data();
+    short* cData = (short*)rawData[c]->rawAudioFrame_->data();
+    short* dData = (short*)rawData[d]->rawAudioFrame_->data();
+    short* eData = (short*)rawData[e]->rawAudioFrame_->data();
+    short* fData = (short*)rawData[f]->rawAudioFrame_->data();
+    short* gData = (short*)rawData[g]->rawAudioFrame_->data();
+    short* hData = (short*)rawData[h]->rawAudioFrame_->data();
+    short* iData = (short*)rawData[i]->rawAudioFrame_->data();
+
+    bool aIsStereo = rawData[a]->bIsStereo;
+    bool bIsStereo = rawData[b]->bIsStereo;
+    bool cIsStereo = rawData[c]->bIsStereo;
+    bool dIsStereo = rawData[d]->bIsStereo;
+    bool eIsStereo = rawData[e]->bIsStereo;
+    bool fIsStereo = rawData[f]->bIsStereo;
+    bool gIsStereo = rawData[g]->bIsStereo;
+    bool hIsStereo = rawData[h]->bIsStereo;
+    bool iIsStereo = rawData[i]->bIsStereo;
+
+    for ( int i = sampleSize*2-1; i>=0; i-- ) {
+        int val = 0;
+        if( aIsStereo ) {
+            val += aData[i];
+        } else {
+            val += aData[i/2];
+        }
+
+        if( bIsStereo ) {
+            val += bData[i];
+        } else {
+            val += bData[i/2];
+        }
+
+        if( cIsStereo ) {
+            val += cData[i];
+        } else {
+            val += cData[i/2];
+        }
+
+        if( dIsStereo ) {
+            val += dData[i];
+        } else {
+            val += dData[i/2];
+        }
+
+        if( eIsStereo ) {
+            val += eData[i];
+        } else {
+            val += eData[i/2];
+        }
+
+        if( fIsStereo ) {
+            val += fData[i];
+        } else {
+            val += fData[i/2];
+        }
+        if( gIsStereo ) {
+            val += gData[i];
+        } else {
+            val += gData[i/2];
+        }
+        if( hIsStereo ) {
+            val += hData[i];
+        } else {
+            val += hData[i/2];
+        }
+        if( iIsStereo ) {
+            val += iData[i];
+        } else {
+            val += iData[i/2];
+        }
+        valShort[i] = CLIP(val, 32767, -32768);
+    }
+}
+
 void AudioMixer::findIndexes(SmartPtr<AudioRawData>* rawData,
                              u32 excludeStreamId,
                              int* indexArr)
@@ -247,55 +617,90 @@ SmartPtr<SmartBuffer> AudioMixer::mixStreams(SmartPtr<AudioRawData>* rawData,
                     //if nothing is mixed, i.e., one stream only voip, use white noise
                     genWhiteNoise(valShort, sampleSize*2);
                 } else {
-                    int a = 0;
-                    for(u32 j=0; j<MAX_XCODING_INSTANCES; j++) {
-                        if( rawData[j] && rawData[j]->bIsValid && j != excludeStreamId ) { 
-                            a = j;
-                            break;
-                        }
-                    }
-                    mixOneStreams(rawData, a, valShort, sampleSize);
+                    int index[1];
+                    findIndexes(rawData, excludeStreamId, index);
+                    mixOneStreams(rawData, index[0], valShort, sampleSize);
                 }
                 break;
             }
             case 2: {
+                int index[2];
+                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    int a = 0;
-                    for(u32 j=0; j<MAX_XCODING_INSTANCES; j++) {
-                        if( rawData[j] && rawData[j]->bIsValid && j != excludeStreamId ) { 
-                            a = j;
-                            break;
-                        }
-                    }
-                    mixOneStreams(rawData, a, valShort, sampleSize);
+                    mixOneStreams(rawData, index[0], valShort, sampleSize);
                 } else {
-                    int twoIndex[2];
-                    findIndexes(rawData, excludeStreamId, twoIndex);
-                    mixTwoStreams(rawData, twoIndex, valShort, sampleSize);
+                    mixTwoStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 3: {
+                int index[3];
+                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    int twoIndex[2];
-                    findIndexes(rawData, excludeStreamId, twoIndex);
-                    mixTwoStreams(rawData, twoIndex, valShort, sampleSize);
+                    mixTwoStreams(rawData, index, valShort, sampleSize);
                 } else {
-                    int threeIndex[3];
-                    findIndexes(rawData, excludeStreamId, threeIndex);
-                    mixThreeStreams(rawData, threeIndex, valShort, sampleSize);
+                    mixThreeStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }
             case 4: {
+                int index[4];
+                findIndexes(rawData, excludeStreamId, index);
                 if( excludeStreamId != MAX_U32 ) {
-                    int threeIndex[3];
-                    findIndexes(rawData, excludeStreamId, threeIndex);
-                    mixThreeStreams(rawData, threeIndex, valShort, sampleSize);
+                    mixThreeStreams(rawData, index, valShort, sampleSize);
                 } else {
-                    int fourIndex[2];
-                    findIndexes(rawData, excludeStreamId, fourIndex);
-                    mixFourStreams(rawData, fourIndex, valShort, sampleSize);
+                    mixFourStreams(rawData, index, valShort, sampleSize);
+                }
+                break;
+            }
+            case 5: {
+                int index[5];
+                findIndexes(rawData, excludeStreamId, index);
+                if( excludeStreamId != MAX_U32 ) {
+                    mixFourStreams(rawData, index, valShort, sampleSize);
+                } else {
+                    mixFiveStreams(rawData, index, valShort, sampleSize);
+                }
+                break;
+            }
+            case 6: {
+                int index[6];
+                findIndexes(rawData, excludeStreamId, index);
+                if( excludeStreamId != MAX_U32 ) {
+                    mixFiveStreams(rawData, index, valShort, sampleSize);
+                } else {
+                    mixSixStreams(rawData, index, valShort, sampleSize);
+                }
+                break;
+            }
+            case 7: {
+                int index[7];
+                findIndexes(rawData, excludeStreamId, index);
+                if( excludeStreamId != MAX_U32 ) {
+                    mixSixStreams(rawData, index, valShort, sampleSize);
+                } else {
+                    mixSevenStreams(rawData, index, valShort, sampleSize);
+                }
+                break;
+            }
+            case 8: {
+                int index[8];
+                findIndexes(rawData, excludeStreamId, index);
+                if( excludeStreamId != MAX_U32 ) {
+                    mixSevenStreams(rawData, index, valShort, sampleSize);
+                } else {
+                    mixEightStreams(rawData, index, valShort, sampleSize);
+                }
+                break;
+            }
+            case 9: {
+                int index[9];
+                findIndexes(rawData, excludeStreamId, index);
+
+                if( excludeStreamId != MAX_U32 ) {
+                    mixEightStreams(rawData, index, valShort, sampleSize);
+                } else {
+                    mixNineStreams(rawData, index, valShort, sampleSize);
                 }
                 break;
             }

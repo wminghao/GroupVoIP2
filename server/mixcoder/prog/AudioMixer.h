@@ -44,6 +44,31 @@ class AudioMixer
                        short* valShort,
                        int sampleSize);
 
+    void mixFiveStreams(SmartPtr<AudioRawData>* rawData,
+                       int* fiveIndex,
+                       short* valShort,
+                       int sampleSize);
+
+    void mixSixStreams(SmartPtr<AudioRawData>* rawData,
+                       int* sixIndex,
+                       short* valShort,
+                       int sampleSize);
+
+    void mixSevenStreams(SmartPtr<AudioRawData>* rawData,
+                       int* sevenIndex,
+                       short* valShort,
+                       int sampleSize);
+
+    void mixEightStreams(SmartPtr<AudioRawData>* rawData,
+                       int* eightIndex,
+                       short* valShort,
+                       int sampleSize);
+
+    void mixNineStreams(SmartPtr<AudioRawData>* rawData,
+                       int* nineIndex,
+                       short* valShort,
+                       int sampleSize);
+
     void findIndexes(SmartPtr<AudioRawData>* rawData,
                      u32 excludeStreamId,
                      int* indexArr);

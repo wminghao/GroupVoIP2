@@ -57,6 +57,7 @@ u32 curStreamId_;
 u32 curStreamLen_;
 u32 curStreamCnt_;
 u32 numStreams_;
+bool curStreamIsVideo_;
 
 bool readData(u8* data, u32 len)
 {
@@ -81,22 +82,23 @@ bool readData(u8* data, u32 len)
             }
         case SEARCHING_STREAM_MASK:
             {
-                if ( curBuf_.size() < 4 ) {
-                    size_t cpLen = MIN(len, 4-curBuf_.size());
+                if ( curBuf_.size() < 5 ) {
+                    size_t cpLen = MIN(len, 5-curBuf_.size());
                     curBuf_ += string((const char*)data, cpLen); //concatenate the string                                                                                                          
 
                     len -= cpLen;
                     data += cpLen;
                 }
 
-                if ( curBuf_.size() >= 4 ) {
+                if ( curBuf_.size() >= 5 ) {
                     u32 streamMask;
                     memcpy(&streamMask, curBuf_.data(), sizeof(u32));
                     
                     //handle mask here 
                     numStreams_ = count_bits(streamMask)+1;
                     assert(numStreams_ < (u32)MAX_XCODING_INSTANCES);
-                    
+                                        
+                    curStreamIsVideo_ = (curBuf_.data()[4] == 0x01); //1 means video stream
                     //LOG( "---streamMask=%d numStreams_=%d\r\n", streamMask, numStreams_);
                     int index = 0;
                     while( streamMask ) {
