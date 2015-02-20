@@ -233,7 +233,8 @@ package
 													rect,
 													myFunc,
 													logDebug);
-				this.addChild(alert);
+				//make sure it's added on top of everything else.
+				stage.addChild(alert);
 			} catch(err:Error) {
 				logDebug(err.toString());
 			}

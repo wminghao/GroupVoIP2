@@ -497,6 +497,7 @@ package com.vispar
 			}
 		}
 		private function removeEmptyNotification():void {
+			logDebug("removeEmptyNotification");
 			//remove the notification
 			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
 				container_.removeChild(emptyRoomNotification_);
