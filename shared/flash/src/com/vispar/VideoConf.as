@@ -461,9 +461,9 @@ package com.vispar
 				//detect whether empty room or not after 1 second
 				if( !fatalError_ ) {
 					//first detect all audio stream
-					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+					detectAllAudioOnly();
 					//then detect empty stream
-					delayedFunctionCall(1500, function(e:Event):void {detectEmptyStream();});
+					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 				}
 			} else {  
 				return;  
@@ -497,7 +497,7 @@ package com.vispar
 					audioOnlyPublisherArray.push(streamListArr[i]);
 				}
 				//detect all audio stream
-				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				detectAllAudioOnly();
 			}
 		}
 		private function removeEmptyNotification():void {
@@ -642,9 +642,9 @@ package com.vispar
 				bOnVideoPlaybackStarted_ = false;
 				
 				//first detect all audio stream
-				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				detectAllAudioOnly();
 				//then detect empty stream
-				delayedFunctionCall(1500, function(e:Event):void {detectEmptyStream();});
+				delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 			}
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
@@ -806,7 +806,7 @@ package com.vispar
 					audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(user), 1);					
 				}
 				//detect all audio stream
-				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				detectAllAudioOnly();
 			} catch(e:Error) {
 				logDebug("---onUserJoinedTalk Exception="+e);
 			}
