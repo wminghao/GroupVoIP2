@@ -88,6 +88,14 @@ public class VisparApp extends ApplicationAdapter implements
             }
         }
         sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
+        
+        if (conn instanceof RTMPConnection) {
+        	if( ((RTMPConnection)conn).isExternalVideoGenerated() ) {
+        		log.info("Send onExternalVideoStarted {}", ((RTMPConnection)conn).getUser());
+        		sendToClient(conn, "onExternalVideoStarted", null);        		
+        	}
+        }
+        
     	return true;
 	}
     

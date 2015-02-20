@@ -1461,7 +1461,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Boolean isEmptyStream = GroupMixer.getInstance().isEmptyStream(scope);
 		return isEmptyStream;
 	}
-
+	
+	public Boolean isExternalVideoGenerated() {
+		return GroupMixer.getInstance().isExternalVideoGenerated(scope);
+	}
+	
 	//notify client a video is playing
     public void onExternalVideoPlaying(String videoName) {
 		Red5.setConnectionLocal(this);

@@ -95,9 +95,11 @@ import android.widget.Button;
         //Reading values from the Preferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
-        if( userName == null ) {
+        
+        //TODO
+        //if( userName == null ) {
         	startSignIn();
-        }
+        //}
     }
 
 
@@ -289,7 +291,7 @@ import android.widget.Button;
             	inviteEvent.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
     	           		 String msgToShare = getString(R.string.invite_event_message) + 
-    	           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
+    	           				 " "+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
     	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, true);
                     }
                 });

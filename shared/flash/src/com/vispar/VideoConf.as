@@ -640,6 +640,11 @@ package com.vispar
 				delegate_.onExternalVideoStopped();
 				logDebug(" totalPublishers="+totalPublishers+"!");
 				bOnVideoPlaybackStarted_ = false;
+				
+				//first detect all audio stream
+				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				//then detect empty stream
+				delayedFunctionCall(1500, function(e:Event):void {detectEmptyStream();});
 			}
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
@@ -749,11 +754,14 @@ package com.vispar
 		
 		//stop video if either uplink speed or downlink speed is too bad
 		private function stopVideoCallbackOnLowBW(isAudioOnlyMode:Boolean, str:String):void {
-			this.delegate_.onFatalNetworkTooSlowError(isAudioOnlyMode);	
 			if( isAudioOnlyMode ) {
-				switchToAudioOnly( true );
-				delegate_.showAlert("Your network upload speed is too slow, we have to shut off video and switch to audio only mode!");
+				if( !isAudioOnly_ ) {
+					this.delegate_.onFatalNetworkTooSlowError(true);	
+					switchToAudioOnly( true );
+					delegate_.showAlert("Your network upload speed is too slow, we have to shut off video and switch to audio only mode!");
+				}
 			} else {
+				this.delegate_.onFatalNetworkTooSlowError(false);	
 				fatalError_ = true;
 				closeViewStream();
 				closePublishStream();

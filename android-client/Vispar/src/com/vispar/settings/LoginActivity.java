@@ -34,6 +34,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
 import com.vispar.R;
 import com.vispar.VisparApplication;
 
@@ -269,15 +278,25 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
 		@Override
 		protected String doInBackground(Void... params) {
-			HttpURLConnection urlConnection = null;
 			try {
-				URL url = new URL(VisparApplication.WebServerDomainName +LOGIN_URL+"?email="+mEmail+"&password="+mPassword);
-				urlConnection = (HttpURLConnection) url.openConnection();
-				InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-			    byte[] buffer = new byte[1024];//assume JSON is big enough
-			    int totalRead = in.read(buffer);
-			    byte[] bufferFinal = new byte[totalRead];			    
-			    String jsonStr = new String(bufferFinal, "UTF-8");
+			    StringBuilder body = new StringBuilder();
+			    DefaultHttpClient httpclient = new DefaultHttpClient(); // create new httpClient
+			    HttpGet httpGet = new HttpGet(VisparApplication.WebServerDomainName +LOGIN_URL+"?email="+mEmail+"&password="+mPassword); // create new httpGet object
+			    httpGet.setHeader("Content-type","application/json");
+			    HttpResponse response = httpclient.execute(httpGet); // execute httpGet
+			    StatusLine statusLine = response.getStatusLine();
+			    int statusCode = statusLine.getStatusCode();
+		        if (statusCode == HttpStatus.SC_OK) {
+		        	// System.out.println(statusLine);
+		            body.append(statusLine + "\n");
+		            HttpEntity e = response.getEntity();
+		            String entity = EntityUtils.toString(e);
+		            body.append(entity);
+		        } else {
+		            body.append(statusLine + "\n");
+		            // System.out.println(statusLine);
+		        }
+			    body.toString(); // return the String
 			    
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
@@ -289,9 +308,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
-				if( urlConnection!= null) {
-					urlConnection.disconnect();
-				}
 			}
 			//TODO simulate user name
 			String[] pieces = mEmail.split("@");
