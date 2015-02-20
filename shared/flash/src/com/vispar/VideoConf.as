@@ -455,13 +455,15 @@ package com.vispar
 		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
 			if(vector.indexOf(element) > -1){  
 				vector.splice(vector.indexOf(element), 1);
+				audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(element), 1);	
 				totalPublishers--;
 				logDebug(element+" removed="+totalPublishers+"!");
 				//detect whether empty room or not after 1 second
 				if( !fatalError_ ) {
-					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
-					//detect all audio stream
+					//first detect all audio stream
 					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+					//then detect empty stream
+					delayedFunctionCall(1500, function(e:Event):void {detectEmptyStream();});
 				}
 			} else {  
 				return;  
@@ -566,7 +568,7 @@ package com.vispar
 		}
 		
 		public function detectAllAudioOnly():void {
-			var bAllAudioOnly:Boolean = true;
+			var bAllAudioOnly:Boolean = (audioOnlyPublisherArray.length>0);
 			var length:uint = publishedStreamArray.length;
 			for ( var i:uint=0; i<length; i++ ) {
 				//check if the stream is already published

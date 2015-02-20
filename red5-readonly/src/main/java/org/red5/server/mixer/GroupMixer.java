@@ -59,8 +59,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	//mixcoder bridge is shared among all rooms, singleton, created only once
     private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
     
-    //current supported mixing threshold TODO change it to be larger
-    private static int CURRENT_SUPPORTED_THRESHOLD = IdLookup.MAX_STREAM_COUNT-28; //for now, only 4 streams supported
+    //current supported mixing threshold.
+    private static int CURRENT_SUPPORTED_THRESHOLD = IdLookup.MAX_STREAM_COUNT-1; //for now, only 9 streams are supported
 	
     private GroupMixer() {
     }
@@ -115,12 +115,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
 	    //kick off createStream event
     	createMixedStreamInternal(mixerRoom, ALL_IN_ONE_STREAM_NAME);
-	    
-	    //kick off karaoke 
-	    if( mixerRoom.karaokeGen_!= null ) {
-	    	createMixedStreamInternal(mixerRoom, SPECIAL_STREAM_NAME);
-	    }
-	    
+	    	    
 	    //start all other services
 	    mixerRoom.startService();
 	    
