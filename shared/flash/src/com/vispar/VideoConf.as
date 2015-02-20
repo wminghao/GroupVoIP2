@@ -460,6 +460,8 @@ package com.vispar
 				//detect whether empty room or not after 1 second
 				if( !fatalError_ ) {
 					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
+					//detect all audio stream
+					delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
 				}
 			} else {  
 				return;  
@@ -485,7 +487,7 @@ package com.vispar
 		}
 		public function initAudioOnlyStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			//logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
+			logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;
