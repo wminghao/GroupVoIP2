@@ -320,7 +320,7 @@ package com.vispar
 				streamPub = null;
 			}
 			if( publishDest ) {
-				removeElementFromStringVector(publishDest, publishedStreamArray);
+				removeElementFromStringVector(publishDest);
 				publishDest = null;
 			}
 			stopUploadSpeedTimer();
@@ -452,10 +452,14 @@ package com.vispar
 				removeEmptyNotification();
 			}
 		}
-		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
-			if(vector.indexOf(element) > -1){  
-				vector.splice(vector.indexOf(element), 1);
-				audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(element), 1);	
+		private function removeElementFromStringVector(element:String):void {  
+			var index:int = publishedStreamArray.indexOf(element);
+			if(index > -1){  
+				publishedStreamArray.splice(index, 1);
+				index = audioOnlyPublisherArray.indexOf(user);
+				if( index > -1 ) {
+					audioOnlyPublisherArray.splice(index, 1);	
+				}
 				totalPublishers--;
 				logDebug(element+" removed="+totalPublishers+"!");
 				//detect whether empty room or not after 1 second
@@ -489,7 +493,7 @@ package com.vispar
 		}
 		public function initAudioOnlyStreams(resp:Object):void {
 			var streamListStr:String = String(resp);
-			logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
+			//logDebug("audioOnlyPublisherArray = "+streamListStr+"---"); 
 			if( streamListStr != "") {
 				var streamListArr:Array = streamListStr.split(",");
 				var arrLen:int = streamListArr.length;
@@ -501,7 +505,6 @@ package com.vispar
 			}
 		}
 		private function removeEmptyNotification():void {
-			logDebug("removeEmptyNotification");
 			//remove the notification
 			if( emptyRoomNotification_!=null && container_.contains(emptyRoomNotification_)) {
 				container_.removeChild(emptyRoomNotification_);
@@ -574,7 +577,7 @@ package com.vispar
 				//check if the stream is already published
 				if ( audioOnlyPublisherArray.indexOf( publishedStreamArray[ i ]) == -1 ) {
 					bAllAudioOnly = false;
-					//logDebug(publishedStreamArray[ i ]+" not audio only");
+					logDebug(publishedStreamArray[ i ]+" not audio only");
 					break;
 				}
 			}
@@ -603,7 +606,7 @@ package com.vispar
 			addStreamToStringVector(String(resp));
 		}
 		public function removeStream(resp:Object):void {
-			removeElementFromStringVector(String(resp), publishedStreamArray);
+			removeElementFromStringVector(String(resp));
 		}
 		override public function selectExternalVideo(videoName:String):void {
 			if( publishDest != null ) {
@@ -631,6 +634,8 @@ package com.vispar
 				delegate_.onExternalVideoStarted();
 				logDebug(" totalPublishers="+totalPublishers+"!");
 				bOnVideoPlaybackStarted_ = true;
+				//first detect all audio stream
+				detectAllAudioOnly();
 			}
 		}
 		public function onExternalVideoStopped():void	
@@ -800,10 +805,17 @@ package com.vispar
 				var user:String = String(resp1);
 				var avFlag:int = int(resp2);
 				delegate_.onUserJoinedTalk(user, avFlag);
+				var index:int = -1;
 				if( avFlag == AUDIO_ON_FLAG ) {
-					audioOnlyPublisherArray.push(user);
+					index = audioOnlyPublisherArray.indexOf(user);
+					if( index == -1 ) {
+						audioOnlyPublisherArray.push(user);
+					}
 				} else {
-					audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(user), 1);					
+					index = audioOnlyPublisherArray.indexOf(user);
+					if( index > -1 ) {
+						audioOnlyPublisherArray.splice(index, 1);	
+					}
 				}
 				//detect all audio stream
 				detectAllAudioOnly();
