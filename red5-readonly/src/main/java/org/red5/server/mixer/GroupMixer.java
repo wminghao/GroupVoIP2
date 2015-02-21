@@ -88,6 +88,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	boolean bIsCreatingAllInOneConn = false;
     	if( mixerRoom.allInOneSessionId_ == null ) {
+    	    //b/c the connect event is handled from a different thread
+    	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
+    	    //so it closes the connection before any mixed stream can be created.
+    	    bIsCreatingAllInOneConn = true;
+    	    mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_IN_PROGRESS);
+    	    
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
     	    // add session to the connection
@@ -103,12 +109,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	    //??? different thread , see mina threading model ???
     	    //next assume the session is opened
     	    handler_.connectionOpened(connAllInOne);
-    	    
-    	    //b/c the connect event is handled from a different thread
-    	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
-    	    //so it closes the connection before any mixed stream can be created.
-    	    bIsCreatingAllInOneConn = true;
-    	    mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_IN_PROGRESS);
     	    
     	    //handle connect, createStream and publish events
     	    handleConnectEvent(connAllInOne, mixerRoom.scopeName_);
@@ -402,7 +402,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     {
     	return (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(mixerRoom.allInOneSessionId_);
     }
-    
+
+    public boolean isAllInOneConn(IScope roomScope, RTMPConnection conn )
+    {
+    	return (hasAnythingStarted(roomScope) && conn == getAllInOneConn(roomScope));
+    }
     public RTMPMinaConnection getAllInOneConn(IScope roomScope)
     {
     	MixerRoom mixerRoom = getMixerRoom(roomScope);

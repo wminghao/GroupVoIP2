@@ -577,7 +577,7 @@ package com.vispar
 				//check if the stream is already published
 				if ( audioOnlyPublisherArray.indexOf( publishedStreamArray[ i ]) == -1 ) {
 					bAllAudioOnly = false;
-					logDebug(publishedStreamArray[ i ]+" not audio only");
+					//logDebug(publishedStreamArray[ i ]+" not audio only");
 					break;
 				}
 			}

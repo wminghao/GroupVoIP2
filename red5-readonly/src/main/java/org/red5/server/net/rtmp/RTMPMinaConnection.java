@@ -111,18 +111,18 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void close() {
 		super.close();
-		log.debug("IO Session closing: {}", (ioSession != null ? ioSession.isClosing() : null));
+		log.info("IO Session closing: {}", (ioSession != null ? ioSession.isClosing() : null));
 		if (ioSession != null && !ioSession.isClosing()) {
 			// accept no further incoming data
 			//ioSession.suspendRead();
 			// close now, no flushing, no waiting
 			final CloseFuture future = ioSession.close(true);
-			log.debug("Connection close future: {}", future);
+			log.info("Connection close future: {}", future);
 			IoFutureListener<CloseFuture> listener = new IoFutureListener<CloseFuture>() {
 				public void operationComplete(CloseFuture future) {
 					if (future.isClosed()) {
-						log.debug("Connection is closed");
-						log.trace("Session id - local: {} session: {}", getSessionId(), (String) ioSession.removeAttribute(RTMPConnection.RTMP_SESSION_ID));
+						log.info("Connection is closed");
+						log.info("Session id - local: {} session: {}", getSessionId(), (String) ioSession.removeAttribute(RTMPConnection.RTMP_SESSION_ID));
 						RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 						if (conn != null) {
 							handler.connectionClosed(conn);
@@ -135,7 +135,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			};
 			future.addListener(listener);
 		}
-		log.debug("Connection state: {}", getState());
+		log.info("Connection state: {}", getState());
 		if (getStateCode() != RTMP.STATE_DISCONNECTED) {
 			handler.connectionClosed(this);
 		}
@@ -220,6 +220,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	@Override
 	public void setExecutor(ThreadPoolTaskExecutor executor) {
+		log.info("setExecutor ThreadPoolTaskExecutor");
 		this.executor = executor;
 	}
 
@@ -289,8 +290,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
-		GroupMixer groupMixer = GroupMixer.getInstance();
-	    if( groupMixer.hasAnythingStarted(scope) && this == groupMixer.getAllInOneConn(scope) ) {
+		if( isAllInOneConn() ) {
     		//log.debug("***Connected: {}", super.isConnected());
     		return super.isConnected();
 	    } else {

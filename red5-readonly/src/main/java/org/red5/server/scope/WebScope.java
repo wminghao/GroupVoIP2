@@ -223,7 +223,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 			log.info("Webscope not registered");
 			return;
 		}
-		log.debug("Webscope un-registering: {}", contextPath);
+		log.info("Webscope un-registering: {}", contextPath);
 		shuttingDown.set(true);
 		keepOnDisconnect = false;
 		uninit();
