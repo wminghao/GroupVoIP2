@@ -87,13 +87,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private void createAllInOneConn( MixerRoom mixerRoom )
     {
     	boolean bIsCreatingAllInOneConn = false;
-    	if( mixerRoom.allInOneSessionId_ == null ) {
-    	    //b/c the connect event is handled from a different thread
-    	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
-    	    //so it closes the connection before any mixed stream can be created.
-    	    bIsCreatingAllInOneConn = true;
-    	    mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_IN_PROGRESS);
-    	    
+    	if( mixerRoom.allInOneSessionId_ == null ) {    	    
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
     	    // add session to the connection
@@ -118,11 +112,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    	    
 	    //start all other services
 	    mixerRoom.startService();
-	    
-	    if( bIsCreatingAllInOneConn ) {
-	    	mixerRoom.allInOneConnStatus_.set(MixerRoom.ALLINCONN_CONNECTED);
-	    }
-	    
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }
 
@@ -153,24 +142,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     		mixerRooms_.put(roomScope, mixerRoom);
     	}
     	return mixerRoom;
-    }
-    
-    public boolean hasAnythingStarted(IScope roomScope) {
-    	if( roomScope != null ) {
-    		MixerRoom mixerRoom = getMixerRoom(roomScope);
-    		if( mixerRoom != null ) {
-    			//is all-in-one connection status in progress?
-        	    //b/c the connect event is handled from a different thread
-        	    //it's possible that the idLookupTable_ is still empty, and the other thread treats this connection as not connected,
-        	    //so it closes the connection before any mixed stream can be created.
-    			if( mixerRoom.allInOneConnStatus_.get() == MixerRoom.ALLINCONN_IN_PROGRESS ) {
-    				return true;
-    			} else {
-    				return !mixerRoom.idLookupTable_.isEmpty();
-    			}
-    		} 
-    	} 
-    	return false;
     }
     
     public void createMixedStream(IScope roomScope, String streamName)
@@ -405,7 +376,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 
     public boolean isAllInOneConn(IScope roomScope, RTMPConnection conn )
     {
-    	return (hasAnythingStarted(roomScope) && conn == getAllInOneConn(roomScope));
+    	return (conn == getAllInOneConn(roomScope));
     }
     public RTMPMinaConnection getAllInOneConn(IScope roomScope)
     {

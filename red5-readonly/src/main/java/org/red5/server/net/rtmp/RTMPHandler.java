@@ -366,7 +366,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
 										disconnectOnReturn = false;
 									} else {
-										log.debug("Connect failed");
+										log.info("Connect failed");
 										call.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
@@ -486,6 +486,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				reply.setTransactionId(command.getTransactionId());
 				channel.write(reply);
 				if (disconnectOnReturn) {
+					log.info("disconnectOnReturn");
 					conn.close();
 				}
 			}
