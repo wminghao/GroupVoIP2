@@ -39,7 +39,7 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                 if( videoQueue_[i].size() > 0 ) {
                     if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
                         hasSpsPps = true;
-                        LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
+                        //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
                     } 
                     isReady = true;
                     frameTimestamp = videoQueue_[i].back()->pts; //always pop out the latest(last) video frame
@@ -49,7 +49,7 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                 }
                 if( hasSpsPps ) {
                     //if there is no frame ready, only sps/pps pop out it immediately
-                    LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
+                    //LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
                     momentoBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = spsPpsTimestamp;
                     maxVideoTimestamp = MAX(maxVideoTimestamp, spsPpsTimestamp); //strictly follow
@@ -59,7 +59,7 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                     momentoBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = frameTimestamp;
                     maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); //strictly follow
-                    LOG( "===stream:%d video timestamp=%d\r\n", i, frameTimestamp);
+                    //LOG( "===stream:%d video timestamp=%d\r\n", i, frameTimestamp);
                 }   
             } else {
                 //nextBucketTimestamp is every 33ms since the beginning of video stream
