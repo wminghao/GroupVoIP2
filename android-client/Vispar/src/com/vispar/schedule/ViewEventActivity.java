@@ -33,7 +33,7 @@ public class ViewEventActivity extends Activity {
 	CheckBox isPublic;
 	Button inviteButton;
 	AsyncTask<String, Void, Boolean> loadEvents;
-	String urlForViewEvents = "http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewevent/";
+	String urlForViewEvents = VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewevent/";
 	
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +51,7 @@ public class ViewEventActivity extends Activity {
         	public void onClick(View v) {
         		final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content)).getChildAt(0);
            		 String msgToShare = getString(R.string.invite_event_message) + 
-           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
+           				 " "+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
            		 ShareSheet.share(viewGroup, ViewEventActivity.this, v, msgToShare, true);
             }
         });

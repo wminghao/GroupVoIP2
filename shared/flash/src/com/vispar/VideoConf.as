@@ -62,9 +62,9 @@ package com.vispar
 		private const AUDIO_ON_FLAG:int = 0x1;
 		private const VIDEO_ON_FLAG:int = 0x2;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
 		{ 
-			super(container, delegate, room, user, mode, forceAudioOnly);
+			super(container, delegate, room, user, mode, forceAudioOnly, autoPublish);
 			
 			if( forceAudioOnly ) {
 				isAudioOnly_ = true;
@@ -118,7 +118,7 @@ package com.vispar
 			if(event.info.code == "NetConnection.Connect.Success") {
 				netConn.call("clientRequest.setAsUser", null, user, 
 														(!isAutoMode()  && (room == user)));	
-				if( room == user ) {
+				if( room == user || autoPublish_ ) {
 					delayedFunctionCall(1000, function(e:Event):void { 
 						publishNow();
 						delegate_.onVideoStarted( isViewOnly_);
@@ -320,7 +320,7 @@ package com.vispar
 				streamPub = null;
 			}
 			if( publishDest ) {
-				removeElementFromStringVector(publishDest, publishedStreamArray);
+				removeElementFromStringVector(publishDest);
 				publishDest = null;
 			}
 			stopUploadSpeedTimer();
@@ -452,13 +452,21 @@ package com.vispar
 				removeEmptyNotification();
 			}
 		}
-		private function removeElementFromStringVector(element:String, vector:Vector.<String>):void {  
-			if(vector.indexOf(element) > -1){  
-				vector.splice(vector.indexOf(element), 1);
+		private function removeElementFromStringVector(element:String):void {  
+			var index:int = publishedStreamArray.indexOf(element);
+			if(index > -1){  
+				publishedStreamArray.splice(index, 1);
+				index = audioOnlyPublisherArray.indexOf(user);
+				if( index > -1 ) {
+					audioOnlyPublisherArray.splice(index, 1);	
+				}
 				totalPublishers--;
 				logDebug(element+" removed="+totalPublishers+"!");
 				//detect whether empty room or not after 1 second
 				if( !fatalError_ ) {
+					//first detect all audio stream
+					detectAllAudioOnly();
+					//then detect empty stream
 					delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 				}
 			} else {  
@@ -493,7 +501,7 @@ package com.vispar
 					audioOnlyPublisherArray.push(streamListArr[i]);
 				}
 				//detect all audio stream
-				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				detectAllAudioOnly();
 			}
 		}
 		private function removeEmptyNotification():void {
@@ -563,7 +571,7 @@ package com.vispar
 		}
 		
 		public function detectAllAudioOnly():void {
-			var bAllAudioOnly:Boolean = true;
+			var bAllAudioOnly:Boolean = (audioOnlyPublisherArray.length>0);
 			var length:uint = publishedStreamArray.length;
 			for ( var i:uint=0; i<length; i++ ) {
 				//check if the stream is already published
@@ -598,7 +606,7 @@ package com.vispar
 			addStreamToStringVector(String(resp));
 		}
 		public function removeStream(resp:Object):void {
-			removeElementFromStringVector(String(resp), publishedStreamArray);
+			removeElementFromStringVector(String(resp));
 		}
 		override public function selectExternalVideo(videoName:String):void {
 			if( publishDest != null ) {
@@ -626,6 +634,8 @@ package com.vispar
 				delegate_.onExternalVideoStarted();
 				logDebug(" totalPublishers="+totalPublishers+"!");
 				bOnVideoPlaybackStarted_ = true;
+				//first detect all audio stream
+				detectAllAudioOnly();
 			}
 		}
 		public function onExternalVideoStopped():void	
@@ -635,6 +645,11 @@ package com.vispar
 				delegate_.onExternalVideoStopped();
 				logDebug(" totalPublishers="+totalPublishers+"!");
 				bOnVideoPlaybackStarted_ = false;
+				
+				//first detect all audio stream
+				detectAllAudioOnly();
+				//then detect empty stream
+				delayedFunctionCall(1000, function(e:Event):void {detectEmptyStream();});
 			}
 		}
 		public function onExternalVideoListPopulated(resp:Object):void	{
@@ -744,10 +759,14 @@ package com.vispar
 		
 		//stop video if either uplink speed or downlink speed is too bad
 		private function stopVideoCallbackOnLowBW(isAudioOnlyMode:Boolean, str:String):void {
-			this.delegate_.onFatalNetworkTooSlowError(isAudioOnlyMode);	
 			if( isAudioOnlyMode ) {
-				switchToAudioOnly( true );
+				if( !isAudioOnly_ ) {
+					this.delegate_.onFatalNetworkTooSlowError(true);	
+					switchToAudioOnly( true );
+					delegate_.showAlert("Your network upload speed is too slow, we have to shut off video and switch to audio only mode!");
+				}
 			} else {
+				this.delegate_.onFatalNetworkTooSlowError(false);	
 				fatalError_ = true;
 				closeViewStream();
 				closePublishStream();
@@ -786,13 +805,20 @@ package com.vispar
 				var user:String = String(resp1);
 				var avFlag:int = int(resp2);
 				delegate_.onUserJoinedTalk(user, avFlag);
+				var index:int = -1;
 				if( avFlag == AUDIO_ON_FLAG ) {
-					audioOnlyPublisherArray.push(user);
+					index = audioOnlyPublisherArray.indexOf(user);
+					if( index == -1 ) {
+						audioOnlyPublisherArray.push(user);
+					}
 				} else {
-					audioOnlyPublisherArray.splice(audioOnlyPublisherArray.indexOf(user), 1);					
+					index = audioOnlyPublisherArray.indexOf(user);
+					if( index > -1 ) {
+						audioOnlyPublisherArray.splice(index, 1);	
+					}
 				}
 				//detect all audio stream
-				delayedFunctionCall(1000, function(e:Event):void {detectAllAudioOnly();});
+				detectAllAudioOnly();
 			} catch(e:Error) {
 				logDebug("---onUserJoinedTalk Exception="+e);
 			}

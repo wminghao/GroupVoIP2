@@ -305,8 +305,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		if (publisherStreamId > 0) {
 			if (streams.get(publisherStreamId - 1) != null) {
 				GroupMixer groupMixer = (GroupMixer) GroupMixer.getInstance();
-        		if( !groupMixer.hasAnythingStarted(scope) || 
-        			this != groupMixer.getAllInOneConn(scope) ) {
+        		if( !isAllInOneConn() ) {
         			this.publisherStreamName = publisherStreamName;
         			this.publisherStreamId = publisherStreamId;
         			//don't create for __mixed_all__ stream
@@ -1461,7 +1460,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Boolean isEmptyStream = GroupMixer.getInstance().isEmptyStream(scope);
 		return isEmptyStream;
 	}
-
+	
+	public Boolean isExternalVideoGenerated() {
+		return GroupMixer.getInstance().isExternalVideoGenerated(scope);
+	}
+	
 	//notify client a video is playing
     public void onExternalVideoPlaying(String videoName) {
 		Red5.setConnectionLocal(this);
@@ -1602,5 +1605,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         } catch(Exception e) {
         	log.info("----Non-critical error: approveRequest2Talk callback failed: {}", e);
         }
+    }
+    
+    public boolean isAllInOneConn() {
+    	return GroupMixer.getInstance().isAllInOneConn(scope, this);
     }
 }

@@ -247,6 +247,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				//if the "stream" action is not predefined a custom type will be returned
 				switch (streamAction) {
 					case DISCONNECT:
+						log.info("---Disconnect---");
 						conn.close();
 						break;
 					case CREATE_STREAM:
@@ -365,7 +366,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
 										disconnectOnReturn = false;
 									} else {
-										log.debug("Connect failed");
+										log.info("Connect failed");
 										call.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
@@ -454,7 +455,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 			} else {
 				// not connected and attempting to send an invoke
-				log.warn("Not connected, closing connection");
+				log.warn("Not connected, closing connection. action={}", action);
 				conn.close();
 			}
 		}
@@ -485,6 +486,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				reply.setTransactionId(command.getTransactionId());
 				channel.write(reply);
 				if (disconnectOnReturn) {
+					log.info("disconnectOnReturn");
 					conn.close();
 				}
 			}

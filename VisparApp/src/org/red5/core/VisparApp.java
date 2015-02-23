@@ -39,8 +39,14 @@ public class VisparApp extends ApplicationAdapter implements
 	public boolean appConnect(IConnection conn, Object[] params) {
 		IServiceCapableConnection service = (IServiceCapableConnection) conn;
 		log.info("Client connected {} conn {}", new Object[]{conn.getClient().getId(), conn});
-		service.invoke("setId", new Object[] { conn.getClient().getId() },
-						this);
+		boolean bIsAllInOneConn = false;
+		if(conn instanceof RTMPConnection) {
+			bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
+		}
+		if( !bIsAllInOneConn ) {
+			service.invoke("setId", new Object[] { conn.getClient().getId() },
+							this);
+		}
 		return true;
 	}
 
@@ -70,7 +76,13 @@ public class VisparApp extends ApplicationAdapter implements
 				publisherListNames += ",";
 			}
 		}
-        sendToClient(conn, "initStreams", new Object[] {publisherListNames});
+		boolean bIsAllInOneConn = false;
+		if(conn instanceof RTMPConnection) {
+			bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
+		}
+		if( !bIsAllInOneConn ) {
+			sendToClient(conn, "initStreams", new Object[] {publisherListNames});
+		}
         
         //send the list of talker only mode to the client as well
     	IScope roomScope = conn.getScope(); //RoomScope 
@@ -87,7 +99,17 @@ public class VisparApp extends ApplicationAdapter implements
                 }
             }
         }
-        sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
+		if( !bIsAllInOneConn ) {
+			sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
+		}
+        
+        if (conn instanceof RTMPConnection) {
+        	if( ((RTMPConnection)conn).isExternalVideoGenerated() ) {
+        		log.info("Send onExternalVideoStarted {}", ((RTMPConnection)conn).getUser());
+        		sendToClient(conn, "onExternalVideoStarted", null);        		
+        	}
+        }
+        
     	return true;
 	}
     
@@ -108,8 +130,13 @@ public class VisparApp extends ApplicationAdapter implements
                     // Don't notify current client
                     continue;
                 }
-
-                sendToClient(conn, "addStream", new Object[] {stream.getPublishedName()});
+                boolean bIsAllInOneConn = false;
+        		if(conn instanceof RTMPConnection) {
+        			bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
+        		}
+        		if( !bIsAllInOneConn ) {
+        			sendToClient(conn, "addStream", new Object[] {stream.getPublishedName()});
+        		}
             }
         }
         publisherList.add(stream.getPublishedName());
@@ -135,7 +162,13 @@ public class VisparApp extends ApplicationAdapter implements
                     // Don't notify current client
                     continue;
                 }
-                sendToClient(conn, "removeStream", new Object[] {stream.getPublishedName()});
+                boolean bIsAllInOneConn = false;
+        		if(conn instanceof RTMPConnection) {
+        			bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
+        		}
+        		if( !bIsAllInOneConn ) {
+        			sendToClient(conn, "removeStream", new Object[] {stream.getPublishedName()});
+        		}
             }
 		}
 

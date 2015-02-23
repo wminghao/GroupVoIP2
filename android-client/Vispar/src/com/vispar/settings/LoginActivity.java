@@ -25,9 +25,26 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
 import com.vispar.R;
+import com.vispar.VisparApplication;
 
 /**
  * A login screen that offers login via email/password.
@@ -38,13 +55,19 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	 */
 	private UserLoginTask mAuthTask = null;
 
+	//RESTful API for login request
+	private static String LOGIN_URL = "/login";
+	
 	// UI references.
 	private AutoCompleteTextView mEmailView;
 	private EditText mPasswordView;
 	private View mProgressView;
-	private View mLoginFormView;
+	private View mLoginFormView;	
 	
 	public static String USER_NAME_KEY = "UserName";
+	public static String EXPIRATION_TS_KEY = "Expire";
+	public static String TOKEN_KEY = "Token";
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -245,7 +268,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	 * Represents an asynchronous login/registration task used to authenticate
 	 * the user.
 	 */
-	public class UserLoginTask extends AsyncTask<Void, Void, String> {
+	public class UserLoginTask extends AsyncTask<Void, Void, List<BasicNameValuePair>> {
 
 		private final String mEmail;
 		private final String mPassword;
@@ -256,34 +279,82 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 		}
 
 		@Override
-		protected String doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
-
+		protected List<BasicNameValuePair> doInBackground(Void... params) {
+			List<BasicNameValuePair> list = new ArrayList<BasicNameValuePair>();
 			try {
-				// Simulate network access.
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				return null;
+			    StringBuilder body = new StringBuilder();
+			    DefaultHttpClient httpclient = new DefaultHttpClient(); // create new httpClient
+			    HttpPost httpPost = new HttpPost(VisparApplication.WebServerDomainName +LOGIN_URL); // create new httpGet object
+			    httpPost.addHeader("Content-type","application/x-www-form-urlencoded");
+			    httpPost.addHeader("Accept","application/json");
+			    
+			    List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+			    nvps.add(new BasicNameValuePair("email", mEmail));
+			    nvps.add(new BasicNameValuePair("password", mPassword));
+			    httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+			    
+			    HttpResponse response = httpclient.execute(httpPost); // execute httpPost
+			    StatusLine statusLine = response.getStatusLine();
+			    int statusCode = statusLine.getStatusCode();
+		        if (statusCode == HttpStatus.SC_OK) {
+		        	// System.out.println(statusLine);
+		            //body.append(statusLine + "\n");
+		            HttpEntity e = response.getEntity();
+		            String entity = EntityUtils.toString(e);
+		            body.append(entity);
+				    String bodyStr = body.toString(); // return the String
+				    // Instantiate a JSON object from the request response
+				    JSONObject jsonObject = new JSONObject(bodyStr);
+				    list.add(new BasicNameValuePair("name", jsonObject.getString("name")));
+				    list.add(new BasicNameValuePair("expire", Long.toString(jsonObject.getLong("expire"))));
+				    list.add(new BasicNameValuePair("token", jsonObject.getString("token")));
+				    
+				    /* Return value as following
+				     * {
+ 						"id": "54e38b0b623d7f700732732b",
+ 						"token": "1231312312312312312123123",
+ 						"name": "Guangda Zhang”
+ 						“expire”: 12:31:2025
+					   }
+				     */
+		        } else {
+		            body.append(statusLine + "\n");
+		            // System.out.println(statusLine);
+		        }
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
 			}
-
-			//TODO simulate user name
-			String[] pieces = mEmail.split("@");
-			return pieces[0];
+			return list;
 		}
 
 		@Override
-		protected void onPostExecute(final String value) {
+		protected void onPostExecute(final List<BasicNameValuePair> list) {
 			mAuthTask = null;
 			showProgress(false);
 
-			if (value != null) {
+			if (list != null) {
 				Intent intent = new Intent();
-	            intent.putExtra(USER_NAME_KEY, value);
+				for (BasicNameValuePair element : list) {
+					if( element.getName() == "name") {
+						intent.putExtra(USER_NAME_KEY, element.getValue());
+					} else if( element.getName() == "expire" ) {
+						intent.putExtra(EXPIRATION_TS_KEY, Long.parseLong(element.getValue(), 10));
+					} else if( element.getName() == "token" ) {
+						intent.putExtra(TOKEN_KEY, element.getValue());
+					}
+				}
 	            setResult(RESULT_OK, intent);
 				finish();
 			} else {
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.setError(getString(R.string.error_incorrect_info));
 				mPasswordView.requestFocus();
 			}
 		}

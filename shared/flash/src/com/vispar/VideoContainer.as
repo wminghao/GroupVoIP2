@@ -34,6 +34,7 @@ package com.vispar
 		protected var roomMode_:String; //either auto mode or moderator mode
 		
 		protected var forceAudioOnly_:Boolean;
+		protected var autoPublish_:Boolean;
 		
 		protected function logDebug(str:String):void {
 			delegate_.logDebug(str);
@@ -42,7 +43,9 @@ package com.vispar
 			delegate_.showAlert(str);
 		}
 		
-		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean)
+		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, 
+									   room:String, user:String, mode:String, 
+									   forceAudioOnly:Boolean, autoPublish:Boolean)
 		{ 
 			this.container_ = container;
 			this.delegate_ = delegate;
@@ -50,6 +53,7 @@ package com.vispar
 			this.user = user;
 			this.roomMode_ = mode;
 			this.forceAudioOnly_ = forceAudioOnly;
+			this.autoPublish_ = autoPublish;
 		}
 		
 		public function connectServer():void {

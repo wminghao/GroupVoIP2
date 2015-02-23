@@ -624,7 +624,7 @@ public class StreamService implements IStreamService {
 					bs.start();
 				}
 				bs.startPublishing();
-				log.debug("=========published stream successfully: mode={}, name={}, streamId={} ", mode, name, streamId ); 
+				log.info("=========published stream successfully: mode={}, name={}, streamId={} ", mode, name, streamId ); 
 				//create a mixed stream from here, TODO for mobile only
 				if( mode.equalsIgnoreCase(IClientStream.MODE_LIVE)) {
 					//save the streaminfo in rtmpconnection

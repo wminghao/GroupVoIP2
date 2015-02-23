@@ -95,7 +95,9 @@ import android.widget.Button;
         //Reading values from the Preferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
-        if( userName == null ) {
+        long expirationDate =  prefs.getLong(LoginActivity.EXPIRATION_TS_KEY, 0);
+        long curTime = System.currentTimeMillis()/1000;
+        if( userName == null || expirationDate == 0 || curTime >= expirationDate) {
         	startSignIn();
         }
     }
@@ -239,14 +241,14 @@ import android.widget.Button;
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
-    	           		 String msgToShare = getString(R.string.invite_session_message) + " http://www.vispar.com/rooms/howard"; //TODO
+    	           		 String msgToShare = getString(R.string.invite_session_message) + " "+VisparApplication.WebServerDomainName+"rooms/howard"; //TODO
     	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, false);
                     }
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/now"; //TODO
+                        String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/"; //TODO
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -256,7 +258,7 @@ import android.widget.Button;
                     public void onClick(View v) {
                     	//TODO an activity to list all archived videos
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
-                        String url = "vispar.player://vod/rooms/howard/"+PlaceholderFragment.this.mUserName+"/1234567890";//TODO archive ID
+                        String url = "vispar.player://vod/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/";//TODO archive ID
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
@@ -289,7 +291,7 @@ import android.widget.Button;
             	inviteEvent.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
     	           		 String msgToShare = getString(R.string.invite_event_message) + 
-    	           				 " http://"+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
+    	           				 " "+VisparApplication.WebServerUrl+":"+VisparApplication.WebServerPort+"/viewhtmlevent/1"; //TODO
     	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, true);
                     }
                 });
@@ -320,10 +322,14 @@ import android.widget.Button;
         if (requestCode == REQUEST_LOGIN) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                String userName = data.getStringExtra("UserName");
+                String userName = data.getStringExtra(LoginActivity.USER_NAME_KEY);
+                String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
+                long expire = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 Editor edit = prefs.edit();
                 edit.putString(LoginActivity.USER_NAME_KEY, userName);
+                edit.putString(LoginActivity.TOKEN_KEY, token);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expire);
                 edit.apply(); 
             }
         }

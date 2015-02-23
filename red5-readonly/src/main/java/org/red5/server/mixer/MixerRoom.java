@@ -20,12 +20,6 @@ public class MixerRoom {
     
     //remember the name of the scope
     public String scopeName_;
-
-	//a statemachine to indicate whether allInOneStream is connected or not?
-	public AtomicInteger allInOneConnStatus_ = new AtomicInteger(ALLINCONN_NOT_STARTED);
-    public static final int ALLINCONN_NOT_STARTED = 0;
-    public static final int ALLINCONN_IN_PROGRESS = 1;
-    public static final int ALLINCONN_CONNECTED   = 2;
 	
     //creates a mixerRoom
     public MixerRoom( GroupMixer groupMixer,

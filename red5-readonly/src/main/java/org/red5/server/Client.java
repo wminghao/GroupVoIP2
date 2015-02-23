@@ -100,9 +100,9 @@ public class Client extends AttributeStore implements IClient {
 	 *  Disconnects client from Red5 application
 	 */
 	public void disconnect() {
-		log.debug("Disconnect - id: {}", id);
+		log.info("Disconnect - id: {}", id);
 		if (connections != null && !connections.isEmpty()) {
-			log.debug("Closing {} scope connections", connections.size());
+			log.info("Closing {} scope connections", connections.size());
 			// close all connections held to Red5 by client
 			for (IConnection con : getConnections()) {
 				try {
