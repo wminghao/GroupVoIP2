@@ -381,6 +381,11 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             //LOG("------Enqueue video frame, index=%d, queuesize=%d, pts=%d\r\n", index, videoQueue_[index].size(), v->pts);
             videoQueue_[index].push_back( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
+            
+            //if audio has not started, treat the video timestamp as the global audio timestamp
+            if( audioStreamStatus_[index] < kStreamOnlineStarted) { 
+                globalAudioTimestamp_ = v->pts; //global audio timestamp updated here
+            }
         }
     } else if ( au->st == kAudioStreamType ) {
         if( !audioDecoder_[index] )  {
