@@ -26,22 +26,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import com.vispar.R;
 import com.vispar.VisparApplication;
@@ -278,26 +278,44 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
 		@Override
 		protected String doInBackground(Void... params) {
+			String username = null;
 			try {
 			    StringBuilder body = new StringBuilder();
 			    DefaultHttpClient httpclient = new DefaultHttpClient(); // create new httpClient
-			    HttpGet httpGet = new HttpGet(VisparApplication.WebServerDomainName +LOGIN_URL+"?email="+mEmail+"&password="+mPassword); // create new httpGet object
-			    httpGet.setHeader("Content-type","application/json");
-			    HttpResponse response = httpclient.execute(httpGet); // execute httpGet
+			    HttpPost httpPost = new HttpPost(VisparApplication.WebServerDomainName +LOGIN_URL); // create new httpGet object
+			    httpPost.addHeader("Content-type","application/x-www-form-urlencoded");
+			    httpPost.addHeader("Accept","application/json");
+			    
+			    List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+			    nvps.add(new BasicNameValuePair("email", mEmail));
+			    nvps.add(new BasicNameValuePair("password", mPassword));
+			    httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+			    
+			    HttpResponse response = httpclient.execute(httpPost); // execute httpPost
 			    StatusLine statusLine = response.getStatusLine();
 			    int statusCode = statusLine.getStatusCode();
 		        if (statusCode == HttpStatus.SC_OK) {
 		        	// System.out.println(statusLine);
-		            body.append(statusLine + "\n");
+		            //body.append(statusLine + "\n");
 		            HttpEntity e = response.getEntity();
 		            String entity = EntityUtils.toString(e);
 		            body.append(entity);
+				    String bodyStr = body.toString(); // return the String
+				    // Instantiate a JSON object from the request response
+				    JSONObject jsonObject = new JSONObject(bodyStr);
+				    username = jsonObject.getString("name");
+				    
+				    /* Return value as following
+				     * {
+ 						"id": "54e38b0b623d7f700732732b",
+ 						"name": "Guangda Zhang”
+ 						“expire”: 12:31:2025
+					   }
+				     */
 		        } else {
 		            body.append(statusLine + "\n");
 		            // System.out.println(statusLine);
 		        }
-			    body.toString(); // return the String
-			    
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -309,9 +327,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				e.printStackTrace();
 			} finally {
 			}
-			//TODO simulate user name
-			String[] pieces = mEmail.split("@");
-			return pieces[0];
+			return username;
 		}
 
 		@Override
@@ -325,8 +341,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	            setResult(RESULT_OK, intent);
 				finish();
 			} else {
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.setError(getString(R.string.error_incorrect_info));
 				mPasswordView.requestFocus();
 			}
 		}

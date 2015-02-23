@@ -125,7 +125,7 @@ public final class R {
         public static final int clipboard_share=0x7f05000b;
         public static final int copy_to_clipboard=0x7f05000a;
         public static final int error_field_required=0x7f050029;
-        public static final int error_incorrect_password=0x7f050028;
+        public static final int error_incorrect_info=0x7f050028;
         public static final int error_invalid_email=0x7f050026;
         public static final int error_invalid_password=0x7f050027;
         public static final int event_description=0x7f050019;
