@@ -90,6 +90,9 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
     bool isNextVideoStreamReady(u32& maxVideoTimestamp);
     bool isNextAudioStreamReady(u32& maxAudioTimestamp);
 
+    //check whether all streams have no audio
+    bool isNoStreamsAudioStarted();
+
     //check the status of a stream to see if it's online
     bool isStreamOnlineStarted(StreamType streamType, int index);
 

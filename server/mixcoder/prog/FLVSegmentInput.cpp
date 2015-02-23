@@ -26,112 +26,31 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
     maxVideoTimestamp = 0;
 
     for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
-        if ( videoStreamStatus_[i] == kStreamOnlineStarted ) {
-
-            //nextBucketTimestamp is every 33ms since the beginning of video stream
-            double nextBucketTimestamp = lastBucketTimestamp_[i] + videoFrameIntervalInMs;
-
-            //audioBuckeTimestamp is the bucket under which the audio packet falls into. (strictly folow 33ms rule)
-            double audioBucketTimestamp = nextBucketTimestamp; //strictly follow 33ms rule
-            if( nextAudioTimestamp_[i] ) {
-                audioBucketTimestamp = lastBucketTimestamp_[i] + ceil(videoFrameIntervalInMs * ((int)(((double)nextAudioTimestamp_[i] - lastBucketTimestamp_[i])/videoFrameIntervalInMs))); 
-            }
-
-            //nextLimitTimestamp is useful if audio is way ahead of video bucket.
-            u32 nextLimitTimestamp = MAX( nextBucketTimestamp, audioBucketTimestamp );
-
+        if ( videoStreamStatus_[i] == kStreamOnlineStarted ) {                
             //frame timestamp is the max video timestamp before the limit
             u32 frameTimestamp = MAX_U32;
-
+            
             //detect if it's an video header
             u32 spsPpsTimestamp = MAX_U32;
             bool hasSpsPps = false;
-
-            bool recordFrameTimestamp = false;
-
-            if( videoQueue_[i].size() > 0 ) {
-                recordFrameTimestamp = true;
-                if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
-                    hasSpsPps = true;
-                    //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
-                } else {
-                    if( hasStarted_[i] ) {
-                        //if it's over the limit, don't record
-                        if( videoQueue_[i].front()->pts > nextLimitTimestamp ) {
-                            recordFrameTimestamp = false;
-                        }
-                    }
-                }
-                if( recordFrameTimestamp ) {
+            
+            //if audio has not started
+            if ( audioStreamStatus_[i] < kStreamOnlineStarted ) {
+                if( videoQueue_[i].size() > 0 ) {
+                    if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
+                        hasSpsPps = true;
+                        LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
+                    } 
                     isReady = true;
-                    frameTimestamp = videoQueue_[i].front()->pts;
-                }
-                //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].front()->pts, frameTimestamp);
-            } else {
-                //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
-            }
-
-            //Total of 6 cases
-            //after the first frame. every 33ms, considers it's ready, regardless whether there is a frame or not
-            if( hasStarted_[i] ) {
-                if ( frameTimestamp != MAX_U32 ) {
-                    if( frameTimestamp <= (u32)nextBucketTimestamp ) { 
-                        if( audioBucketTimestamp >= nextBucketTimestamp) {
-                            //////////////////////////////////////////////////////////////////////////////////////////////////////
-                            //Case 1. frameTimestamp <= nextBucketTimestamp <= audioBucketTimestamp 
-                            //////////////////////////////////////////////////////////////////////////////////////////////////////
-                            //video has accumulated some data and audio has already catch up
-                            nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = nextBucketTimestamp; //strictly follow
-                            maxVideoTimestamp = MAX(maxVideoTimestamp, nextBucketTimestamp); //strictly follow
-                            //LOG( "===stream: %d follow up video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
-                        } else {
-                            ASSERT(audioBucketTimestamp < nextBucketTimestamp);
-                            //wait for the nextBucketTimestamp, since audio is not ready yet, not advanced to the next level yet
-                            if( frameTimestamp <= audioBucketTimestamp ) {
-                                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                                //Case 2. frameTimestamp <= audioBucketTimestamp < nextBucketTimestamp
-                                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                                //audio not ready yet, but video can pop out,
-                                nextVideoTimestamp_[i] = audioBucketTimestamp;
-                                //dont advance lastBucketTimestamp_[i]
-                                maxVideoTimestamp = MAX(maxVideoTimestamp, audioBucketTimestamp );
-                                //LOG( "===stream:%d audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
-                            } else {
-                                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                                //Case 3. audioBucketTimestamp < frameTimestamp <= nextBucketTimestamp
-                                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                                //audio may or may not be ready yet, but video can pop out,
-                                nextVideoTimestamp_[i] = frameTimestamp;
-                                //dont advance lastBucketTimestamp_[i]
-                                maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); 
-                                //LOG( "===stream:%d audio may be ready, give it a try. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
-                            }
-                        }
-                    } else { 
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////
-                        //Case 4. nextBucketTimestamp < frameTimestamp <= audioBucketTimestamp 
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////
-                        ////frameTimestamp > nextBucketTimestamp 
-                        ASSERT( audioBucketTimestamp >= frameTimestamp );
-                        ASSERT( audioBucketTimestamp > nextBucketTimestamp );
-                        //if audio is already ahead, pop that frame out, jump forward
-                        nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = audioBucketTimestamp;
-                        maxVideoTimestamp  = MAX(maxVideoTimestamp, audioBucketTimestamp); //strictly follow
-                        //LOG( "===stream:%d follow up 2 video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
-                    }
+                    frameTimestamp = videoQueue_[i].back()->pts; //always pop out the latest(last) video frame
+                    //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].back()->pts, frameTimestamp);
                 } else {
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////
-                    //Case 5 & 6. frameTimestamp > MAX( audioBucketTimestamp, nextBucketTimestamp )
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////
-                    //no data available
-                    //wait for the nextBucketTimestamp
-                    //LOG( "===stream:%d no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
+                    //LOG( "---streamMask online unavailable index=%d\r\n", i);
                 }
-            } else {
                 if( hasSpsPps ) {
                     //if there is no frame ready, only sps/pps pop out it immediately
-                    //LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
-                    momentoBucketTimestamp_[i] = audioBucketTimestamp;
+                    LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
+                    momentoBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = spsPpsTimestamp;
                     maxVideoTimestamp = MAX(maxVideoTimestamp, spsPpsTimestamp); //strictly follow
                 } else if ( frameTimestamp != MAX_U32 ) {
@@ -140,10 +59,117 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                     momentoBucketTimestamp_[i] = frameTimestamp;
                     nextVideoTimestamp_[i] = frameTimestamp;
                     maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); //strictly follow
-                    //LOG( "===stream:%d first video timestamp=%d\r\n", i, frameTimestamp);
+                    LOG( "===stream:%d video timestamp=%d\r\n", i, frameTimestamp);
+                }   
+            } else {
+                //nextBucketTimestamp is every 33ms since the beginning of video stream
+                double nextBucketTimestamp = lastBucketTimestamp_[i] + videoFrameIntervalInMs;
+                
+                //audioBuckeTimestamp is the bucket under which the audio packet falls into. (strictly folow 33ms rule)
+                double audioBucketTimestamp = nextBucketTimestamp; //strictly follow 33ms rule
+                if( nextAudioTimestamp_[i] ) {
+                    audioBucketTimestamp = lastBucketTimestamp_[i] + ceil(videoFrameIntervalInMs * ((int)(((double)nextAudioTimestamp_[i] - lastBucketTimestamp_[i])/videoFrameIntervalInMs))); 
+                }
+                
+                //nextLimitTimestamp is useful if audio is way ahead of video bucket.
+                u32 nextLimitTimestamp = MAX( nextBucketTimestamp, audioBucketTimestamp );
+                
+                if( videoQueue_[i].size() > 0 ) {
+                    bool recordFrameTimestamp = true;
+                    if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
+                        hasSpsPps = true;
+                        //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
+                    } else {
+                        if( hasStarted_[i] ) {
+                            //if it's over the limit, don't record
+                            if( videoQueue_[i].front()->pts > nextLimitTimestamp ) {
+                                recordFrameTimestamp = false;
+                            }
+                        }
+                    }
+                    if( recordFrameTimestamp ) {
+                        isReady = true;
+                        frameTimestamp = videoQueue_[i].front()->pts;
+                    }
+                    //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].front()->pts, frameTimestamp);
+                } else {
+                    //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
+                }
+                
+                //Total of 6 cases
+                //after the first frame. every 33ms, considers it's ready, regardless whether there is a frame or not
+                if( hasStarted_[i] ) {
+                    if ( frameTimestamp != MAX_U32 ) {
+                        if( frameTimestamp <= (u32)nextBucketTimestamp ) { 
+                            if( audioBucketTimestamp >= nextBucketTimestamp) {
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //Case 1. frameTimestamp <= nextBucketTimestamp <= audioBucketTimestamp 
+                                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                //video has accumulated some data and audio has already catch up
+                                nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = nextBucketTimestamp; //strictly follow
+                                maxVideoTimestamp = MAX(maxVideoTimestamp, nextBucketTimestamp); //strictly follow
+                                //LOG( "===stream: %d follow up video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
+                            } else {
+                                ASSERT(audioBucketTimestamp < nextBucketTimestamp);
+                                //wait for the nextBucketTimestamp, since audio is not ready yet, not advanced to the next level yet
+                                if( frameTimestamp <= audioBucketTimestamp ) {
+                                    //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                    //Case 2. frameTimestamp <= audioBucketTimestamp < nextBucketTimestamp
+                                    //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                    //audio not ready yet, but video can pop out,
+                                    nextVideoTimestamp_[i] = audioBucketTimestamp;
+                                    //dont advance lastBucketTimestamp_[i]
+                                    maxVideoTimestamp = MAX(maxVideoTimestamp, audioBucketTimestamp );
+                                    //LOG( "===stream:%d audio not ready. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
+                                } else {
+                                    //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                    //Case 3. audioBucketTimestamp < frameTimestamp <= nextBucketTimestamp
+                                    //////////////////////////////////////////////////////////////////////////////////////////////////////
+                                    //audio may or may not be ready yet, but video can pop out,
+                                    nextVideoTimestamp_[i] = frameTimestamp;
+                                    //dont advance lastBucketTimestamp_[i]
+                                    maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); 
+                                    //LOG( "===stream:%d audio may be ready, give it a try. frameTimestamp=%d, audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, frameTimestamp, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
+                                }
+                            }
+                        } else { 
+                            //////////////////////////////////////////////////////////////////////////////////////////////////////
+                            //Case 4. nextBucketTimestamp < frameTimestamp <= audioBucketTimestamp 
+                            //////////////////////////////////////////////////////////////////////////////////////////////////////
+                            ////frameTimestamp > nextBucketTimestamp 
+                            ASSERT( audioBucketTimestamp >= frameTimestamp );
+                            ASSERT( audioBucketTimestamp > nextBucketTimestamp );
+                            //if audio is already ahead, pop that frame out, jump forward
+                            nextVideoTimestamp_[i] = momentoBucketTimestamp_[i] = audioBucketTimestamp;
+                            maxVideoTimestamp  = MAX(maxVideoTimestamp, audioBucketTimestamp); //strictly follow
+                            //LOG( "===stream:%d follow up 2 video timstamp=%d, audioBucketTimestamp=%d nextBucketTimestamp=%d\r\n", i, maxVideoTimestamp, (u32)audioBucketTimestamp, (u32)nextBucketTimestamp);
+                        }
+                    } else {
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////
+                        //Case 5 & 6. frameTimestamp > MAX( audioBucketTimestamp, nextBucketTimestamp )
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////
+                        //no data available
+                        //wait for the nextBucketTimestamp
+                        //LOG( "===stream:%d no data available. audioBucketTimestamp=%.2f, nextBucketTimestamp=%.2f, maxVideoTimestamp=%d\r\n", i, audioBucketTimestamp, nextBucketTimestamp, maxVideoTimestamp);
+                    }
+                } else {
+                    if( hasSpsPps ) {
+                        //if there is no frame ready, only sps/pps pop out it immediately
+                        //LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
+                        momentoBucketTimestamp_[i] = audioBucketTimestamp;
+                        nextVideoTimestamp_[i] = spsPpsTimestamp;
+                        maxVideoTimestamp = MAX(maxVideoTimestamp, spsPpsTimestamp); //strictly follow
+                    } else if ( frameTimestamp != MAX_U32 ) {
+                        //first time there is a stream available, always pop out the frame(s)
+                        hasStarted_[i] = true;
+                        momentoBucketTimestamp_[i] = frameTimestamp;
+                        nextVideoTimestamp_[i] = frameTimestamp;
+                        maxVideoTimestamp = MAX(maxVideoTimestamp, frameTimestamp); //strictly follow
+                        //LOG( "===stream:%d first video timestamp=%d\r\n", i, frameTimestamp);
+                    }
                 }
             }
-        } 
+        }
     }
 
     return isReady;
@@ -311,6 +337,17 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
     }
 
     return totalStreams?isReady:false;
+}
+
+bool FLVSegmentInput::isNoStreamsAudioStarted() {
+    bool bNoStreamsAudioStarted = true;
+    for(u32 index = 0; index < MAX_XCODING_INSTANCES; index++ ) {
+        if( audioStreamStatus_[index] == kStreamOnlineStarted ) {
+            bNoStreamsAudioStarted = false;
+            break;
+        }
+    }
+    return bNoStreamsAudioStarted;
 }
 
 bool FLVSegmentInput::isStreamOnlineStarted(StreamType streamType, int index)
