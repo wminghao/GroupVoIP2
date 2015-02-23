@@ -65,6 +65,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	private View mLoginFormView;	
 	
 	public static String USER_NAME_KEY = "UserName";
+	public static String EXPIRATION_TS_KEY = "Expire";
+	public static String TOKEN_KEY = "Token";
 	
 	
 	@Override
@@ -266,7 +268,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	 * Represents an asynchronous login/registration task used to authenticate
 	 * the user.
 	 */
-	public class UserLoginTask extends AsyncTask<Void, Void, String> {
+	public class UserLoginTask extends AsyncTask<Void, Void, List<BasicNameValuePair>> {
 
 		private final String mEmail;
 		private final String mPassword;
@@ -277,8 +279,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 		}
 
 		@Override
-		protected String doInBackground(Void... params) {
-			String username = null;
+		protected List<BasicNameValuePair> doInBackground(Void... params) {
+			List<BasicNameValuePair> list = new ArrayList<BasicNameValuePair>();
 			try {
 			    StringBuilder body = new StringBuilder();
 			    DefaultHttpClient httpclient = new DefaultHttpClient(); // create new httpClient
@@ -303,11 +305,14 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				    String bodyStr = body.toString(); // return the String
 				    // Instantiate a JSON object from the request response
 				    JSONObject jsonObject = new JSONObject(bodyStr);
-				    username = jsonObject.getString("name");
+				    list.add(new BasicNameValuePair("name", jsonObject.getString("name")));
+				    list.add(new BasicNameValuePair("expire", Long.toString(jsonObject.getLong("expire"))));
+				    list.add(new BasicNameValuePair("token", jsonObject.getString("token")));
 				    
 				    /* Return value as following
 				     * {
  						"id": "54e38b0b623d7f700732732b",
+ 						"token": "1231312312312312312123123",
  						"name": "Guangda Zhang”
  						“expire”: 12:31:2025
 					   }
@@ -327,17 +332,25 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				e.printStackTrace();
 			} finally {
 			}
-			return username;
+			return list;
 		}
 
 		@Override
-		protected void onPostExecute(final String value) {
+		protected void onPostExecute(final List<BasicNameValuePair> list) {
 			mAuthTask = null;
 			showProgress(false);
 
-			if (value != null) {
+			if (list != null) {
 				Intent intent = new Intent();
-	            intent.putExtra(USER_NAME_KEY, value);
+				for (BasicNameValuePair element : list) {
+					if( element.getName() == "name") {
+						intent.putExtra(USER_NAME_KEY, element.getValue());
+					} else if( element.getName() == "expire" ) {
+						intent.putExtra(EXPIRATION_TS_KEY, Long.parseLong(element.getValue(), 10));
+					} else if( element.getName() == "token" ) {
+						intent.putExtra(TOKEN_KEY, element.getValue());
+					}
+				}
 	            setResult(RESULT_OK, intent);
 				finish();
 			} else {

@@ -95,11 +95,11 @@ import android.widget.Button;
         //Reading values from the Preferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
-        
-        //TODO
-        //if( userName == null ) {
+        long expirationDate =  prefs.getLong(LoginActivity.EXPIRATION_TS_KEY, 0);
+        long curTime = System.currentTimeMillis()/1000;
+        if( userName == null || expirationDate == 0 || curTime >= expirationDate) {
         	startSignIn();
-        //}
+        }
     }
 
 
@@ -322,10 +322,14 @@ import android.widget.Button;
         if (requestCode == REQUEST_LOGIN) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                String userName = data.getStringExtra("UserName");
+                String userName = data.getStringExtra(LoginActivity.USER_NAME_KEY);
+                String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
+                long expire = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 Editor edit = prefs.edit();
                 edit.putString(LoginActivity.USER_NAME_KEY, userName);
+                edit.putString(LoginActivity.TOKEN_KEY, token);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expire);
                 edit.apply(); 
             }
         }
