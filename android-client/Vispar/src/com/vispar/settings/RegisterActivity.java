@@ -52,7 +52,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 	private UserRegisterTask mAuthTask = null;
 
 	//RESTful API for register request
-	private static String REGISTER_URL = "/register";
+	private static String REGISTER_URL = "/signup";
 	
 	// UI references.
 	private AutoCompleteTextView mEmailView;
@@ -62,7 +62,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 	private View mRegisterFormView;	
 	
 	public static String USER_NAME_KEY = "UserName";
-	public static String EXPIRATION_TS_KEY = "Expire";
+	public static String EXPIRATION_TS_KEY = "Expired";
 	public static String TOKEN_KEY = "Token";
 	
 	
@@ -113,6 +113,29 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 
 		mRegisterFormView = findViewById(R.id.register_form);
 		mProgressView = findViewById(R.id.register_progress);
+		
+
+		Button loginButton = (Button) findViewById(R.id.click_to_login_button_from_register);
+		loginButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent i = new Intent(RegisterActivity.this, com.vispar.settings.LoginActivity.class);
+		        finish();
+		        startActivity(i);
+			}
+		});
+		/*
+		 * Forget password
+		Button forgetPasswordButton = (Button) findViewById(R.id.click_to_forget_password_button_from_register);
+		forgetPasswordButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent i = new Intent(LoginActivity.this, com.vispar.settings.ForgetPasswordActivity.class);
+		        finish();
+		        startActivity(i);
+			}
+		});
+		*/
 	}
 
 	private void populateAutoComplete() {
@@ -149,7 +172,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 			cancel = true;
 		}
 		
-		if (!TextUtils.isEmpty(password) && !isUserNameValid(userName) ) {
+		if (!TextUtils.isEmpty(userName) && !isUserNameValid(userName) ) {
 			mUserNameView.setError(getString(R.string.error_invalid_username));
 			focusView = mUserNameView;
 			cancel = true;	
@@ -332,7 +355,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 				    // Instantiate a JSON object from the request response
 				    JSONObject jsonObject = new JSONObject(bodyStr);
 				    list.add(new BasicNameValuePair("name", jsonObject.getString("name")));
-				    list.add(new BasicNameValuePair("expire", Long.toString(jsonObject.getLong("expire"))));
+				    list.add(new BasicNameValuePair("expired", Long.toString(jsonObject.getLong("expired"))));
 				    list.add(new BasicNameValuePair("token", jsonObject.getString("token")));
 				    
 				    /* Return value as following
@@ -340,7 +363,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
  						"id": "54e38b0b623d7f700732732b",
  						"token": "1231312312312312312123123",
  						"name": "Guangda Zhang”
- 						“expire”: 12:31:2025
+ 						“expired”: 12:31:2025
 					   }
 				     */
 		        } else {
@@ -371,7 +394,7 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 				for (BasicNameValuePair element : list) {
 					if( element.getName() == "name") {
 						intent.putExtra(USER_NAME_KEY, element.getValue());
-					} else if( element.getName() == "expire" ) {
+					} else if( element.getName() == "expired" ) {
 						intent.putExtra(EXPIRATION_TS_KEY, Long.parseLong(element.getValue(), 10));
 					} else if( element.getName() == "token" ) {
 						intent.putExtra(TOKEN_KEY, element.getValue());

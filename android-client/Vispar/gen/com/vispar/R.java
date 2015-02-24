@@ -131,8 +131,8 @@ public final class R {
         public static final int MySessions=0x7f050001;
         public static final int Schedule=0x7f050002;
         public static final int action_forget_password=0x7f05002a;
-        public static final int action_register=0x7f05002c;
-        public static final int action_register_short=0x7f05002d;
+        public static final int action_register=0x7f05002d;
+        public static final int action_register_short=0x7f05002e;
         public static final int action_settings=0x7f050006;
         public static final int action_sign_in=0x7f050024;
         public static final int action_sign_in_short=0x7f050025;
@@ -142,10 +142,10 @@ public final class R {
         public static final int copy_to_clipboard=0x7f05000a;
         public static final int error_field_required=0x7f050029;
         public static final int error_incorrect_info_login=0x7f050028;
-        public static final int error_incorrect_info_register=0x7f05002f;
+        public static final int error_incorrect_info_register=0x7f050030;
         public static final int error_invalid_email=0x7f050026;
         public static final int error_invalid_password=0x7f050027;
-        public static final int error_invalid_username=0x7f05002e;
+        public static final int error_invalid_username=0x7f05002f;
         public static final int event_description=0x7f050019;
         public static final int event_end_time=0x7f05001b;
         public static final int event_is_public=0x7f050015;
@@ -165,13 +165,14 @@ public final class R {
          */
         public static final int prompt_email=0x7f050022;
         public static final int prompt_password=0x7f050023;
-        public static final int prompt_username=0x7f05002b;
+        public static final int prompt_username=0x7f05002c;
         public static final int select_to_share=0x7f050009;
         public static final int share_subject=0x7f050007;
         public static final int start_event=0x7f05000d;
         public static final int start_schedules=0x7f05000f;
         public static final int submit=0x7f05001f;
         public static final int title_activity_login=0x7f050021;
+        public static final int title_activity_register=0x7f05002b;
         public static final int title_activity_start_event=0x7f050016;
         public static final int title_activity_view_event=0x7f050017;
         public static final int view_past_events=0x7f05000e;

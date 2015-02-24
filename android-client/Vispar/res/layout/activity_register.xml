@@ -85,7 +85,7 @@
 	        style="?android:textAppearanceSmall"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_weight="1.23"
+            android:layout_weight=".50"
 	        android:text="@string/action_sign_in"
 	        android:textStyle="bold" />
 
@@ -93,6 +93,7 @@
 	        android:id="@+id/click_to_forget_password_button_from_register"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
+            android:layout_weight=".50"
 	        android:text="@string/action_forget_password" />
 
 	</LinearLayout>

@@ -50,7 +50,8 @@ import android.widget.Button;
 	/*
 	 * Logged in username
 	 */
-    private static final int REQUEST_LOGIN = 0;
+    public static final int REQUEST_LOGIN = 0;
+    public static final int REQUEST_REGISTER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -319,17 +320,17 @@ import android.widget.Button;
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         // Check which request we're responding to
-        if (requestCode == REQUEST_LOGIN) {
+        if (requestCode == REQUEST_LOGIN || requestCode == REQUEST_REGISTER) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 String userName = data.getStringExtra(LoginActivity.USER_NAME_KEY);
                 String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
-                long expire = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
+                long expired = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 Editor edit = prefs.edit();
                 edit.putString(LoginActivity.USER_NAME_KEY, userName);
                 edit.putString(LoginActivity.TOKEN_KEY, token);
-                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expire);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expired);
                 edit.apply(); 
             }
         }

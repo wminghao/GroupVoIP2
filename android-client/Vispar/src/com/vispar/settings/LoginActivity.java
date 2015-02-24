@@ -43,6 +43,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
+import com.vispar.MainActivity;
 import com.vispar.R;
 import com.vispar.VisparApplication;
 import com.vispar.mysessions.AirConfActivity;
@@ -66,7 +67,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 	private View mLoginFormView;	
 	
 	public static String USER_NAME_KEY = "UserName";
-	public static String EXPIRATION_TS_KEY = "Expire";
+	public static String EXPIRATION_TS_KEY = "Expired";
 	public static String TOKEN_KEY = "Token";
 	
 	
@@ -108,18 +109,17 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 		registerButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Intent i = new Intent(LoginActivity.this, com.vispar.settings.LoginActivity.class);
-		        finish();
-		        startActivity(i);
+				Intent i = new Intent(LoginActivity.this, com.vispar.settings.RegisterActivity.class);
+		        startActivityForResult(i, MainActivity.REQUEST_REGISTER);
 			}
 		});
 		/*
 		 * Forget password
-		Button registerButton = (Button) findViewById(R.id.click_to_register_button_from_login);
-		registerButton.setOnClickListener(new OnClickListener() {
+		Button forgetPasswordButton = (Button) findViewById(R.id.click_to_forget_password_button_from_login);
+		forgetPasswordButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Intent i = new Intent(LoginActivity.this, com.vispar.settings.LoginActivity.class);
+				Intent i = new Intent(LoginActivity.this, com.vispar.settings.ForgetPasswordActivity.class);
 		        finish();
 		        startActivity(i);
 			}
@@ -330,7 +330,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				    // Instantiate a JSON object from the request response
 				    JSONObject jsonObject = new JSONObject(bodyStr);
 				    list.add(new BasicNameValuePair("name", jsonObject.getString("name")));
-				    list.add(new BasicNameValuePair("expire", Long.toString(jsonObject.getLong("expire"))));
+				    list.add(new BasicNameValuePair("expired", Long.toString(jsonObject.getLong("expired"))));
 				    list.add(new BasicNameValuePair("token", jsonObject.getString("token")));
 				    
 				    /* Return value as following
@@ -338,7 +338,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
  						"id": "54e38b0b623d7f700732732b",
  						"token": "1231312312312312312123123",
  						"name": "Guangda Zhang”
- 						“expire”: 12:31:2025
+ 						“expired”: 12:31:2025
 					   }
 				     */
 		        } else {
@@ -369,7 +369,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 				for (BasicNameValuePair element : list) {
 					if( element.getName() == "name") {
 						intent.putExtra(USER_NAME_KEY, element.getValue());
-					} else if( element.getName() == "expire" ) {
+					} else if( element.getName() == "expired" ) {
 						intent.putExtra(EXPIRATION_TS_KEY, Long.parseLong(element.getValue(), 10));
 					} else if( element.getName() == "token" ) {
 						intent.putExtra(TOKEN_KEY, element.getValue());
@@ -389,4 +389,24 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 			showProgress(false);
 		}
 	}
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Check which request we're responding to
+        if (requestCode == MainActivity.REQUEST_REGISTER) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+            	Intent intent = new Intent();
+                String userName = data.getStringExtra(LoginActivity.USER_NAME_KEY);
+                String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
+                long expired = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
+				intent.putExtra(USER_NAME_KEY, userName);
+				intent.putExtra(EXPIRATION_TS_KEY, expired);
+				intent.putExtra(TOKEN_KEY, token);
+				setResult(RESULT_OK, intent);
+				finish();
+            }
+        }
+    }
 }
