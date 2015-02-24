@@ -9,7 +9,10 @@ import com.vispar.schedule.StartEventActivity;
 import com.vispar.schedule.ViewEventActivity;
 import com.vispar.settings.LoginActivity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
@@ -20,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
@@ -194,13 +198,15 @@ import android.widget.Button;
      */
     public static class PlaceholderFragment extends Fragment {
 
-		Button inviteFriends = null;
-        Button joinRoom = null;
-        Button myVideos = null;
+    	private Button inviteFriends = null;
+    	private Button joinRoom = null;
+    	private Button myVideos = null;
 
-		Button inviteEvent = null;
-        Button viewEvent = null;
-        Button startEvent = null;
+    	private Button inviteEvent = null;
+    	private Button viewEvent = null;
+        private Button startEvent = null;
+
+    	private View mProgressView;
         
         /**
          * The fragment argument representing the section number for this
@@ -245,6 +251,9 @@ import android.widget.Button;
             int selection = this.getArguments().getInt(ARG_SECTION_NUMBER);
             if(  selection == 2 ) {
             	rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        		mProgressView = rootView.findViewById(R.id.goto_room_progress);
+            	
             	inviteFriends = (Button) rootView.findViewById(R.id.Invite);
                 joinRoom = (Button) rootView.findViewById(R.id.Room);
                 myVideos = (Button) rootView.findViewById(R.id.MyVideo);
@@ -262,6 +271,7 @@ import android.widget.Button;
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
+            			showProgress(true);
                     }
                 });  
                 myVideos.setOnClickListener(new View.OnClickListener() {
@@ -310,8 +320,38 @@ import android.widget.Button;
             } else {
             	rootView = inflater.inflate(R.layout.fragment_follow, container, false);
             }
+            
             return rootView;
         }
+
+    	/**
+    	 * Shows the progress UI and hides the login form.
+    	 */
+    	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    	public void showProgress(final boolean show) {
+    		// On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+    		// for very easy animations. If available, use these APIs to fade-in
+    		// the progress spinner.
+    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+    			int shortAnimTime = getResources().getInteger(
+    					android.R.integer.config_shortAnimTime);
+
+    			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    			mProgressView.animate().setDuration(shortAnimTime)
+    					.alpha(show ? 1 : 0)
+    					.setListener(new AnimatorListenerAdapter() {
+    						@Override
+    						public void onAnimationEnd(Animator animation) {
+    							mProgressView.setVisibility(show ? View.VISIBLE
+    									: View.GONE);
+    						}
+    					});
+    		} else {
+    			// The ViewPropertyAnimator APIs are not available, so simply show
+    			// and hide the relevant UI components.
+    			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    		}
+    	}
     }
 
 	@Override
