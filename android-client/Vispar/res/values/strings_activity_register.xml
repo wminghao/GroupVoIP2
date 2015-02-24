@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prompt_username">User Name</string>
+    <string name="action_register">Register</string>
+    <string name="action_register_short">Register</string>
+    <string name="error_invalid_username">This username is too short</string>
+    <string name="error_incorrect_info_register">Either email address or password is incorrect</string>
+</resources>

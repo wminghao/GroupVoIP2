@@ -8,12 +8,12 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".settings.LoginActivity" >
+    tools:context=".settings.RegisterActivity" >
 
-    <!-- Login progress -->
+    <!-- Register progress -->
 
     <ProgressBar
-        android:id="@+id/login_progress"
+        android:id="@+id/register_progress"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -21,18 +21,30 @@
         android:visibility="gone" />
 
     <ScrollView
-        android:id="@+id/login_form"
+        android:id="@+id/register_form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
         <LinearLayout
-            android:id="@+id/email_login_form"
+            android:id="@+id/email_register_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
+            <EditText
+                android:id="@+id/username_register"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_username"
+                android:imeActionId="@+id/register"
+                android:imeActionLabel="@string/action_register_short"
+                android:imeOptions="actionUnspecified"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true" />
+            
             <AutoCompleteTextView
-                android:id="@+id/email"
+                android:id="@+id/email_register"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_email"
@@ -41,27 +53,26 @@
                 android:singleLine="true" />
 
             <EditText
-                android:id="@+id/password"
+                android:id="@+id/password_register"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_password"
-                android:imeActionId="@+id/login"
-                android:imeActionLabel="@string/action_sign_in_short"
+                android:imeActionId="@+id/register"
+                android:imeActionLabel="@string/action_register_short"
                 android:imeOptions="actionUnspecified"
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:singleLine="true" />
 
             <Button
-                android:id="@+id/email_sign_in_button"
+                android:id="@+id/email_register_button"
                 style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/action_sign_in"
+                android:text="@string/action_register"
                 android:textStyle="bold" />
         </LinearLayout>
-        
     </ScrollView>
 
 	<LinearLayout
@@ -70,20 +81,19 @@
 	    android:orientation="horizontal" >
 
 	    <Button
-	        android:id="@+id/click_to_register_button_from_login"
+	        android:id="@+id/click_to_login_button_from_register"
 	        style="?android:textAppearanceSmall"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1.23"
-	        android:text="@string/action_register"
+	        android:text="@string/action_sign_in"
 	        android:textStyle="bold" />
 
 	    <Button
-	        android:id="@+id/click_to_forget_password_button_from_login"
+	        android:id="@+id/click_to_forget_password_button_from_register"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/action_forget_password" />
 
 	</LinearLayout>
-
 </LinearLayout>
