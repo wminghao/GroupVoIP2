@@ -104,6 +104,11 @@
             android:label="@string/title_activity_login"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
+        <activity
+            android:name=".settings.LogoutActivity"
+            android:label="@string/title_activity_logout"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+        </activity>
         
         <activity
             android:name=".settings.RegisterActivity"

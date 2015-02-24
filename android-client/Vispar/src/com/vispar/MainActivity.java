@@ -52,6 +52,11 @@ import android.widget.Button;
 	 */
     public static final int REQUEST_LOGIN = 0;
     public static final int REQUEST_REGISTER = 1;
+    public static final int REQUEST_LOGOUT = 2;
+    /*
+     * username
+     */
+	private String mUserName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,13 +97,12 @@ import android.widget.Button;
                             .setTabListener(this));
         }
         
-
         //Reading values from the Preferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
+        mUserName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
         long expirationDate =  prefs.getLong(LoginActivity.EXPIRATION_TS_KEY, 0);
         long curTime = System.currentTimeMillis()/1000;
-        if( userName == null || expirationDate == 0 || curTime >= expirationDate) {
+        if( mUserName == null || expirationDate == 0 || curTime >= expirationDate) {
         	startSignIn();
         }
     }
@@ -118,6 +122,11 @@ import android.widget.Button;
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            return true;
+        } else if(id == R.id.action_logout) {
+            Intent intent = new Intent(this, com.vispar.settings.LogoutActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, mUserName);
+            startActivityForResult(intent, REQUEST_LOGOUT);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -309,8 +318,7 @@ import android.widget.Button;
 	public void onStop() {
 		System.out.println("MainActivity exited.");	
 		super.onStop();
-	}
-	
+	}	
 
     private void startSignIn() {
         Intent intent = new Intent(this, com.vispar.settings.LoginActivity.class);
@@ -332,7 +340,23 @@ import android.widget.Button;
                 edit.putString(LoginActivity.TOKEN_KEY, token);
                 edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expired);
                 edit.apply(); 
+                mUserName = userName;
+            } else {
+        		startSignIn();            	
             }
+        } else if( requestCode== REQUEST_LOGOUT) {
+        	if (resultCode == RESULT_OK) {
+        		mUserName = null;
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                Editor edit = prefs.edit();
+                edit.putString(LoginActivity.USER_NAME_KEY, null);
+                edit.putString(LoginActivity.TOKEN_KEY, null);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, 0);
+                edit.apply(); 
+        		startSignIn();
+        	} else {
+        		//do nothing
+        	}
         }
     }
 }
