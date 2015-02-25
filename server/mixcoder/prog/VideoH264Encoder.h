@@ -23,6 +23,8 @@ class VideoH264Encoder:public VideoEncoder
         }
     }
 
+    virtual bool isNextEncodedFrameKeyFrame() { return !(frameInputCnt_ % OUTPUT_VIDEO_FRAME_RATE); }
+
  private:
     SmartPtr<SmartBuffer> genVideoHeaderPrivate();
  private:

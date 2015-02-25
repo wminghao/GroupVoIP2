@@ -23,11 +23,13 @@
 
 MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height, 
                    AudioCodecId aCodecId, int aBitrate, int frequency) : 
-                                                  vBitrate_(vBitrate),
-                                                  vWidth_(width),
-                                                  vHeight_(height),
-                                                  aBitrate_(aBitrate),
-                                                  aFrequency_(frequency)
+    vBitrate_(vBitrate),
+    vWidth_(width),
+    vHeight_(height),
+    aBitrate_(aBitrate),
+    aFrequency_(frequency),
+    transitionState_(NO_TRANSITION_STATE),
+    totalStreamsCached_(0)
 {
     VideoStreamSetting vOutputSetting = { vCodecId, vWidth_, vHeight_ }; 
     AudioStreamSetting aOutputSetting = { aCodecId, getAudioRate(44100), kSndStereo, kSnd16Bit, 0, (StreamSource)0, 0 };
@@ -181,8 +183,32 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
             if ( totalStreams > 0 ) {
                 bool bIsKeyFrame = false;
                 VideoRect videoRect[MAX_XCODING_INSTANCES];
-                SmartPtr<SmartBuffer> rawFrameMixed = videoMixer_->mixStreams(rawVideoData_, totalStreams, videoRect);
-                SmartPtr<SmartBuffer> encodedFrame = videoEncoder_->encodeAFrame(rawFrameMixed, &bIsKeyFrame);
+                
+                SmartPtr<SmartBuffer> encodedFrame;
+
+                //to avoid a case where video transition happens faster than metadata generation.
+                //if there is a transistion, freeze the frame until the next key frame
+                if( totalStreams != totalStreamsCached_ ) {
+                    if( videoEncoder_->isNextEncodedFrameKeyFrame() ) {
+                        transitionState_ = NO_TRANSITION_STATE;
+                        totalStreamsCached_ = totalStreams;                    
+                        LOG("------Transition complete. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
+                    } else {
+                        transitionState_ = IN_TRANSITION_STATE;                        
+                    }
+                } else {
+                    transitionState_ = NO_TRANSITION_STATE;
+                }
+                if( NO_TRANSITION_STATE == transitionState_ ) {
+                    SmartPtr<SmartBuffer> rawFrameMixed = videoMixer_->mixStreams(rawVideoData_, totalStreams, videoRect);
+                    rawMixedVideoDataCache_ = rawFrameMixed; //cache the frame
+                    memcpy( videoRectCache_, videoRect, sizeof( VideoRect ) * MAX_XCODING_INSTANCES); 
+                    encodedFrame = videoEncoder_->encodeAFrame(rawFrameMixed, &bIsKeyFrame);
+                } else {
+                    LOG("------Now in transition. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
+                    memcpy( videoRect, videoRectCache_, sizeof( VideoRect ) * MAX_XCODING_INSTANCES); 
+                    encodedFrame = videoEncoder_->encodeAFrame(rawMixedVideoDataCache_, &bIsKeyFrame);//use the cached frame
+                }
                 if ( encodedFrame ) {
                     //if there is a video header, save the header first
                     SmartPtr<SmartBuffer> videoHeader = videoEncoder_->genVideoHeader();
@@ -198,6 +224,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
                         if( rawVideoData_[i] &&  rawVideoData_[i]->rawVideoSettings_.bIsValid && kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss) {
                             if( bIsKeyFrame ) {
+                                LOG("------Transition Complete Cuepoint. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
                                 //every key frame insert a cuepoint
                                 flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
                             }

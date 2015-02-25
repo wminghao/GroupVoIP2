@@ -81,6 +81,14 @@ class MixCoder: public FLVSegmentInputDelegate
 
     //AudioSpitter converts MP3 frame samples into AAC frame samples
     AudioSpitter* audioSpitter_;
+
+    //video mixing cache.
+    static const int NO_TRANSITION_STATE = 0;
+    static const int IN_TRANSITION_STATE = 1;
+    int transitionState_;
+    int totalStreamsCached_;
+    VideoRect videoRectCache_[MAX_XCODING_INSTANCES];
+    SmartPtr<SmartBuffer> rawMixedVideoDataCache_;
 };
 
 #endif

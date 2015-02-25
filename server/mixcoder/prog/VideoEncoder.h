@@ -14,7 +14,7 @@ class VideoEncoder
     virtual ~VideoEncoder() {}
     virtual SmartPtr<SmartBuffer> encodeAFrame(SmartPtr<SmartBuffer> input, bool* bIsKeyFrame) = 0;
     virtual SmartPtr<SmartBuffer> genVideoHeader() { return NULL; }
-
+    virtual bool isNextEncodedFrameKeyFrame() { return false; }
  protected:
     //input settings and output setting are the same
     VideoStreamSetting vSetting_;
