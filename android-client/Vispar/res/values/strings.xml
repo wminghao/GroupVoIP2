@@ -40,5 +40,6 @@
     <string name="cancel">Cancel</string>
     <string name="logout_success">Successfully logged out</string>
     <string name="logout_fail">Cannot log out</string>
+    <string name="loading_in_progress">Loading</string>
 
 </resources>

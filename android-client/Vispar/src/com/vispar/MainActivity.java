@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 @SuppressLint("WorldReadableFiles") public class MainActivity extends Activity implements ActionBar.TabListener {
     
@@ -55,9 +56,9 @@ import android.widget.RelativeLayout;
 	/*
 	 * Logged in username
 	 */
-    public static final int REQUEST_LOGIN = 0;
-    public static final int REQUEST_REGISTER = 1;
-    public static final int REQUEST_LOGOUT = 2;
+    public static final int REQUEST_LOGIN = 1;
+    public static final int REQUEST_REGISTER = 2;
+    public static final int REQUEST_LOGOUT = 3;
     /*
      * username
      */
@@ -208,6 +209,8 @@ import android.widget.RelativeLayout;
         private Button startEvent = null;
 
     	private View mProgressView;
+
+    	private View mProgressViewText;
         
         /**
          * The fragment argument representing the section number for this
@@ -254,6 +257,7 @@ import android.widget.RelativeLayout;
             	rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         		mProgressView = rootView.findViewById(R.id.goto_room_progress);
+        		mProgressViewText = rootView.findViewById(R.id.goto_room_progress_text);
             	
             	inviteFriends = (Button) rootView.findViewById(R.id.Invite);
                 joinRoom = (Button) rootView.findViewById(R.id.Room);
@@ -340,6 +344,7 @@ import android.widget.RelativeLayout;
     			int shortAnimTime = getResources().getInteger(
     					android.R.integer.config_shortAnimTime);
 
+    			mProgressViewText.setVisibility(show ? View.VISIBLE : View.GONE);
     			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
     			mProgressView.animate().setDuration(shortAnimTime)
     					.alpha(show ? 1 : 0)
@@ -355,10 +360,16 @@ import android.widget.RelativeLayout;
 				    (RelativeLayout.LayoutParams)mProgressView.getLayoutParams();
 				layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 				mProgressView.setLayoutParams(layoutParams);
+				
+				RelativeLayout.LayoutParams layoutParams2 = 
+					    (RelativeLayout.LayoutParams)mProgressViewText.getLayoutParams();
+				layoutParams2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+				mProgressViewText.setLayoutParams(layoutParams2);
     		} else {
     			// The ViewPropertyAnimator APIs are not available, so simply show
     			// and hide the relevant UI components.
     			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    			mProgressViewText.setVisibility(show ? View.VISIBLE : View.GONE);
     		}
     	}
     }
