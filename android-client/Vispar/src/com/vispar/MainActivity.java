@@ -33,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 
 @SuppressLint("WorldReadableFiles") public class MainActivity extends Activity implements ActionBar.TabListener {
     
@@ -266,12 +267,15 @@ import android.widget.Button;
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
+            			showProgress(true);
+            			inviteFriends.setVisibility(View.GONE);
+            			joinRoom.setVisibility(View.GONE);
+            			myVideos.setVisibility(View.GONE);
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
                         String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/"; //TODO
                         Uri data = Uri.parse(url);
                         intent.setData(data);
                         startActivity(intent);
-            			showProgress(true);
                     }
                 });  
                 myVideos.setOnClickListener(new View.OnClickListener() {
@@ -346,6 +350,11 @@ import android.widget.Button;
     									: View.GONE);
     						}
     					});
+
+				RelativeLayout.LayoutParams layoutParams = 
+				    (RelativeLayout.LayoutParams)mProgressView.getLayoutParams();
+				layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+				mProgressView.setLayoutParams(layoutParams);
     		} else {
     			// The ViewPropertyAnimator APIs are not available, so simply show
     			// and hide the relevant UI components.
