@@ -364,7 +364,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 			mAuthTask = null;
 			showProgress(false);
 
-			if (list != null) {
+			if (list != null && list.size() > 0) {
 				Intent intent = new Intent();
 				for (BasicNameValuePair element : list) {
 					if( element.getName() == "name") {
