@@ -9,7 +9,10 @@ import com.vispar.schedule.StartEventActivity;
 import com.vispar.schedule.ViewEventActivity;
 import com.vispar.settings.LoginActivity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
@@ -20,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.view.ViewPager;
@@ -29,6 +33,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 @SuppressLint("WorldReadableFiles") public class MainActivity extends Activity implements ActionBar.TabListener {
     
@@ -50,7 +56,13 @@ import android.widget.Button;
 	/*
 	 * Logged in username
 	 */
-    private static final int REQUEST_LOGIN = 0;
+    public static final int REQUEST_LOGIN = 1;
+    public static final int REQUEST_REGISTER = 2;
+    public static final int REQUEST_LOGOUT = 3;
+    /*
+     * username
+     */
+	private String mUserName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,13 +103,12 @@ import android.widget.Button;
                             .setTabListener(this));
         }
         
-
         //Reading values from the Preferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String userName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
+        mUserName =  prefs.getString(LoginActivity.USER_NAME_KEY, null);
         long expirationDate =  prefs.getLong(LoginActivity.EXPIRATION_TS_KEY, 0);
         long curTime = System.currentTimeMillis()/1000;
-        if( userName == null || expirationDate == 0 || curTime >= expirationDate) {
+        if( mUserName == null || expirationDate == 0 || curTime >= expirationDate) {
         	startSignIn();
         }
     }
@@ -117,6 +128,11 @@ import android.widget.Button;
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            return true;
+        } else if(id == R.id.action_logout) {
+            Intent intent = new Intent(this, com.vispar.settings.LogoutActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, mUserName);
+            startActivityForResult(intent, REQUEST_LOGOUT);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -184,13 +200,17 @@ import android.widget.Button;
      */
     public static class PlaceholderFragment extends Fragment {
 
-		Button inviteFriends = null;
-        Button joinRoom = null;
-        Button myVideos = null;
+    	private Button inviteFriends = null;
+    	private Button joinRoom = null;
+    	private Button myVideos = null;
 
-		Button inviteEvent = null;
-        Button viewEvent = null;
-        Button startEvent = null;
+    	private Button inviteEvent = null;
+    	private Button viewEvent = null;
+        private Button startEvent = null;
+
+    	private View mProgressView;
+
+    	private View mProgressViewText;
         
         /**
          * The fragment argument representing the section number for this
@@ -235,6 +255,10 @@ import android.widget.Button;
             int selection = this.getArguments().getInt(ARG_SECTION_NUMBER);
             if(  selection == 2 ) {
             	rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        		mProgressView = rootView.findViewById(R.id.goto_room_progress);
+        		mProgressViewText = rootView.findViewById(R.id.goto_room_progress_text);
+            	
             	inviteFriends = (Button) rootView.findViewById(R.id.Invite);
                 joinRoom = (Button) rootView.findViewById(R.id.Room);
                 myVideos = (Button) rootView.findViewById(R.id.MyVideo);
@@ -247,6 +271,10 @@ import android.widget.Button;
                 });    
                 joinRoom.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
+            			showProgress(true);
+            			inviteFriends.setVisibility(View.GONE);
+            			joinRoom.setVisibility(View.GONE);
+            			myVideos.setVisibility(View.GONE);
                         Intent intent = new Intent(getActivity(), AirConfActivity.class);
                         String url = "vispar.player://live/rooms/howard/"+PlaceholderFragment.this.mUserName+"/auto/false/"; //TODO
                         Uri data = Uri.parse(url);
@@ -300,16 +328,57 @@ import android.widget.Button;
             } else {
             	rootView = inflater.inflate(R.layout.fragment_follow, container, false);
             }
+            
             return rootView;
         }
+
+    	/**
+    	 * Shows the progress UI and hides the login form.
+    	 */
+    	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    	public void showProgress(final boolean show) {
+    		// On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+    		// for very easy animations. If available, use these APIs to fade-in
+    		// the progress spinner.
+    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+    			int shortAnimTime = getResources().getInteger(
+    					android.R.integer.config_shortAnimTime);
+
+    			mProgressViewText.setVisibility(show ? View.VISIBLE : View.GONE);
+    			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    			mProgressView.animate().setDuration(shortAnimTime)
+    					.alpha(show ? 1 : 0)
+    					.setListener(new AnimatorListenerAdapter() {
+    						@Override
+    						public void onAnimationEnd(Animator animation) {
+    							mProgressView.setVisibility(show ? View.VISIBLE
+    									: View.GONE);
+    						}
+    					});
+
+				RelativeLayout.LayoutParams layoutParams = 
+				    (RelativeLayout.LayoutParams)mProgressView.getLayoutParams();
+				layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+				mProgressView.setLayoutParams(layoutParams);
+				
+				RelativeLayout.LayoutParams layoutParams2 = 
+					    (RelativeLayout.LayoutParams)mProgressViewText.getLayoutParams();
+				layoutParams2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+				mProgressViewText.setLayoutParams(layoutParams2);
+    		} else {
+    			// The ViewPropertyAnimator APIs are not available, so simply show
+    			// and hide the relevant UI components.
+    			mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    			mProgressViewText.setVisibility(show ? View.VISIBLE : View.GONE);
+    		}
+    	}
     }
 
 	@Override
 	public void onStop() {
 		System.out.println("MainActivity exited.");	
 		super.onStop();
-	}
-	
+	}	
 
     private void startSignIn() {
         Intent intent = new Intent(this, com.vispar.settings.LoginActivity.class);
@@ -319,19 +388,35 @@ import android.widget.Button;
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         // Check which request we're responding to
-        if (requestCode == REQUEST_LOGIN) {
+        if (requestCode == REQUEST_LOGIN || requestCode == REQUEST_REGISTER) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 String userName = data.getStringExtra(LoginActivity.USER_NAME_KEY);
                 String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
-                long expire = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
+                long expired = data.getLongExtra(LoginActivity.EXPIRATION_TS_KEY, 0);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 Editor edit = prefs.edit();
                 edit.putString(LoginActivity.USER_NAME_KEY, userName);
                 edit.putString(LoginActivity.TOKEN_KEY, token);
-                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expire);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, expired);
                 edit.apply(); 
+                mUserName = userName;
+            } else {
+        		startSignIn();            	
             }
+        } else if( requestCode== REQUEST_LOGOUT) {
+        	if (resultCode == RESULT_OK) {
+        		mUserName = null;
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                Editor edit = prefs.edit();
+                edit.putString(LoginActivity.USER_NAME_KEY, null);
+                edit.putString(LoginActivity.TOKEN_KEY, null);
+                edit.putLong(LoginActivity.EXPIRATION_TS_KEY, 0);
+                edit.apply(); 
+        		startSignIn();
+        	} else {
+        		//do nothing
+        	}
         }
     }
 }
