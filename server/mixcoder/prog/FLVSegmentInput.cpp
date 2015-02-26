@@ -37,23 +37,13 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
             //if audio has not started
             if ( audioStreamStatus_[i] < kStreamOnlineStarted ) {
                 if( videoQueue_[i].size() > 0 ) {
-                    if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
-                        hasSpsPps = true;
-                        LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
-                    } 
+                    frameTimestamp = videoQueue_[i].back()->pts; //always pop out everything
                     isReady = true;
-                    frameTimestamp = videoQueue_[i].front()->pts; //always pop out the latest(last) video frame
                     //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].front()->pts, frameTimestamp);
                 } else {
                     //LOG( "---streamMask online unavailable index=%d\r\n", i);
                 }
-                if( hasSpsPps ) {
-                    //if there is no frame ready, only sps/pps pop out it immediately
-                    //LOG( "===stream:%d found sps pps. but no other frames\r\n", i);
-                    momentoBucketTimestamp_[i] = frameTimestamp;
-                    nextVideoTimestamp_[i] = spsPpsTimestamp;
-                    maxVideoTimestamp = MAX(maxVideoTimestamp, spsPpsTimestamp); //strictly follow
-                } else if ( frameTimestamp != MAX_U32 ) {
+                if ( frameTimestamp != MAX_U32 ) {
                     //first time there is a stream available, always pop out the frame(s)
                     hasStarted_[i] = true;
                     momentoBucketTimestamp_[i] = frameTimestamp;
@@ -73,9 +63,9 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                 
                 //nextLimitTimestamp is useful if audio is way ahead of video bucket.
                 u32 nextLimitTimestamp = MAX( nextBucketTimestamp, audioBucketTimestamp );
-                
-                if( videoQueue_[i].size() > 0 ) {
-                    bool recordFrameTimestamp = true;
+
+                bool recordFrameTimestamp = ( videoQueue_[i].size() > 0 );                
+                if( recordFrameTimestamp ) {
                     if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
                         hasSpsPps = true;
                         //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
@@ -460,7 +450,11 @@ SmartPtr<VideoRawData> FLVSegmentInput::getNextVideoFrame(u32 index)
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, 0, videoQueue_[index].size()+1);
             }
         } else {
-            //LOG("------nopop Next video frame, index=%d queue=%d\r\n", index, videoQueue_[index].size());
+            if( v ) {
+                //LOG("------nopop Next video frame, index=%d queue=%d v->pts=%d timestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, timestamp);
+            } else {
+                //LOG("------nopop Next video frame, index=%d queue=%d\r\n", index, videoQueue_[index].size());
+            }
             //don't pop anything that has a bigger timestamp
             v = NULL;
         }
@@ -501,6 +495,8 @@ void FLVSegmentInput::onStreamOffline(int index)
     momentoBucketTimestamp_[index] = MAX_U32;
     lastBucketTimestamp_[index] = 0;
     hasStarted_[index] = 0;
+    audioQueue_[index].clear();
+    videoQueue_[index].clear();
     delegate_->onStreamEnded(index);
 }
 
