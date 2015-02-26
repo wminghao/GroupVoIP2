@@ -192,7 +192,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     if( videoEncoder_->isNextEncodedFrameKeyFrame() ) {
                         transitionState_ = NO_TRANSITION_STATE;
                         totalStreamsCached_ = totalStreams;                    
-                        LOG("------Transition complete. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
+                        //LOG("------Transition complete. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
                     } else {
                         transitionState_ = IN_TRANSITION_STATE;                        
                     }
@@ -205,7 +205,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     memcpy( videoRectCache_, videoRect, sizeof( VideoRect ) * MAX_XCODING_INSTANCES); 
                     encodedFrame = videoEncoder_->encodeAFrame(rawFrameMixed, &bIsKeyFrame);
                 } else {
-                    LOG("------Now in transition. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
+                    //LOG("------Now in transition. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
                     memcpy( videoRect, videoRectCache_, sizeof( VideoRect ) * MAX_XCODING_INSTANCES); 
                     encodedFrame = videoEncoder_->encodeAFrame(rawMixedVideoDataCache_, &bIsKeyFrame);//use the cached frame
                 }
@@ -224,7 +224,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
                     for( u32 i = 0; i < MAX_XCODING_INSTANCES; i ++ ) {
                         if( rawVideoData_[i] &&  rawVideoData_[i]->rawVideoSettings_.bIsValid && kMobileStreamSource == rawVideoData_[i]->rawVideoSettings_.ss) {
                             if( bIsKeyFrame ) {
-                                LOG("------Transition Complete Cuepoint. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
+                                //LOG("------Transition Complete Cuepoint. totalVideoStreams = %d, totalStreamsCached=%d\n", totalStreams, totalStreamsCached_ );
                                 //every key frame insert a cuepoint
                                 flvSegOutput_->packageCuePoint(i, &videoRect[i], videoPts);
                             }

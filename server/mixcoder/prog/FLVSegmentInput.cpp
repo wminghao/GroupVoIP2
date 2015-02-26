@@ -39,11 +39,11 @@ bool FLVSegmentInput::isNextVideoStreamReady(u32& maxVideoTimestamp)
                 if( videoQueue_[i].size() > 0 ) {
                     if (isNextVideoFrameSpsPps(i, spsPpsTimestamp)) {
                         hasSpsPps = true;
-                        //LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
+                        LOG( "---next is spspps, ts=%d\r\n", spsPpsTimestamp);
                     } 
                     isReady = true;
-                    frameTimestamp = videoQueue_[i].back()->pts; //always pop out the latest(last) video frame
-                    //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].back()->pts, frameTimestamp);
+                    frameTimestamp = videoQueue_[i].front()->pts; //always pop out the latest(last) video frame
+                    //LOG( "---streamMask online available index=%d, next ts=%d, frameTimestamp=%d\r\n", i, videoQueue_[i].front()->pts, frameTimestamp);
                 } else {
                     //LOG( "---streamMask online unavailable index=%d\r\n", i);
                 }
@@ -350,6 +350,16 @@ bool FLVSegmentInput::isNoStreamsAudioStarted() {
     return bNoStreamsAudioStarted;
 }
 
+u32 FLVSegmentInput::getTotalNumStreamsStarted() {
+    u32 totalNumStreamStarted = 0;
+    for(u32 index = 0; index < MAX_XCODING_INSTANCES; index++ ) {
+        if( audioStreamStatus_[index] == kStreamOnlineStarted || videoStreamStatus_[index] == kStreamOnlineStarted ) {
+            totalNumStreamStarted++;
+        }
+    }
+    return totalNumStreamStarted;
+}
+
 bool FLVSegmentInput::isStreamOnlineStarted(StreamType streamType, int index)
 {
     if( streamType == kVideoStreamType ) {
@@ -382,8 +392,9 @@ void FLVSegmentInput::onFLVFrameParsed( SmartPtr<AccessUnit> au, int index )
             videoQueue_[index].push_back( v );
             videoStreamStatus_[index] = kStreamOnlineStarted;
             
-            //if audio has not started, treat the video timestamp as the global audio timestamp
-            if( audioStreamStatus_[index] < kStreamOnlineStarted) { 
+            //if audio has not started, and there are no other streams available,
+            // treat the video timestamp as the global audio timestamp
+            if( audioStreamStatus_[index] < kStreamOnlineStarted && getTotalNumStreamsStarted() == 1) { 
                 globalAudioTimestamp_ = v->pts; //global audio timestamp updated here
             }
         }

@@ -110,6 +110,8 @@ class FLVSegmentInput:public FLVSegmentParserDelegate
  private:
     bool isNextVideoFrameSpsPps(u32 index, u32& timestamp);
 
+    u32 getTotalNumStreamsStarted();
+
     //inherited from delegate functions
     virtual void onFLVFrameParsed( SmartPtr<AccessUnit> au, int index );
     virtual u32 getGlobalAudioTimestamp() { return globalAudioTimestamp_;}
