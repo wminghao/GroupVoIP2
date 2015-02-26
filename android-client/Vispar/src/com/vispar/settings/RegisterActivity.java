@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -212,9 +214,11 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 		return password.length() > 4;
 	}
 
-	private boolean isUserNameValid(String userName) {
-		// TODO: Replace this with your own logic
-		return userName.length() > 4;
+	public static boolean isUserNameValid(String userName) {
+		Pattern pattern = Pattern.compile("\\s"); //any other special characters.
+		Matcher matcher = pattern.matcher(userName);
+		boolean foundSpecialCharacters = matcher.find();
+		return userName.length() >= 4 && !foundSpecialCharacters;
 	}
 	/**
 	 * Shows the progress UI and hides the register form.

@@ -24,14 +24,6 @@
         android:id="@+id/section_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-     <Button
-        android:id="@+id/MyVideo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/Invite"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="86dp"
-        android:text="@string/view_past_events" />
 
     <Button
         android:id="@+id/Room"
@@ -52,5 +44,24 @@
         android:layout_marginBottom="36dp"
         android:gravity="center_vertical|center_horizontal"
         android:text="@string/invite_friends" />
+
+    <Button
+        android:id="@+id/JoinOthers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/MyVideo"
+        android:layout_alignLeft="@+id/Room"
+        android:layout_alignRight="@+id/Room"
+        android:layout_marginBottom="26dp"
+        android:text="@string/join_event" />
+
+    <Button
+        android:id="@+id/MyVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="42dp"
+        android:text="@string/view_past_events" />
 
 </RelativeLayout>
