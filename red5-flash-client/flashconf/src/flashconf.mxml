@@ -212,7 +212,7 @@
 			public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
 				if( isAudioOnlyMode ) {
 					if( !vidInstance_.isAudioOnly() ) {
-						this.switchAudioOnly.label = "Audio Only";
+						this.switchAudioOnly.label = "Show Video";
 					}
 				} else {
 					this.switchAudioOnly.enabled = false;
