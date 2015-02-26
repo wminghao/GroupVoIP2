@@ -17,7 +17,7 @@
     <string name="invite_friends">Invite Now</string>
     <string name="start_event">Start Event Now</string>
     <string name="join_event">Join An Event</string>
-    <string name="join_other_title">Join An Event</string>
+    <string name="join_other_title">Join Other Event</string>
     <string name="join_other_message">Type one\'s username</string>
     <string name="view_past_events">View Past Events</string>
     <string name="start_schedules">Schedule New Event</string>

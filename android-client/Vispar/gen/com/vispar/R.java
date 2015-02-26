@@ -26,15 +26,14 @@ public final class R {
         public static final int ic_launcher=0x7f020001;
     }
     public static final class id {
-        public static final int Invite=0x7f080052;
-        public static final int InviteEvent=0x7f080054;
-        public static final int JoinOthers=0x7f080053;
-        public static final int MyVideo=0x7f080051;
-        public static final int Room=0x7f080050;
-        public static final int StartEvent=0x7f080055;
-        public static final int ViewEvent=0x7f080056;
-        public static final int action_logout=0x7f080058;
-        public static final int action_settings=0x7f080057;
+        public static final int Invite=0x7f080051;
+        public static final int InviteEvent=0x7f080053;
+        public static final int JoinMine=0x7f080050;
+        public static final int JoinOthers=0x7f08004f;
+        public static final int StartEvent=0x7f080054;
+        public static final int ViewEvent=0x7f080055;
+        public static final int action_logout=0x7f080057;
+        public static final int action_settings=0x7f080056;
         public static final int btnCancel=0x7f080025;
         public static final int btnSubmit=0x7f080024;
         public static final int click_to_forget_password_button_from_login=0x7f080010;
@@ -77,7 +76,7 @@ public final class R {
         public static final int register=0x7f080017;
         public static final int register_form=0x7f080014;
         public static final int register_progress=0x7f080013;
-        public static final int section_label=0x7f08004f;
+        public static final int section_label=0x7f080052;
         public static final int tableRow1=0x7f080026;
         public static final int tableRow2=0x7f08002a;
         public static final int tableRow3=0x7f08002f;

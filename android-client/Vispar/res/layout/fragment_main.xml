@@ -20,17 +20,22 @@
         android:layout_marginBottom="8dp"
         android:text="@string/loading_in_progress"
         android:visibility="gone" />
-    <TextView
-        android:id="@+id/section_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/Room"
+        android:id="@+id/JoinOthers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/MyVideo"
-        android:layout_alignRight="@+id/MyVideo"
+        android:layout_alignLeft="@+id/JoinMine"
+        android:layout_alignRight="@+id/JoinMine"
+        android:layout_below="@+id/JoinMine"
+        android:layout_marginTop="52dp"
+        android:text="@string/join_event" />
+
+    <Button
+        android:id="@+id/JoinMine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:text="@string/start_event" />
 
@@ -38,30 +43,10 @@
         android:id="@+id/Invite"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/Room"
-        android:layout_alignLeft="@+id/MyVideo"
-        android:layout_alignRight="@+id/Room"
-        android:layout_marginBottom="36dp"
-        android:gravity="center_vertical|center_horizontal"
+        android:layout_above="@+id/JoinMine"
+        android:layout_alignLeft="@+id/JoinMine"
+        android:layout_alignRight="@+id/JoinMine"
+        android:layout_marginBottom="52dp"
         android:text="@string/invite_friends" />
-
-    <Button
-        android:id="@+id/JoinOthers"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/MyVideo"
-        android:layout_alignLeft="@+id/Room"
-        android:layout_alignRight="@+id/Room"
-        android:layout_marginBottom="26dp"
-        android:text="@string/join_event" />
-
-    <Button
-        android:id="@+id/MyVideo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="42dp"
-        android:text="@string/view_past_events" />
 
 </RelativeLayout>

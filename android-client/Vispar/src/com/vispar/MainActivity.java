@@ -208,14 +208,15 @@ import android.widget.Toast;
     public static class PlaceholderFragment extends Fragment {
 
     	private Button inviteFriends = null;
-    	private Button joinRoom = null;
+    	private Button joinMine = null;
     	private Button joinOthers = null;
-    	private Button myVideos = null;
 
     	private Button inviteEvent = null;
     	private Button viewEvent = null;
         private Button startEvent = null;
 
+    	//private Button myVideos = null;
+        
     	private View mProgressView;
 
     	private View mProgressViewText;
@@ -268,10 +269,9 @@ import android.widget.Toast;
         		mProgressViewText = rootView.findViewById(R.id.goto_room_progress_text);
             	
             	inviteFriends = (Button) rootView.findViewById(R.id.Invite);
-                joinRoom = (Button) rootView.findViewById(R.id.StartEvent);
+                joinMine = (Button) rootView.findViewById(R.id.JoinMine);
                 joinOthers = (Button) rootView.findViewById(R.id.JoinOthers);
-                myVideos = (Button) rootView.findViewById(R.id.MyVideo);
-                myVideos.setVisibility(View.GONE);
+                //myVideos = (Button) rootView.findViewById(R.id.MyVideo);
                 
                 inviteFriends.setOnClickListener( new View.OnClickListener() {
                 	public void onClick(View v) {
@@ -280,14 +280,13 @@ import android.widget.Toast;
     	           		 ShareSheet.share(container, PlaceholderFragment.this.getActivity(), v, msgToShare, false);
                     }
                 });    
-                joinRoom.setOnClickListener(new View.OnClickListener() {
+                joinMine.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
             			showProgress(true);
             			inviteFriends.setVisibility(View.GONE);
-            			joinRoom.setVisibility(View.GONE);
+            			joinMine.setVisibility(View.GONE);
             			joinOthers.setVisibility(View.GONE);
-            			myVideos.setVisibility(View.GONE);
-                        Intent intent = new Intent(getActivity(), AirConfActivity.class);
+            			Intent intent = new Intent(getActivity(), AirConfActivity.class);
                         String url = "vispar.player://live/rooms/"+PlaceholderFragment.this.mUserName+"/"+PlaceholderFragment.this.mUserName+"/auto/false/";
                         Uri data = Uri.parse(url);
                         intent.setData(data);
@@ -301,21 +300,20 @@ import android.widget.Toast;
                     	final EditText input = new EditText(PlaceholderFragment.this.getActivity());
                     	
                     	AlertDialog.Builder builder = new AlertDialog.Builder(PlaceholderFragment.this.getActivity());
-                    	final AlertDialog alert = builder.create();
                     	builder.setTitle(getString(R.string.join_other_title));
                     	builder.setMessage(getString(R.string.join_other_message));
                     	builder.setView(input);
                     	builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 	                            public void onClick(DialogInterface dialog, int whichButton) {
+	                                dialog.cancel();
 	                                Editable user = input.getText();
 	                                if( RegisterActivity.isUserNameValid(user.toString()) ) {
 		                                //TODO, look up that user to see if it's a real user or not.
 		                    			showProgress(true);
 		                    			inviteFriends.setVisibility(View.GONE);
-		                    			joinRoom.setVisibility(View.GONE);
+		                    			joinMine.setVisibility(View.GONE);
 		                    			joinOthers.setVisibility(View.GONE);
-		                    			myVideos.setVisibility(View.GONE);
-		                                Intent intent = new Intent(getActivity(), AirConfActivity.class);
+		                    			Intent intent = new Intent(getActivity(), AirConfActivity.class);
 		                                String url = "vispar.player://live/rooms/"+user+"/"+PlaceholderFragment.this.mUserName+"/auto/false/";
 		                                Uri data = Uri.parse(url);
 		                                intent.setData(data);
@@ -328,12 +326,13 @@ import android.widget.Toast;
                     	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 	                            public void onClick(DialogInterface dialog, int whichButton) {
 	                            	//do nothing
-	                            	alert.cancel();
+	                                dialog.cancel();
 	                            }
 	                        });
-                    	alert.show();
+                    	builder.show();
                     }
                 }); 
+                /*
                 myVideos.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                     	//TODO an activity to list all archived videos
@@ -343,6 +342,7 @@ import android.widget.Toast;
                         startActivity(intent);
                     }
                 });
+                */
             } else if(  selection == 3) {
             	rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
 
