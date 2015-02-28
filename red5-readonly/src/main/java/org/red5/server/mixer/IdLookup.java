@@ -204,4 +204,12 @@ public class IdLookup {
     	}
     	return mixerId;
     }
+
+    public int getTotalInputStreams() {
+    	int total = -1;
+    	synchronized( syncObj) {
+    		total = (totalInputStreams - TOTAL_EXCLUDE_COUNT);
+    	}
+    	return total;
+    }
 }

@@ -1,8 +1,11 @@
 package org.red5.server.mixer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map.Entry;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
@@ -41,6 +44,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private IRTMPHandler handler_ = null; //global handler used in creating RTMPConnections
     
+    private MinaLoadServer loadServer = new MinaLoadServer();
+    
 	//spring members from configuration
 	protected static ApplicationContext applicationContext;
 	private boolean bShouldMix;
@@ -63,10 +68,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private static int CURRENT_SUPPORTED_THRESHOLD = IdLookup.MAX_STREAM_COUNT-1; //for now, only 9 streams are supported
 	
     private GroupMixer() {
+    	//launch a stats service for listening input from load balancer.
+    	loadServer.start();
     }
     
 	@Override
 	public void destroy() throws Exception {
+		//never called.
+    	loadServer.stop();
 	}
 	
     public static synchronized GroupMixer getInstance() {
@@ -86,7 +95,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private void createAllInOneConn( MixerRoom mixerRoom )
     {
-    	boolean bIsCreatingAllInOneConn = false;
     	if( mixerRoom.allInOneSessionId_ == null ) {    	    
     	    // create a connection
     	    RTMPMinaConnection connAllInOne = (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class, false);
@@ -695,5 +703,30 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	 */
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		GroupMixer.applicationContext = applicationContext;
+	}
+	
+	/*
+	 * Stats about the current server load
+	 */
+	public class StatsObject
+	{
+		public String owner_;
+		public int numOfSpeakers_;
+		public int numOfVieweres_;
+	}
+	
+	public List<StatsObject> getStats() {
+		List<StatsObject> statsList = new ArrayList<StatsObject>();
+		Iterator<Entry<IScope, MixerRoom>> it = mixerRooms_.entrySet().iterator();
+	    while (it.hasNext()) {
+	    	Entry<IScope, MixerRoom> pair = (Entry<IScope, MixerRoom>)it.next();
+	        MixerRoom room = (MixerRoom)pair.getValue();
+	        StatsObject obj = new StatsObject();
+	        obj.owner_ = room.scopeName_;
+	        obj.numOfSpeakers_ = room.idLookupTable_.getTotalInputStreams();
+	        obj.numOfVieweres_ = 0; //TODO for now don't care.
+	        statsList.add(obj);
+	    }
+		return statsList;
 	}
 }
