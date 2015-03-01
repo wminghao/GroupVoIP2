@@ -73,7 +73,7 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
         	    }
         	} // for getSystemCpuUsage is not working for java 6
         	finalJson.put("cpuload", cpuUsage(CONSERVATIVE));
-        	finalJson.put("freememory", memoryUsage);	
+        	finalJson.put("freememory", memoryUsage/(1024*1024)); //in MegBytes	
         	ret += finalJson.toJSONString();
         } else {
         	ret = "HTTP/1.0 404 Not Found";
@@ -113,6 +113,8 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
 
         Double      selected_idle;
 
+        //TODO no of cores. grep 'model name' /proc/cpuinfo | wc -l
+        //     CPU usage: cat /proc/loadavg | 
         try {
             Runtime runtime = Runtime.getRuntime();
             Process mpstatProcess = runtime.exec("mpstat -P ALL");
@@ -159,8 +161,17 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
                 // Do nothing
             }
         }
+        
+        double cpuUsage = MinaLoadServerHandler.round(100-selected_idle, 2);
 
-        return  100-selected_idle;
+        return cpuUsage;
     }
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
 
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
 }
