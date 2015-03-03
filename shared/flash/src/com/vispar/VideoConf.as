@@ -62,9 +62,9 @@ package com.vispar
 		private const AUDIO_ON_FLAG:int = 0x1;
 		private const VIDEO_ON_FLAG:int = 0x2;
 		
-		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
+		public function VideoConf(container:Sprite, delegate:VideoContainerDelegate, serverIp:String, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
 		{ 
-			super(container, delegate, room, user, mode, forceAudioOnly, autoPublish);
+			super(container, delegate, serverIp, room, user, mode, forceAudioOnly, autoPublish);
 			
 			if( forceAudioOnly ) {
 				isAudioOnly_ = true;

@@ -83,6 +83,7 @@ package
 			//example parameters
 			//live: "vispar.player://live/rooms/howard/howard/mode/false/sessionId";
 			//vod: "vispar.player://vod/rooms/howard/betsy/mode/false/sessionId";
+			var serverIp:String = null;
 			var room:String = null;
 			var user:String = null;
 			var bIsArchive:Boolean = false;
@@ -103,29 +104,36 @@ package
 				//skip the next parameter
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
+				
+				//serverIp
+				arg = arg.substr(endIndex + 1);
+				endIndex = arg.indexOf("/");
+				serverIp = arg.substring(0, endIndex);
+				
+				//room
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				room = arg.substring(0, endIndex);
 				
-				//skip the next parameter
+				//user
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				user = arg.substring(0, endIndex);
 				
-				//skip the next parameter
+				//mode
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				mode = arg.substring(0, endIndex);
 				
-				//skip the next parameter
+				//forceAudioOnly
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
 				forceAudioOnly_ = (arg.substring(0, endIndex) == "true");
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this, room, user, mode, forceAudioOnly_, true);
+				vidInstance_ = new VideoPlayer(this, this, serverIp, room, user, mode, forceAudioOnly_, true);
 			} else {				
-				vidInstance_ = new VideoConf(this, this, room, user, mode, forceAudioOnly_, true);
+				vidInstance_ = new VideoConf(this, this, serverIp, room, user, mode, forceAudioOnly_, true);
 			}
 		}		
 		

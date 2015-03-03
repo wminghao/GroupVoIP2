@@ -18,6 +18,7 @@
 			
 			import spark.events.IndexChangeEvent;
 			
+			private var defaultServerIp:String = "54.148.16.2"; //default server
 			private var defaultRoom:String = "default";
 			private var defaultUser:String = "default";
 			private var defaultMode:String = "moderator";
@@ -42,6 +43,7 @@
 			public function onCreationComplete(event:FlexEvent) : void {
 				try {
 					this.container.setInfo(edgeX_, edgeY_, debugText, videoSet, onVideoStarted, onFatalNetworkTooSlowError, onRequest2TalkNeedsApproval, onRequest2TalkPendingApproval );
+					var serverIp:String = getServerIp();
 					var room:String = getVideoRoom();
 					var user:String = getUserName();
 					var mode:String = getRoomMode();
@@ -51,18 +53,39 @@
 						this.switchViewOnly.visible = false;
 						this.videoList.visible = false;
 						this.stopVideo.visible = false;
-						vidInstance_ = new VideoPlayer(container, container, room, user, mode, forceAudioOnly_, false);
+						vidInstance_ = new VideoPlayer(container, container, serverIp, room, user, mode, forceAudioOnly_, false);
 					} else {				
 						if( forceAudioOnly_ ) {
 							this.switchAudioOnly.label = "Audio Only";	
 							this.switchAudioOnly.enabled = false;
 						}
-						vidInstance_ = new VideoConf(container, container, room, user, mode, forceAudioOnly_, false);
+						vidInstance_ = new VideoConf(container, container, serverIp, room, user, mode, forceAudioOnly_, false);
 					}
 					vidInstance_.connectServer();	
 				} catch (error:Error) {
 					Alert.show("----exception, e=" + error.toString());
 				}
+			}
+			
+			private function getServerIp():String {
+				var serverIp:String = defaultServerIp;
+				try
+				{
+					if (ExternalInterface.available) 
+					{ 
+						// Perform ExternalInterface method calls here. 
+						serverIp = ExternalInterface.call("getServerIp");
+						if(serverIp == null) {
+							serverIp = defaultServerIp;
+						}
+						//Alert.show("serverIp="+serverIp);
+					}
+				}
+				catch (error:Error) 
+				{
+					Alert.show("error="+error.toString());
+				}
+				return serverIp;
 			}
 			
 			private function getVideoRoom():String {

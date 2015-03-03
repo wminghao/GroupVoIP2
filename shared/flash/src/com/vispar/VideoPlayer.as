@@ -19,9 +19,9 @@ package com.vispar
 		private var connTimeoutTimer:Timer = null;
 		private var reconnTimer:Timer = null;		
 		
-		public function VideoPlayer(container:Sprite, delegate:VideoContainerDelegate, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
+		public function VideoPlayer(container:Sprite, delegate:VideoContainerDelegate, serverIp:String, room:String, user:String, mode:String, forceAudioOnly:Boolean, autoPublish:Boolean)
 		{
-			super(container, delegate, room, user, mode, forceAudioOnly, autoPublish);
+			super(container, delegate, serverIp, room, user, mode, forceAudioOnly, autoPublish);
 		}
 		
 		override public function connectServer():void {
