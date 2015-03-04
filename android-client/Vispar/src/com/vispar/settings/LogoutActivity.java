@@ -15,14 +15,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -32,7 +29,6 @@ import android.widget.Toast;
 
 import com.vispar.R;
 import com.vispar.VisparApplication;
-import com.vispar.settings.RegisterActivity.UserRegisterTask;
 
 public class LogoutActivity extends Activity {
 	/**

@@ -29,9 +29,7 @@
     <string name="event_is_public">Public</string>
     <string name="title_activity_start_event">Start A Event</string>
     <string name="title_activity_view_event">View A Event</string>
-
     <string name="title_activity_logout">Log out</string>
-    
     <string name="event_title">Title</string>
     <string name="event_description">Description</string>
     <string name="event_start_time">Start Time</string>
@@ -44,5 +42,7 @@
     <string name="logout_success">Successfully logged out</string>
     <string name="logout_fail">Cannot log out</string>
     <string name="loading_in_progress">Loading</string>
+    <string name="title_activity_forget_password">ForgetPasswordActivity</string>
+    <string name="action_sendme_password">Reset my password</string>
 
 </resources>
