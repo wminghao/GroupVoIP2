@@ -30,7 +30,7 @@
       <libraryPathEntry kind="3" linkType="1" path="/meetingroom/bin/meetingroom.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="/chatroombridge/bin/chatroombridge.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="5" linkType="2" path="src/TelephoneManagerANE/TelephoneManager.ane"/>
-      <libraryPathEntry kind="5" linkType="2" path="/Users/howard/Downloads/ane-android-sample/extension/com.aneexample.AndroidDialog.ane"/>
+      <libraryPathEntry kind="5" linkType="2" path="/Users/howard/GroupVoIP2/android-client/chatroomextension/extension/com.vispar.extension.ChatroomDialog.ane"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
@@ -52,14 +52,14 @@
       <actionScriptSettings version="1"/>
     </buildTarget>
     <buildTarget airDownloadURL="https://market.android.com/details?id=com.adobe.air" androidSettingsVersion="1" buildTargetName="com.adobe.flexide.multiplatform.android.platform">
+      <multiPlatformSettings enabled="true" includePlatformLibs="false" platformID="com.adobe.flexide.multiplatform.android.platform" version="2"/>
       <airSettings airCertificatePath="/Users/howard/GroupVoIP2/keystore/android/airconf.android.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes/>
         <anePaths>
           <anePathEntry path="/Users/howard/GroupVoIP2/android-client/airconf/src/TelephoneManagerANE/TelephoneManager.ane"/>
-          <anePathEntry path="/Users/howard/Downloads/ane-android-sample/extension/com.aneexample.AndroidDialog.ane"/>
+          <anePathEntry path="/Users/howard/GroupVoIP2/android-client/chatroomextension/extension/com.vispar.extension.ChatroomDialog.ane"/>
         </anePaths>
       </airSettings>
-      <multiPlatformSettings enabled="true" includePlatformLibs="false" platformID="com.adobe.flexide.multiplatform.android.platform" version="2"/>
       <actionScriptSettings version="1"/>
     </buildTarget>
     <buildTarget buildTargetName="default">

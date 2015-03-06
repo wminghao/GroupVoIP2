@@ -16,10 +16,10 @@ package com.vispar.extension
 		 * Display a simple Android Dialog box.
 		 * @param	msg	the message you wish to display.
 		 */
-		public static function showDialogMessage(msg:String):void
+		public static function showChatroom(msg:String):void
 		{
 			initContext();
-			extContext.call("ffiShowDialogMessage",msg);
+			extContext.call("ffiShowChatroom",msg);
 		}
 		
 		//
@@ -31,7 +31,7 @@ package com.vispar.extension
 		{
 			if(!extContext)
 			{
-				extContext=ExtensionContext.createExtensionContext("com.aneexample.AndroidDialog","");
+				extContext=ExtensionContext.createExtensionContext("com.vispar.extension.ChatroomDialog","");
 				extContext.call("ffiInit");
 			}
 		}

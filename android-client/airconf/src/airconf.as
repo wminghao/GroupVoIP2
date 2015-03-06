@@ -1,6 +1,7 @@
 package
 {
 	import com.vispar.*;
+	import com.vispar.extension.Chatroom;
 	import com.wadedwalker.nativeExtension.telephone.CallStateEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataActivityEvent;
 	import com.wadedwalker.nativeExtension.telephone.DataConnectionStateEvent;
@@ -17,9 +18,6 @@ package
 	import flash.utils.*;
 	
 	import ui.alert.*;
-	
-	//import the native extension
-	import com.vispar.extension.Chatroom;
 	
 	
 	public class airconf extends Sprite implements VideoContainerDelegate
@@ -51,6 +49,10 @@ package
 		
 		//indicate whether it's audio only
 		private var forceAudioOnly_:Boolean = false;
+		
+		//save room and username
+		private var room_:String;
+		private var user_:String;
 		
 		public function airconf()
 		{
@@ -88,8 +90,6 @@ package
 			//live: "vispar.player://live/rooms/howard/howard/mode/false/sessionId";
 			//vod: "vispar.player://vod/rooms/howard/betsy/mode/false/sessionId";
 			var serverIp:String = null;
-			var room:String = null;
-			var user:String = null;
 			var bIsArchive:Boolean = false;
 			var mode:String = null;
 			//logDebug("reason: " + event.reason);  
@@ -117,12 +117,12 @@ package
 				//room
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
-				room = arg.substring(0, endIndex);
+				room_ = arg.substring(0, endIndex);
 				
 				//user
 				arg = arg.substr(endIndex + 1);
 				endIndex = arg.indexOf("/");
-				user = arg.substring(0, endIndex);
+				user_ = arg.substring(0, endIndex);
 				
 				//mode
 				arg = arg.substr(endIndex + 1);
@@ -135,9 +135,9 @@ package
 				forceAudioOnly_ = (arg.substring(0, endIndex) == "true");
 			}
 			if( bIsArchive ) {
-				vidInstance_ = new VideoPlayer(this, this, serverIp, room, user, mode, forceAudioOnly_, true);
+				vidInstance_ = new VideoPlayer(this, this, serverIp, room_, user_, mode, forceAudioOnly_, true);
 			} else {				
-				vidInstance_ = new VideoConf(this, this, serverIp, room, user, mode, forceAudioOnly_, true);
+				vidInstance_ = new VideoConf(this, this, serverIp, room_, user_, mode, forceAudioOnly_, true);
 			}
 		}		
 		
@@ -150,7 +150,7 @@ package
 				var detectNetworkFunc:Function = function (eventType : String):void {
 					if( eventType == AlertBox.ALERT_YES ) {
 						vidInstance_.connectServer();
-						Chatroom.showDialogMessage("TEST!");				
+						Chatroom.showChatroom(user_);			
 					} else { //AlertBox.ALERT_NO
 						backClickHandler(); //treat the same way as backbutton					
 					}

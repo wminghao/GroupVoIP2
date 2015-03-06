@@ -300,7 +300,6 @@
 
 	<extensions>
         <extensionID>com.wadedwalker.nativeExtension.telephone.TelephoneManager</extensionID>
-    	
-    <extensionID>com.aneexample.AndroidDialog</extensionID>
+	    <extensionID>com.vispar.extension.ChatroomDialog</extensionID>
     </extensions>
 </application>

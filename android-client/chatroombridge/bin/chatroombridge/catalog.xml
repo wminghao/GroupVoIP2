@@ -10,21 +10,21 @@
   </features>
   <libraries>
     <library path="library.swf">
-      <script name="_322e75dbb22b6581a56126f33e75b012abf32f4858347d5e59531fb318e21986_flash_display_Sprite" mod="1425510071809" signatureChecksum="153450579" >
-        <def id="_322e75dbb22b6581a56126f33e75b012abf32f4858347d5e59531fb318e21986_flash_display_Sprite" /> 
+      <script name="_fe316f860f4e166322bf79ab2dc65f91439a9b7e5e538ee2b686f6b5ad9693e1_flash_display_Sprite" mod="1425667152247" signatureChecksum="3199498971" >
+        <def id="_fe316f860f4e166322bf79ab2dc65f91439a9b7e5e538ee2b686f6b5ad9693e1_flash_display_Sprite" /> 
         <dep id="flash.system:Security" type="e" /> 
         <dep id="AS3" type="n" /> 
         <dep id="flash.display:Sprite" type="i" /> 
       </script>
-      <script name="com/vispar/extension/chatroom" mod="1425510071000" signatureChecksum="2554940343" >
-        <def id="com.vispar.extension:chatroom" /> 
+      <script name="com/vispar/extension/Chatroom" mod="1425667151000" signatureChecksum="487410079" >
+        <def id="com.vispar.extension:Chatroom" /> 
         <dep id="flash.external:ExtensionContext" type="e" /> 
         <dep id="flash.external:ExtensionContext" type="s" /> 
         <dep id="AS3" type="n" /> 
         <dep id="flash.events:EventDispatcher" type="i" /> 
       </script>
       <digests>
-        <digest type="SHA-256" signed="false" value="3f87dc44f4d46a30a7b129d2ffa66254f354d6b52d3ab0c3972c978ddfbb47f8"   />
+        <digest type="SHA-256" signed="false" value="3f1c702d07e6c6a5ca1fa3b08913e46255dafa1eeda137607657efb0e332cbee"   />
       </digests>
     </library>
   </libraries>
