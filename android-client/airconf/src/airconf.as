@@ -18,6 +18,10 @@ package
 	
 	import ui.alert.*;
 	
+	//import the native extension
+	import com.vispar.extension.Chatroom;
+	
+	
 	public class airconf extends Sprite implements VideoContainerDelegate
 	{		
 		private var videoWidth:int = 640;
@@ -145,7 +149,8 @@ package
 			if( vidInstance_ is VideoConf ) {
 				var detectNetworkFunc:Function = function (eventType : String):void {
 					if( eventType == AlertBox.ALERT_YES ) {
-						vidInstance_.connectServer();						
+						vidInstance_.connectServer();
+						Chatroom.showDialogMessage("TEST!");				
 					} else { //AlertBox.ALERT_NO
 						backClickHandler(); //treat the same way as backbutton					
 					}

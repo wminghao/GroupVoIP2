@@ -15,29 +15,29 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>Vispar</id>
+	<id>chatroomtest</id>
 
 	<!-- Used as the filename for the application. Required. -->
-	<filename>Vispar</filename>
+	<filename>chatroomtest</filename>
 
 	<!-- The name that is displayed in the AIR application installer. 
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<name>Vispar</name>
+	<name>chatroomtest</name>
 	
 	<!-- A string value of the format <0-999>.<0-999>.<0-999> that represents application version which can be used to check for application upgrade. 
 	Values can also be 1-part or 2-part. It is not necessary to have a 3-part value.
 	An updated version of application must have a versionNumber value higher than the previous version. Required for namespace >= 2.5 . -->
-	<versionNumber>0.0.1</versionNumber>
+	<versionNumber>0.0.0</versionNumber>
 		         
 	<!-- A string value (such as "v1", "2.5", or "Alpha 1") that represents the version of the application, as it should be shown to users. Optional. -->
-	<versionLabel>Alpha 0.0.1</versionLabel>
+	<!-- <versionLabel></versionLabel> -->
 
 	<!-- Description, displayed in the AIR application installer.
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<description>Vispar realtime video communication app</description>
+	<!-- <description></description> -->
 
 	<!-- Copyright information. Optional -->
-	<copyright>Vispar Corp.</copyright>
+	<!-- <copyright></copyright> -->
 
 	<!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
 	<!-- <publisherID></publisherID> -->
@@ -46,7 +46,7 @@
 	<initialWindow>
 		<!-- The main SWF or HTML file of the application. Required. -->
 		<!-- Note: In Flash Builder, the SWF reference is set automatically. -->
-		<content>airconf.swf</content>
+		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
 		
 		<!-- The title of the main window. Optional. -->
 		<!-- <title></title> -->
@@ -100,7 +100,8 @@
         <!-- <fullScreen></fullScreen> -->
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
-        <renderMode>cpu</renderMode>
+
+        <!-- <renderMode></renderMode> -->
 
         <!-- Whether the default direct mode rendering context allocates storage for depth and stencil buffers.  Optional.  Default false. -->
         <!-- <depthAndStencil></depthAndStencil> -->
@@ -110,9 +111,8 @@
 
 		<!-- Display Resolution for the app (either "standard" or "high"). Optional, OSX-only. Default "standard" -->
 		<!-- <requestedDisplayResolution></requestedDisplayResolution> -->
-		<aspectRatio>landscape</aspectRatio>
-		<autoOrients>false</autoOrients>
-        <fullScreen>true</fullScreen>
+	<autoOrients>true</autoOrients>
+        <fullScreen>false</fullScreen>
         <visible>true</visible>
     </initialWindow>
 
@@ -133,11 +133,39 @@
 	<!-- The subpath of the Programs menu to use. (Ignored on operating systems without a Programs menu.) Optional. -->
 	<!-- <programMenuFolder></programMenuFolder> -->
 
-	<icon>
-		<image32x32>icons/vispar_32x32.png</image32x32>
-		<image48x48>icons/vispar_48x48.png</image48x48>
-		<image128x128>icons/vispar_128x128.png</image128x128>
-	</icon>
+	<!-- The icon the system uses for the application. For at least one resolution,
+	specify the path to a PNG file included in the AIR package. Optional. -->
+	<!-- <icon>
+		<image16x16></image16x16>
+		<image29x29></image29x29>
+		<image32x32></image32x32>
+		<image36x36></image36x36>
+		<image40x40></image40x40>
+		<image44x44></image44x44>
+		<image48x48></image48x48>
+		<image50x50></image50x50>
+		<image57x57></image57x57>
+		<image58x58></image58x58>
+		<image60x60></image60x60>
+		<image66x66></image66x66>
+		<image72x72></image72x72>
+		<image75x75></image75x75>
+		<image76x76></image76x76>
+		<image80x80></image80x80>
+		<image87x87></image87x87>
+		<image96x96></image96x96>
+		<image100x100></image100x100>
+		<image114x114></image114x114>
+		<image120x120></image120x120>
+		<image128x128></image128x128>
+		<image144x144></image144x144>
+		<image152x152></image152x152>
+		<image180x180></image180x180>
+		<image192x192></image192x192>
+		<image512x512></image512x512>
+		<image732x412></image732x412>
+		<image1024x1024></image1024x1024>
+	</icon> -->
 
 	<!-- Whether the application handles the update when a user double-clicks an update version
 	of the AIR file (true), or the default AIR application installer handles the update (false).
@@ -240,49 +268,26 @@
     <!-- </android> -->
 	<!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
 
-	<android>
-		<!-- According to this thread, https://forums.adobe.com/message/5730853 containsVideo is a temporary hack will cause problems -->
-		<containsVideo>true</containsVideo>
+<android>
         <manifestAdditions><![CDATA[
 			<manifest android:installLocation="auto">
-				<application android:enabled="true" android:hardwareAccelerated="true">
-					<activity android:excludeFromRecents="false">
-						<intent-filter>
-							<action android:name="android.intent.action.MAIN"/>
-							<category android:name="android.intent.category.LAUNCHER"/>
-						</intent-filter>
-						<intent-filter>
-					            <action android:name="android.intent.action.VIEW" />
-					            <category android:name="android.intent.category.DEFAULT" />
-					            <category android:name="android.intent.category.BROWSABLE" />
-					            <data android:scheme="http" />
-					            <data android:host="vispar.com" />
-					            <data android:host="*.vispar.com" />
-					            <data android:host="www.vispar.com" />
-					            <data android:pathPrefix="/room" />
-				        </intent-filter>
-					</activity>
-				</application>
-				<!-- Only tested on Android 4.0 and above devices -->
-				<uses-sdk android:minSdkVersion="14"/> 
 			    <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
 			    <!--Removing the permission android.permission.INTERNET will have the side effect
 					of preventing you from debugging your application on your device-->
 			    <uses-permission android:name="android.permission.INTERNET"/>
 			    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
-			    <!--listen to incoming phone call event-->
-			    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+			    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE"/>-->
 			    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>-->
 			    <!--The DISABLE_KEYGUARD and WAKE_LOCK permissions should be toggled together
-					in order to access AIR's SystemIdleMode APIs to umdim the screen-->
-			    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
-			    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-			    <uses-permission android:name="android.permission.CAMERA"/>
-			    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+					in order to access AIR's SystemIdleMode APIs-->
+			    <!--<uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>-->
+			    <!--<uses-permission android:name="android.permission.WAKE_LOCK"/>-->
+			    <!--<uses-permission android:name="android.permission.CAMERA"/>-->
+			    <!--<uses-permission android:name="android.permission.RECORD_AUDIO"/>-->
 			    <!--The ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE permissions should be toggled
 					together in order to use AIR's NetworkInfo APIs-->
-			    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-			    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+			    <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>-->
+			    <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>-->
 			</manifest>
 			
 		]]></manifestAdditions>
@@ -297,10 +302,7 @@
 		]]></InfoAdditions>
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
-
-	<extensions>
-        <extensionID>com.wadedwalker.nativeExtension.telephone.TelephoneManager</extensionID>
-    	
-    <extensionID>com.aneexample.AndroidDialog</extensionID>
+<extensions>
+        <extensionID>com.aneexample.AndroidDialog</extensionID>
     </extensions>
 </application>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding ="utf-8"?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+  <versions>
+    <swc version="1.2" />
+    <flex version="4.6.0" build="23201" minimumSupportedVersion="3.0.0" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="_322e75dbb22b6581a56126f33e75b012abf32f4858347d5e59531fb318e21986_flash_display_Sprite" mod="1425510071809" signatureChecksum="153450579" >
+        <def id="_322e75dbb22b6581a56126f33e75b012abf32f4858347d5e59531fb318e21986_flash_display_Sprite" /> 
+        <dep id="flash.system:Security" type="e" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.display:Sprite" type="i" /> 
+      </script>
+      <script name="com/vispar/extension/chatroom" mod="1425510071000" signatureChecksum="2554940343" >
+        <def id="com.vispar.extension:chatroom" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+      </script>
+      <digests>
+        <digest type="SHA-256" signed="false" value="3f87dc44f4d46a30a7b129d2ffa66254f354d6b52d3ab0c3972c978ddfbb47f8"   />
+      </digests>
+    </library>
+  </libraries>
+  <files>
+  </files>
+</swc>

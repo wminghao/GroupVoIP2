@@ -300,5 +300,6 @@
 
 	<extensions>
         <extensionID>com.wadedwalker.nativeExtension.telephone.TelephoneManager</extensionID>
+	    <extensionID>com.aneexample.AndroidDialog</extensionID>
     </extensions>
 </application>
