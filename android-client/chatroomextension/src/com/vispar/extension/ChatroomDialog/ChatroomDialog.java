@@ -1,12 +1,12 @@
 package com.vispar.extension.ChatroomDialog;
 
-import com.vispar.extension.Chatroom.R;
+import com.vispar.extension.ChatroomDialog.R;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.view.View;
 import android.widget.TextView;
-import android.content.res.Resources;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,7 +28,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatroomDialog {
+@SuppressLint("NewApi") public class ChatroomDialog {
 	private Activity mActivity;
 
     private static final int TYPING_TIMER_LENGTH = 600;
@@ -49,7 +49,7 @@ public class ChatroomDialog {
         }
     }
 
-	ChatroomDialog(Activity activity, String userName){
+	public ChatroomDialog(Activity activity, String userName){
 		this.mActivity = activity;
         mAdapter = new MessageAdapter(activity, mMessages);
 
@@ -77,7 +77,8 @@ public class ChatroomDialog {
     }
 
     private void addParticipantsLog(int numUsers) {
-        addLog(getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
+        //addLog(getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
+    	addLog("there are "+numUsers+" participants");
     }
 
     private void addMessage(String username, String message) {
@@ -178,8 +179,8 @@ public class ChatroomDialog {
                     } catch (JSONException e) {
                         return;
                     }
-
-                    addLog(getResources().getString(R.string.message_user_joined, username));
+                    addLog(username + " joined");
+                    //addLog(getResources().getString(R.string.message_user_joined, username));
                     addParticipantsLog(numUsers);
                 }
             });
@@ -202,7 +203,9 @@ public class ChatroomDialog {
                         return;
                     }
 
-                    addLog(getResources().getString(R.string.message_user_left, username));
+
+                    addLog(username + " left");
+                    //addLog(getResources().getString(R.string.message_user_left, username));
                     addParticipantsLog(numUsers);
                     removeTyping(username);
                 }
@@ -266,7 +269,8 @@ public class ChatroomDialog {
             int numUsers;
             try {
                 numUsers = data.getInt("numUsers");
-                addLog(getResources().getString(R.string.message_welcome));
+                addLog("Welcome to Vispar Chat");
+                //addLog(getResources().getString(R.string.message_welcome));
                 addParticipantsLog(numUsers);
             } catch (JSONException e) {
                 return;
@@ -286,7 +290,7 @@ public class ChatroomDialog {
         mSocket.off("login", onLogin);
     }
 	
-	public void showDialog() {
+	@SuppressLint("NewApi") public void showDialog() {
 		// custom dialog
 		final Dialog dialog = new Dialog(mActivity);
 		dialog.setContentView(R.layout.chat_layout);
@@ -353,13 +357,4 @@ public class ChatroomDialog {
 
 		dialog.show();
 	}
-    /**
-     * Return <code>getActivity().getResources()</code>.
-     */
-    final private Resources getResources() {
-        if (mActivity == null) {
-            throw new IllegalStateException("Fragment " + this + " not attached to Activity");
-        }
-        return mActivity.getResources();
-    }
 }

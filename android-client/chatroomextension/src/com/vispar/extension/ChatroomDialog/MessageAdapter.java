@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.vispar.extension.Chatroom.R;
+import com.vispar.extension.ChatroomDialog.R;
 
 import java.util.List;
 

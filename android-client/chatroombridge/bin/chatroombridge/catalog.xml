@@ -10,7 +10,7 @@
   </features>
   <libraries>
     <library path="library.swf">
-      <script name="_fe316f860f4e166322bf79ab2dc65f91439a9b7e5e538ee2b686f6b5ad9693e1_flash_display_Sprite" mod="1425667152247" signatureChecksum="3199498971" >
+      <script name="_fe316f860f4e166322bf79ab2dc65f91439a9b7e5e538ee2b686f6b5ad9693e1_flash_display_Sprite" mod="1425679079665" signatureChecksum="3199498971" >
         <def id="_fe316f860f4e166322bf79ab2dc65f91439a9b7e5e538ee2b686f6b5ad9693e1_flash_display_Sprite" /> 
         <dep id="flash.system:Security" type="e" /> 
         <dep id="AS3" type="n" /> 
@@ -24,7 +24,7 @@
         <dep id="flash.events:EventDispatcher" type="i" /> 
       </script>
       <digests>
-        <digest type="SHA-256" signed="false" value="3f1c702d07e6c6a5ca1fa3b08913e46255dafa1eeda137607657efb0e332cbee"   />
+        <digest type="SHA-256" signed="false" value="e7f7bac96d1ceb5c3c7b4c9f7ff6b8b2f3fc9ca856198a1bedd75eb6c92561fd"   />
       </digests>
     </library>
   </libraries>
