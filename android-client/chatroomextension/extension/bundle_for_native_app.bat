@@ -10,6 +10,8 @@ mv ../ChatroomExtension.jar .
 jar -xvf ChatroomExtension.jar
 rm ChatroomExtension.jar
 rm com/vispar/R*.class
+rm -rf com/github
+rm -rf org
 jar -cvf ChatroomExtension.jar *
 mv ChatroomExtension.jar ..
 cd ..
