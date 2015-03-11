@@ -139,7 +139,6 @@ package
 			} else {				
 				vidInstance_ = new VideoConf(this, this, serverIp, room_, user_, mode, forceAudioOnly_, true);
 			}
-			addChatroomButton();
 		}		
 		
 		private function handleActivate(event:Event):void
@@ -150,7 +149,9 @@ package
 			if( vidInstance_ is VideoConf ) {
 				var detectNetworkFunc:Function = function (eventType : String):void {
 					if( eventType == AlertBox.ALERT_YES ) {
-						vidInstance_.connectServer();		
+						vidInstance_.connectServer();	
+						//add the chatroom button
+						addChatroomButton();
 					} else { //AlertBox.ALERT_NO
 						backClickHandler(); //treat the same way as backbutton					
 					}

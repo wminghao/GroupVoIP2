@@ -72,11 +72,15 @@ import java.util.List;
         mSocket.emit("add user", mUsername);
 	}
 
-    private void addLog(String message) {
-        mMessages.add(new Message.Builder(Message.TYPE_LOG)
-                .message(message).build());
-        mAdapter.notifyItemInserted(mMessages.size() - 1);
-        scrollToBottom();
+    private void addLog(final String message) {
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+            	mMessages.add(new Message.Builder(Message.TYPE_LOG).message(message).build());
+            	mAdapter.notifyItemInserted(mMessages.size() - 1);
+                scrollToBottom();
+            }
+        });
     }
 
     private void addParticipantsLog(int numUsers) {
