@@ -139,6 +139,7 @@ package
 			} else {				
 				vidInstance_ = new VideoConf(this, this, serverIp, room_, user_, mode, forceAudioOnly_, true);
 			}
+			addChatroomButton();
 		}		
 		
 		private function handleActivate(event:Event):void
@@ -149,8 +150,7 @@ package
 			if( vidInstance_ is VideoConf ) {
 				var detectNetworkFunc:Function = function (eventType : String):void {
 					if( eventType == AlertBox.ALERT_YES ) {
-						vidInstance_.connectServer();
-						Chatroom.showChatroom(user_);			
+						vidInstance_.connectServer();		
 					} else { //AlertBox.ALERT_NO
 						backClickHandler(); //treat the same way as backbutton					
 					}
@@ -346,6 +346,22 @@ package
 		}
 		public function onUserJoinedTalk(user:String, avFlag:int):void {
 			logDebug("onUserJoinedTalk "+user+"="+avFlag);
+		}
+		
+		private function addChatroomButton():void {
+			// AS3
+			var mc:MovieClip = new MovieClip();
+			mc.graphics.beginFill(0xFF0000);
+			mc.graphics.drawRect(0, 0, 100, 80);
+			mc.graphics.endFill();
+			mc.x = screenWidth - 100;
+			mc.y = (screenHeight-80)/2;
+			mc.addEventListener(MouseEvent.CLICK, clickHandler);
+			stage.addChild(mc);
+			
+			function clickHandler(event:MouseEvent):void {
+				Chatroom.showChatroom(user_);
+			}
 		}
 	}
 }
