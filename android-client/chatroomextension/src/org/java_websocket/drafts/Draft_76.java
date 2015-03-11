@@ -65,7 +65,7 @@ public class Draft_76 extends Draft_75 {
 		Random r = new Random();
 		long maxNumber = 4294967295L;
 		long spaces = r.nextInt( 12 ) + 1;
-		int max = new Long( maxNumber / spaces ).intValue();
+		int max = Long.valueOf( maxNumber / spaces ).intValue();
 		max = Math.abs( max );
 		int number = r.nextInt( max ) + 1;
 		long product = number * spaces;
@@ -97,7 +97,7 @@ public class Draft_76 extends Draft_75 {
 			if( keySpace == 0 ) {
 				throw new InvalidHandshakeException( "invalid Sec-WebSocket-Key (/key2/)" );
 			}
-			long part = new Long( keyNumber / keySpace );
+			long part = Long.valueOf( keyNumber / keySpace );
 			return new byte[]{ (byte) ( part >> 24 ), (byte) ( ( part << 8 ) >> 24 ), (byte) ( ( part << 16 ) >> 24 ), (byte) ( ( part << 24 ) >> 24 ) };
 		} catch ( NumberFormatException e ) {
 			throw new InvalidHandshakeException( "invalid Sec-WebSocket-Key (/key1/ or /key2/)" );

@@ -51,7 +51,7 @@ public class Draft_10 extends Draft {
 		if( vers.length() > 0 ) {
 			int v;
 			try {
-				v = new Integer( vers.trim() );
+				v = Integer.valueOf( vers.trim() );
 				return v;
 			} catch ( NumberFormatException e ) {
 				return -1;
