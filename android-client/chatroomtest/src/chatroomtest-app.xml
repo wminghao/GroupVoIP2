@@ -114,6 +114,7 @@
 	<autoOrients>true</autoOrients>
         <fullScreen>false</fullScreen>
         <visible>true</visible>
+        <softKeyboardBehavior>none</softKeyboardBehavior>
     </initialWindow>
 
 	<!-- We recommend omitting the supportedProfiles element, -->
@@ -269,6 +270,7 @@
 	<!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
 
 <android>
+        <colorDepth>16bit</colorDepth>
         <manifestAdditions><![CDATA[
 			<manifest android:installLocation="auto">
 			    <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
@@ -302,7 +304,7 @@
 		]]></InfoAdditions>
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
-	<extensions>
-	    <extensionID>com.vispar.extension.ChatroomDialog</extensionID>
+    <extensions>
+        <extensionID>com.vispar.extension.ChatroomDialog</extensionID>
     </extensions>
 </application>

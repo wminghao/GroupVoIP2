@@ -6,7 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.vispar.extension.ChatroomDialog.R;
+
+//Replace library R file with target app's R file
+//import com.vispar.extension.ChatroomDialog.R;
+import com.vispar.R;
 
 import java.util.List;
 
@@ -65,8 +68,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         public ViewHolder(View itemView) {
             super(itemView);
 
-            mUsernameView = (TextView) itemView.findViewById(R.id.username);
-            mMessageView = (TextView) itemView.findViewById(R.id.message);
+            mUsernameView = (TextView) itemView.findViewById(R.id.chat_username);
+            mMessageView = (TextView) itemView.findViewById(R.id.chat_message);
         }
 
         public void setUsername(String username) {

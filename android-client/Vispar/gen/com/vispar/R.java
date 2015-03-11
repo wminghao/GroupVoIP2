@@ -28,8 +28,7 @@ public final class R {
         public static final int username9=0x7f040009;
     }
     public static final class dimen {
-        /**  Default screen margins, per the Android Design guidelines. 
-
+        /** 
          Example customization of dimensions originally defined in res/values/dimens.xml
          (such as screen margins) for screens with more than 820dp of available width. This
          would include 7" and 10" devices in landscape (~960dp and ~1280dp respectively).
@@ -40,8 +39,12 @@ public final class R {
         public static final int spacing=0x7f080002;
     }
     public static final class drawable {
-        public static final int clipboard=0x7f020000;
-        public static final int ic_launcher=0x7f020001;
+        public static final int air_72px_mobile_eula=0x7f020000;
+        public static final int clipboard=0x7f020001;
+        public static final int ic_launcher=0x7f020002;
+        public static final int icon=0x7f020003;
+        public static final int mp_warning_32x32_n=0x7f020004;
+        public static final int ouya_icon=0x7f020005;
     }
     public static final class id {
         public static final int Invite=0x7f0b005b;
@@ -50,11 +53,16 @@ public final class R {
         public static final int JoinOthers=0x7f0b0059;
         public static final int StartEvent=0x7f0b005e;
         public static final int ViewEvent=0x7f0b005f;
-        public static final int action=0x7f0b0061;
         public static final int action_logout=0x7f0b0064;
         public static final int action_settings=0x7f0b0063;
         public static final int btnCancel=0x7f0b002b;
         public static final int btnSubmit=0x7f0b002a;
+        public static final int chat_action=0x7f0b0061;
+        public static final int chat_message=0x7f0b0062;
+        public static final int chat_message_input=0x7f0b002d;
+        public static final int chat_message_send=0x7f0b002e;
+        public static final int chat_messages=0x7f0b002c;
+        public static final int chat_username=0x7f0b0060;
         public static final int click_to_forget_password_button_from_login=0x7f0b0016;
         public static final int click_to_forget_password_button_from_register=0x7f0b0022;
         public static final int click_to_login_button_from_forgetpassword=0x7f0b000e;
@@ -91,9 +99,6 @@ public final class R {
         public static final int login_form=0x7f0b0010;
         public static final int login_progress=0x7f0b000f;
         public static final int logout_progress=0x7f0b0017;
-        public static final int message=0x7f0b0062;
-        public static final int message_input=0x7f0b002d;
-        public static final int messages=0x7f0b002c;
         public static final int organizer=0x7f0b0000;
         public static final int pager=0x7f0b0018;
         public static final int password=0x7f0b0012;
@@ -105,8 +110,7 @@ public final class R {
         public static final int register_form=0x7f0b001a;
         public static final int register_progress=0x7f0b0019;
         public static final int section_label=0x7f0b005c;
-        public static final int send=0x7f0b002e;
-        public static final int send_button=0x7f0b002f;
+        public static final int send_chat_message_button=0x7f0b002f;
         public static final int tableRow1=0x7f0b0030;
         public static final int tableRow2=0x7f0b0034;
         public static final int tableRow3=0x7f0b0039;
@@ -143,7 +147,6 @@ public final class R {
         public static final int txtEndTime=0x7f0b0026;
         public static final int txtStartTime=0x7f0b0025;
         public static final int txtTitle=0x7f0b0023;
-        public static final int username=0x7f0b0060;
         public static final int username_register=0x7f0b001c;
     }
     public static final class layout {

@@ -13,6 +13,7 @@ public class ChatroomDialogShowDialogMessageFunction implements FREFunction {
 		try
 		{
 			String userName = args[0].getAsString();
+			android.util.Log.e("AIR_AndroidDialog", "username="+userName);
 			ChatroomDialog chatroomDialog = new ChatroomDialog(adec.activity, userName); 
 			chatroomDialog.showDialog();
 		}

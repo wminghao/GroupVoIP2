@@ -68,6 +68,12 @@ public class MainFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
+        //TODO
+        //Howard launch chatroom dialog box directly.
+        ChatroomDialog dialog = new ChatroomDialog(getActivity(), "Howard");
+        dialog.showDialog();
+
+        /*
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.on("new message", onNewMessage);
@@ -78,6 +84,7 @@ public class MainFragment extends Fragment {
         mSocket.connect();
 
         startSignIn();
+        */
     }
 
     @Override

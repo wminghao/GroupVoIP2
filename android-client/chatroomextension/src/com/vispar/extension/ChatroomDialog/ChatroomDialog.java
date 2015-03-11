@@ -1,6 +1,9 @@
 package com.vispar.extension.ChatroomDialog;
 
-import com.vispar.extension.ChatroomDialog.R;
+//Replace library R file with target app's R file
+//import com.vispar.extension.ChatroomDialog.R;
+import com.vispar.R;
+
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -77,8 +80,7 @@ import java.util.List;
     }
 
     private void addParticipantsLog(int numUsers) {
-        //addLog(getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
-    	addLog("there are "+numUsers+" participants");
+        addLog(mActivity.getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
     }
 
     private void addMessage(String username, String message) {
@@ -179,8 +181,7 @@ import java.util.List;
                     } catch (JSONException e) {
                         return;
                     }
-                    addLog(username + " joined");
-                    //addLog(getResources().getString(R.string.message_user_joined, username));
+                    addLog(mActivity.getResources().getString(R.string.message_user_joined, username));
                     addParticipantsLog(numUsers);
                 }
             });
@@ -204,8 +205,7 @@ import java.util.List;
                     }
 
 
-                    addLog(username + " left");
-                    //addLog(getResources().getString(R.string.message_user_left, username));
+                    addLog(mActivity.getResources().getString(R.string.message_user_left, username));
                     addParticipantsLog(numUsers);
                     removeTyping(username);
                 }
@@ -269,8 +269,7 @@ import java.util.List;
             int numUsers;
             try {
                 numUsers = data.getInt("numUsers");
-                addLog("Welcome to Vispar Chat");
-                //addLog(getResources().getString(R.string.message_welcome));
+                addLog(mActivity.getResources().getString(R.string.message_welcome));
                 addParticipantsLog(numUsers);
             } catch (JSONException e) {
                 return;
@@ -296,15 +295,15 @@ import java.util.List;
 		dialog.setContentView(R.layout.chat_layout);
 		dialog.setTitle("ChatRoom");
 
-        mMessagesView = (RecyclerView) dialog.findViewById(R.id.messages);
+        mMessagesView = (RecyclerView) dialog.findViewById(R.id.chat_messages);
         mMessagesView.setLayoutManager(new LinearLayoutManager(mActivity));
         mMessagesView.setAdapter(mAdapter);
 
-        mInputMessageView = (EditText) dialog.findViewById(R.id.message_input);
+        mInputMessageView = (EditText) dialog.findViewById(R.id.chat_message_input);
         mInputMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int id, KeyEvent event) {
-                if (id == R.id.send || id == EditorInfo.IME_NULL) {
+                if (id == R.id.chat_message_send || id == EditorInfo.IME_NULL) {
                     attemptSend();
                     return true;
                 }
@@ -335,7 +334,7 @@ import java.util.List;
             }
         });
 
-        ImageButton sendButton = (ImageButton) dialog.findViewById(R.id.send_button);
+        ImageButton sendButton = (ImageButton) dialog.findViewById(R.id.send_chat_message_button);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
