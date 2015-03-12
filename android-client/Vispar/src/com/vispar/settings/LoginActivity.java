@@ -46,7 +46,6 @@ import org.json.JSONObject;
 import com.vispar.MainActivity;
 import com.vispar.R;
 import com.vispar.VisparApplication;
-import com.vispar.mysessions.AirConfActivity;
 
 /**
  * A login screen that offers login via email/password.
@@ -113,8 +112,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 		        startActivityForResult(i, MainActivity.REQUEST_REGISTER);
 			}
 		});
-		/*
-		 * Forget password
 		Button forgetPasswordButton = (Button) findViewById(R.id.click_to_forget_password_button_from_login);
 		forgetPasswordButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -124,7 +121,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 		        startActivity(i);
 			}
 		});
-		*/
 		
 	}
 

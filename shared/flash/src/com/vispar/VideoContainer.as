@@ -29,7 +29,7 @@ package com.vispar
 		private var onBWInitiated_:Function = null;
 		
 		//ip address
-		protected var serverIp:String = "54.148.16.2";//"54.201.108.66";//"192.168.2.109";//"192.168.0.61";
+		protected var serverIp:String;
 		
 		protected var roomMode_:String; //either auto mode or moderator mode
 		
@@ -44,11 +44,13 @@ package com.vispar
 		}
 		
 		public function VideoContainer(container:Sprite, delegate:VideoContainerDelegate, 
-									   room:String, user:String, mode:String, 
+									   serverIp:String, room:String, 
+									   user:String, mode:String, 
 									   forceAudioOnly:Boolean, autoPublish:Boolean)
 		{ 
 			this.container_ = container;
 			this.delegate_ = delegate;
+			this.serverIp = serverIp;
 			this.room = room;
 			this.user = user;
 			this.roomMode_ = mode;

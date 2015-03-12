@@ -1,0 +1,5 @@
+<platform xmlns="http://ns.adobe.com/air/extension/4.0">
+    <packagedDependencies>
+        <packagedDependency>android-support-v7-recyclerview.jar</packagedDependency>
+    </packagedDependencies>
+</platform>

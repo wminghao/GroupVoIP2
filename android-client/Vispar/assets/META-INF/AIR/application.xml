@@ -100,7 +100,7 @@
         <!-- <fullScreen></fullScreen> -->
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
-        <renderMode>direct</renderMode>
+        <renderMode>cpu</renderMode>
 
         <!-- Whether the default direct mode rendering context allocates storage for depth and stencil buffers.  Optional.  Default false. -->
         <!-- <depthAndStencil></depthAndStencil> -->
@@ -252,14 +252,14 @@
 							<category android:name="android.intent.category.LAUNCHER"/>
 						</intent-filter>
 						<intent-filter>
-				            <action android:name="android.intent.action.VIEW" />
-				            <category android:name="android.intent.category.DEFAULT" />
-				            <category android:name="android.intent.category.BROWSABLE" />
-				            <data android:scheme="http" />
-				            <data android:host="vispar.com" />
-				            <data android:host="*.vispar.com" />
-				            <data android:host="www.vispar.com" />
-				            <data android:pathPrefix="/room" />
+					            <action android:name="android.intent.action.VIEW" />
+					            <category android:name="android.intent.category.DEFAULT" />
+					            <category android:name="android.intent.category.BROWSABLE" />
+					            <data android:scheme="http" />
+					            <data android:host="vispar.com" />
+					            <data android:host="*.vispar.com" />
+					            <data android:host="www.vispar.com" />
+					            <data android:pathPrefix="/room" />
 				        </intent-filter>
 					</activity>
 				</application>
@@ -297,7 +297,9 @@
 		]]></InfoAdditions>
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
-<extensions>
+
+	<extensions>
         <extensionID>com.wadedwalker.nativeExtension.telephone.TelephoneManager</extensionID>
+	    <extensionID>com.vispar.extension.ChatroomDialog</extensionID>
     </extensions>
 </application>

@@ -126,18 +126,15 @@ public class RegisterActivity extends Activity implements LoaderCallbacks<Cursor
 		        startActivity(i);
 			}
 		});
-		/*
-		 * Forget password
 		Button forgetPasswordButton = (Button) findViewById(R.id.click_to_forget_password_button_from_register);
 		forgetPasswordButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Intent i = new Intent(LoginActivity.this, com.vispar.settings.ForgetPasswordActivity.class);
+				Intent i = new Intent(RegisterActivity.this, com.vispar.settings.ForgetPasswordActivity.class);
 		        finish();
 		        startActivity(i);
 			}
 		});
-		*/
 	}
 
 	private void populateAutoComplete() {

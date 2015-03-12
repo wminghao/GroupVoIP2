@@ -60,30 +60,30 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/action_sign_in"
                 android:textStyle="bold" />
+
+			<LinearLayout
+			    android:layout_width="fill_parent"
+			    android:layout_height="fill_parent"
+			    android:orientation="horizontal" >
+		
+			    <Button
+			        android:id="@+id/click_to_register_button_from_login"
+			        style="?android:textAppearanceSmall"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content" 
+		            android:layout_weight=".50"
+			        android:text="@string/action_register"
+			        android:textStyle="bold" />
+		
+			    <Button
+			        android:id="@+id/click_to_forget_password_button_from_login"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+		            android:layout_weight=".50"
+			        android:text="@string/action_forget_password" />
+			</LinearLayout>
         </LinearLayout>
-        
     </ScrollView>
 
-	<LinearLayout
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	    android:orientation="horizontal" >
-
-	    <Button
-	        android:id="@+id/click_to_register_button_from_login"
-	        style="?android:textAppearanceSmall"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content" 
-            android:layout_weight=".50"
-	        android:text="@string/action_register"
-	        android:textStyle="bold" />
-
-	    <Button
-	        android:id="@+id/click_to_forget_password_button_from_login"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-            android:layout_weight=".50"
-	        android:text="@string/action_forget_password" />
-	</LinearLayout>
 
 </LinearLayout>

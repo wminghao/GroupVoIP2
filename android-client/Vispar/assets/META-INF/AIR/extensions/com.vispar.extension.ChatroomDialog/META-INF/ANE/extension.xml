@@ -1,0 +1,13 @@
+<extension xmlns="http://ns.adobe.com/air/extension/3.6">
+  <id>com.vispar.extension.ChatroomDialog</id>
+  <versionNumber>1</versionNumber>
+  <platforms>
+    <platform name="Android-ARM">
+      <applicationDeployment>
+	<nativeLibrary>ChatroomDialog.jar</nativeLibrary>
+	<initializer>com.vispar.extension.ChatroomDialog.ChatroomDialogExtension</initializer>
+	<finalizer>com.vispar.extension.ChatroomDialog.ChatroomDialogExtension</finalizer>
+      </applicationDeployment>
+    </platform>
+  </platforms>
+</extension>

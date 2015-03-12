@@ -72,7 +72,8 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
     	            //log.info("======method.getName()="+method.getName());
         	    }
         	} // for getSystemCpuUsage is not working for java 6
-        	finalJson.put("cpuload", cpuUsage(CONSERVATIVE));
+        	finalJson.put("cpuload", cpuUsage());
+        	finalJson.put("cpuCores", noOfCores());
         	finalJson.put("freememory", memoryUsage/(1024*1024)); //in MegBytes	
         	ret += finalJson.toJSONString();
         } else {
@@ -87,73 +88,31 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
     	log.info( "IDLE " + session.getIdleCount( status ));
     }
 
-    public static final int CONSERVATIVE    = 0;
-    public static final int AVERAGE     = 1;
-    public static final int OPTIMISTIC  = 2;
-    /**
-     * cpuUsage gives us the percentage of cpu usage
-     * 
-     * mpstat -P ALL out stream example:
-     *
-     *  Linux 3.2.0-30-generic (castarco-laptop)    10/09/12    _x86_64_    (2 CPU)                 - To discard
-     *                                                                                              - To discard
-     *  00:16:30  AM   CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest   %gnice %idle    - To discard
-     *  00:16:30  AM   all   17,62    0,03    3,55    0,84    0,00    0,03    0,00    0,00   0      77,93
-     *  00:16:30  AM     0   17,36    0,05    3,61    0,83    0,00    0,05    0,00    0,00   0      78,12
-     *  00:16:30  AM     1   17,88    0,02    3,49    0,86    0,00    0,01    0,00    0,00   0      77,74
-     * 
-     * @param measureMode Indicates if we want optimistic, convervative or average measurements.
-     */
-    public static Double cpuUsage (int measureMode) throws Exception {
+    public static int noOfCores (){        
+        return Runtime.getRuntime().availableProcessors();
+    }
+    //average last minute
+    public static Double cpuUsage () {
 
         BufferedReader mpstatReader = null;
 
         String      mpstatLine;
         String[]    mpstatChunkedLine;
 
-        Double      selected_idle;
+        Double      totalUsage = 0.0;
 
-        //TODO no of cores. grep 'model name' /proc/cpuinfo | wc -l
-        //     CPU usage: cat /proc/loadavg | 
         try {
             Runtime runtime = Runtime.getRuntime();
-            Process mpstatProcess = runtime.exec("mpstat -P ALL");
+            Process mpstatProcess = runtime.exec("cat /proc/loadavg");
 
             mpstatReader = new BufferedReader(new InputStreamReader(mpstatProcess.getInputStream()));
-
-            // We discard the three first lines
-            mpstatReader.readLine();
-            mpstatReader.readLine();
-            mpstatReader.readLine();
-
-            mpstatLine = mpstatReader.readLine();
-            if (mpstatLine == null) {
-                throw new Exception("mpstat didn't work well");
-            } else if (measureMode == AVERAGE) {
+            if((mpstatLine = mpstatReader.readLine()) != null) {
                 mpstatChunkedLine = mpstatLine.replaceAll(",", ".").split("\\s+");
-                selected_idle = Double.parseDouble(mpstatChunkedLine[12]);
-            } else {
-                selected_idle   = (measureMode == CONSERVATIVE)?200.:0.;
-                Double candidate_idle;
-
-                int i = 0;
-                while((mpstatLine = mpstatReader.readLine()) != null) {
-                    mpstatChunkedLine = mpstatLine.replaceAll(",", ".").split("\\s+");
-                    candidate_idle = Double.parseDouble(mpstatChunkedLine[12]);
-
-                    if (measureMode == CONSERVATIVE) {
-                        selected_idle = (selected_idle < candidate_idle)?selected_idle:candidate_idle;
-                    } else if (measureMode == OPTIMISTIC) {
-                        selected_idle = (selected_idle > candidate_idle)?selected_idle:candidate_idle;
-                    }
-                    ++i;
-                }
-                if (i == 0) {
-                    throw new Exception("mpstat didn't work well");
-                }
-            }
+                totalUsage = Double.parseDouble(mpstatChunkedLine[0]);
+            }          
+        	//log.info("totalUsage={}, mpstatLine={}", totalUsage, mpstatLine);   
         } catch (Exception e) {
-            throw e; // It's not desirable to handle the exception here
+        	log.info("noOfCores exception={}", e);
         } finally {
             if (mpstatReader != null) try {
                 mpstatReader.close();
@@ -161,10 +120,7 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
                 // Do nothing
             }
         }
-        
-        double cpuUsage = MinaLoadServerHandler.round(100-selected_idle, 2);
-
-        return cpuUsage;
+        return totalUsage;
     }
     public static double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
