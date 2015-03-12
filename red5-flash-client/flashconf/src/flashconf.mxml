@@ -74,7 +74,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						serverIp = ExternalInterface.call("getServerIp");
+						serverIp = ExternalInterface.call("VP.flashAPI.getServerIp");
 						if(serverIp == null) {
 							serverIp = defaultServerIp;
 						}
@@ -95,7 +95,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						room = ExternalInterface.call("getRoom");
+						room = ExternalInterface.call("VP.flashAPI.getRoom");
 						if(room == null) {
 							room = defaultRoom;
 						}
@@ -116,7 +116,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						isArchive = ExternalInterface.call("isArchive");
+						isArchive = ExternalInterface.call("VP.flashAPI.isArchive");
 						//Alert.show("isArchive="+isArchive);
 					}
 				}
@@ -134,7 +134,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						userName = ExternalInterface.call("getUser");
+						userName = ExternalInterface.call("VP.flashAPI.getUser");
 						if(userName == null) {
 							userName = defaultUser;
 						}
@@ -155,7 +155,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						mode = ExternalInterface.call("getMode");
+						mode = ExternalInterface.call("VP.flashAPI.getMode");
 						if(mode == null) {
 							mode = defaultMode;
 						}
@@ -176,7 +176,7 @@
 					if (ExternalInterface.available) 
 					{ 
 						// Perform ExternalInterface method calls here. 
-						forceAudioOnly = ExternalInterface.call("forceAudioOnly");
+						forceAudioOnly = ExternalInterface.call("VP.flashAPI.forceAudioOnly");
 						//Alert.show("forceAudioOnly="+forceAudioOnly);
 					}
 				}
