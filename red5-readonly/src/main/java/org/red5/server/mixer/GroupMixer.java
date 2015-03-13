@@ -46,6 +46,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private MinaLoadServer loadServer = new MinaLoadServer();
     
+    private MinaRoomClient roomNotificationClient = new MinaRoomClient();
+    
 	//spring members from configuration
 	protected static ApplicationContext applicationContext;
 	private boolean bShouldMix;
@@ -120,6 +122,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    	    
 	    //start all other services
 	    mixerRoom.startService();
+	    
+	    //notify load balancer
+	    roomNotificationClient.onRoomCreated(mixerRoom.scopeName_);
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }
 
@@ -218,6 +223,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	    //remove connection
         	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
         	    mixerRoom.allInOneSessionId_ = null;
+        	    //notify load balancer
+        	    roomNotificationClient.onRoomClosed(roomScope.getName());
         	    mixerRooms_.remove(roomScope);
         		log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
         	}
