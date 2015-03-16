@@ -17,7 +17,7 @@ public class MinaRoomClientSessionHandler implements IoHandler {
     // public functions
     /////////////////////////
     public interface Delegate {
-    	public void onSessionClosed();		
+    	public void onSessionClosed(IoSession session);		
     }    
     
 	public MinaRoomClientSessionHandler(Delegate dele) {
@@ -38,7 +38,7 @@ public class MinaRoomClientSessionHandler implements IoHandler {
 
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		delegate_.onSessionClosed();
+		delegate_.onSessionClosed(session);
 	}
 
 	@Override

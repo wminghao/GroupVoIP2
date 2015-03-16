@@ -2,6 +2,8 @@ package org.red5.server.mixer;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
@@ -23,37 +25,51 @@ import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
 	private static final long CONNECT_TIMEOUT = 30;
-	private static final int PORT = 8001;
-	private static final String HOSTNAME = "localhost";
-    private IoSession session_ = null;
-	private NioSocketConnector connector_ = null;
-	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
-    
-	//TODO persistent connection
-	
-    public MinaRoomClient() {
-    	connect();
-    }
-    private void connect() {
-    	connector_ = new NioSocketConnector();
-    	connector_.setConnectTimeoutMillis(CONNECT_TIMEOUT);
 
-    	connector_.getFilterChain().addLast("codec", new ProtocolCodecFilter(new TextLineCodecFactory( Charset.forName( "UTF-8" ))));
+	private String roomLookupServerIp;
+	private int roomLookupServerPort;
+	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
+
+	//map to different connections, accessed from different threads
+	private Map<IoSession,NioSocketConnector> connPool_ = new HashMap<IoSession, NioSocketConnector>();
+	private Object syncObj = new Object();
+	
+	//TODO persistent connection	
+    public MinaRoomClient() {
+    }
+    
+    public void setServerInfo(String roomLookupServerIp, int roomLookupServerPort) {
+    	this.roomLookupServerIp = roomLookupServerIp;
+    	this.roomLookupServerPort = roomLookupServerPort;    
+		log.info("MinaRoomClient connect to ip:{} port: {}", roomLookupServerIp, roomLookupServerPort);
+    }
+    
+    private IoSession connect() {
+    	IoSession session = null;
+    	NioSocketConnector connector = new NioSocketConnector();
+    	connector.setConnectTimeoutMillis(CONNECT_TIMEOUT);
+
+    	connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new TextLineCodecFactory( Charset.forName( "UTF-8" ))));
     	//connector_.getFilterChain().addLast("logger", new LoggingFilter());
-    	connector_.setHandler(new MinaRoomClientSessionHandler(this));
+    	connector.setHandler(new MinaRoomClientSessionHandler(this));
         try {
-            ConnectFuture future = connector_.connect(new InetSocketAddress(HOSTNAME, PORT));
+            ConnectFuture future = connector.connect(new InetSocketAddress(roomLookupServerIp, roomLookupServerPort));
             future.awaitUninterruptibly();
-            session_ = future.getSession();
+            session = future.getSession();
+            synchronized (syncObj) {
+            	connPool_.put(session, connector);
+            }
             log.info("====Mina CLient connection established!");
         } catch (RuntimeIoException e) {
         	e.printStackTrace();
             log.info("====Mina CLient connection failed!");
         }
+        return session;
     }
     
 	public void onRoomCreated(String roomName) {
@@ -67,22 +83,28 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
 	}
 	
 	private void sendToLoadBalancer(Object message) {
-		if( session_ == null ) {
-			connect(); //try to reconnect
-		}
-		if ( session_ != null ) {
-			session_.write(message);
+    	IoSession session = connect(); //try to reconnect
+		if ( session != null ) {
+			session.write(message);
 		}
 	}
 	@Override
-	public void onSessionClosed() {
+	public void onSessionClosed(IoSession session) {
 		// wait until the message is sent
-		if ( session_ != null ) {
-			session_.getCloseFuture().awaitUninterruptibly();
-			session_ = null;
+		if ( session != null ) {
+			NioSocketConnector connector = null;
+            synchronized (syncObj) {
+    			if( connPool_.containsKey(session)) {
+    				connector = connPool_.get(session);
+    				connPool_.remove(session);
+    			}
+            }
+            session.getCloseFuture().awaitUninterruptibly();
+            if( connector != null ) {
+            	connector.dispose();
+    			log.info("====Mina CLient connection closed!");
+            }
 		}
-        connector_.dispose();
-        log.info("====Mina CLient connection closed!");
 	}
 	/*
 	public class ClientHttpRequestEncoder implements ProtocolEncoder {
