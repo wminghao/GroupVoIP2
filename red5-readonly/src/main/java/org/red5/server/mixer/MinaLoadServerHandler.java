@@ -25,7 +25,16 @@ import java.lang.reflect.Modifier;
 //caution, must install mpstat -P ALL on all servers
 public class MinaLoadServerHandler extends IoHandlerAdapter {
 
+	private static String READY_STATE = "ready";
+	private static String DRAIN_STATE = "drain";
+	private static String MAINT_STATE = "maint";
+	private static String DOWN_STATE = "down";
+	private static String UP_STATE = "up";
+	
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
+    
+    private String currentState_ = UP_STATE;
+    
     @Override
     public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
     {
@@ -76,8 +85,16 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
         	finalJson.put("cpuCores", noOfCores());
         	finalJson.put("freememory", memoryUsage/(1024*1024)); //in MegBytes	
         	ret += finalJson.toJSONString();
+        } else if(str.contains("GET /disableservice HTTP/")){
+        	ret = "Service disabled";
+        	currentState_ = DRAIN_STATE;
+        } else if(str.contains("GET /enableservice HTTP/")){
+        	ret = "Service disabled";
+        	currentState_ = UP_STATE;
         } else {
-        	ret = "HTTP/1.0 404 Not Found";
+        	int cpuUsageAvg = (((int)(cpuUsage() * 100.00)) / noOfCores());
+        	int percentageIdle = cpuUsageAvg>100?0:(100-cpuUsageAvg);
+        	ret = String.valueOf(percentageIdle)+","+currentState_+"\n";	
         }
     	session.write( ret );
         session.close();
