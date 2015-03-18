@@ -89,12 +89,13 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
         	ret = "Service disabled";
         	currentState_ = DRAIN_STATE;
         } else if(str.contains("GET /enableservice HTTP/")){
-        	ret = "Service disabled";
+        	ret = "Service enabled";
         	currentState_ = UP_STATE;
         } else {
         	int cpuUsageAvg = (((int)(cpuUsage() * 100.00)) / noOfCores());
         	int percentageIdle = cpuUsageAvg>100?0:(100-cpuUsageAvg);
-        	ret = String.valueOf(percentageIdle)+","+currentState_+"\n";	
+        	ret = String.valueOf(percentageIdle)+"%,"+currentState_+"\n";	
+        	log.info("======load balancer query, ret={}", ret);
         }
     	session.write( ret );
         session.close();
