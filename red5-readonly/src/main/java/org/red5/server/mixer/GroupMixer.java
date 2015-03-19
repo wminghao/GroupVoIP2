@@ -46,6 +46,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private MinaLoadServer loadServer = new MinaLoadServer();
     
+    private MinaRoomClient roomNotificationClient = new MinaRoomClient();
+    
 	//spring members from configuration
 	protected static ApplicationContext applicationContext;
 	private boolean bShouldMix;
@@ -57,9 +59,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private String outputFlvPath;
 	private String inputSegPath;	
 	private String karaokeFilePath;
+	//load balancing parameters
+	private String roomLookupServerIp = "54.201.108.66";
+	private int roomLookupServerPort = 8000;
+	private int minaLoadServerPort = 1080; 
 	
 	//map to different rooms
 	private Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
+	private Object mixerRoomsSyncObj_ = new Object();
 	
 	//mixcoder bridge is shared among all rooms, singleton, created only once
     private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
@@ -69,7 +76,8 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	
     private GroupMixer() {
     	//launch a stats service for listening input from load balancer.
-    	loadServer.start();
+    	loadServer.start(minaLoadServerPort);
+    	roomNotificationClient.setServerInfo(roomLookupServerIp, roomLookupServerPort);
     }
     
 	@Override
@@ -120,21 +128,24 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    	    
 	    //start all other services
 	    mixerRoom.startService();
+	    
+	    //notify load balancer
+	    roomNotificationClient.onRoomCreated(mixerRoom.scopeName_);
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }
 
     private MixerRoom getMixerRoom(IScope roomScope) {
     	MixerRoom mixerRoom = null;
-    	if( mixerRooms_.containsKey(roomScope) ) {
-    		mixerRoom = mixerRooms_.get(roomScope);
-    	} 
+    	synchronized(mixerRoomsSyncObj_) {
+    		if( mixerRooms_.containsKey(roomScope) ) {
+    			mixerRoom = mixerRooms_.get(roomScope);
+    		} 	
+    	}
     	return mixerRoom;
 	}
     private MixerRoom getAndCreateMixerRoom(IScope roomScope) {
-    	MixerRoom mixerRoom = null;
-    	if( mixerRooms_.containsKey(roomScope) ) {
-    		mixerRoom = mixerRooms_.get(roomScope);
-    	} else {
+    	MixerRoom mixerRoom = getMixerRoom(roomScope);
+    	if( mixerRoom == null ) {
     		mixerRoom = new MixerRoom(this,
     				  mixCoderBridge_,
     				  roomScope,
@@ -147,7 +158,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
             		  outputFlvPath,
             		  inputSegPath,	
             		  karaokeFilePath);
-    		mixerRooms_.put(roomScope, mixerRoom);
+        	synchronized(mixerRoomsSyncObj_) {
+        		mixerRooms_.put(roomScope, mixerRoom);
+        	}
     	}
     	return mixerRoom;
     }
@@ -218,7 +231,11 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	    //remove connection
         	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
         	    mixerRoom.allInOneSessionId_ = null;
-        	    mixerRooms_.remove(roomScope);
+        	    //notify load balancer
+        	    roomNotificationClient.onRoomClosed(roomScope.getName());
+            	synchronized(mixerRoomsSyncObj_) {
+            		mixerRooms_.remove(roomScope);
+            	}
         		log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
         	}
     	}
@@ -379,7 +396,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private RTMPMinaConnection getAllInOneConn(MixerRoom mixerRoom)
     {
-    	return (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(mixerRoom.allInOneSessionId_);
+    	try {
+    		return (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(mixerRoom.allInOneSessionId_);
+    	} catch( Exception e) {
+    		log.info("------getAllInOneConn failed");
+    		return null;
+    	}
     }
 
     public boolean isAllInOneConn(IScope roomScope, RTMPConnection conn )
@@ -698,6 +720,30 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	public void setkaraokeFilePath(String karaokeFilePath) {
 		this.karaokeFilePath = karaokeFilePath;
 	}
+	/**
+	 * Setter for roomLookupServerIp.
+	 *
+	 * @param tells GroupMixer's where is roomLookupServerIp
+	 */
+	public void setroomLookupServerIp(String roomLookupServerIp) {
+		this.roomLookupServerIp = roomLookupServerIp;
+	}
+	/**
+	 * Setter for roomLookupServerPort.
+	 *
+	 * @param tells GroupMixer's where is roomLookupServerPort
+	 */
+	public void setroomLookupServerPort(String roomLookupServerPort) {
+		this.roomLookupServerPort = Integer.parseInt(roomLookupServerPort);
+	}
+	/**
+	 * Setter for minaLoadServerPort.
+	 *
+	 * @param tells GroupMixer's where is minaLoadServerPort
+	 */
+	public void setminaLoadServerPort(String minaLoadServerPort) {
+		this.minaLoadServerPort = Integer.parseInt(minaLoadServerPort);
+	}
 	/*
 	 * Default spring applicationcontext
 	 */
@@ -717,16 +763,18 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	
 	public List<StatsObject> getStats() {
 		List<StatsObject> statsList = new ArrayList<StatsObject>();
-		Iterator<Entry<IScope, MixerRoom>> it = mixerRooms_.entrySet().iterator();
-	    while (it.hasNext()) {
-	    	Entry<IScope, MixerRoom> pair = (Entry<IScope, MixerRoom>)it.next();
-	        MixerRoom room = (MixerRoom)pair.getValue();
-	        StatsObject obj = new StatsObject();
-	        obj.owner_ = room.scopeName_;
-	        obj.numOfSpeakers_ = room.idLookupTable_.getTotalInputStreams();
-	        obj.numOfVieweres_ = 0; //TODO for now don't care.
-	        statsList.add(obj);
-	    }
+    	synchronized(mixerRoomsSyncObj_) {
+    		Iterator<Entry<IScope, MixerRoom>> it = mixerRooms_.entrySet().iterator();
+    	    while (it.hasNext()) {
+    	    	Entry<IScope, MixerRoom> pair = (Entry<IScope, MixerRoom>)it.next();
+    	        MixerRoom room = (MixerRoom)pair.getValue();
+    	        StatsObject obj = new StatsObject();
+    	        obj.owner_ = room.scopeName_;
+    	        obj.numOfSpeakers_ = room.idLookupTable_.getTotalInputStreams();
+    	        obj.numOfVieweres_ = 0; //TODO for now don't care.
+    	        statsList.add(obj);
+    	    }
+    	}
 		return statsList;
 	}
 }

@@ -82,6 +82,7 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
         }
     }
 #ifdef FORCE_AAC_ALL_IN_ONE
+    ASSERT(aCodecId == kMP3);
     //
     //the all-in-one audio encoder must be AAC instead of mp3, 
     //since many video players cannot playback offline hardware decoded H264+Mp3 video.
@@ -92,7 +93,23 @@ MixCoder::MixCoder(VideoCodecId vCodecId, int vBitrate, int width, int height,
     audioSpitter_ = new AudioSpitter( flvSegInput_->getSamplesPerFrame(), getNumChannels(aOutputSetting.at) );
     audioEncoder_[MAX_XCODING_INSTANCES] = new AudioFdkaacEncoder( &aOutputSetting, aBitrate_ );
 #else 
-    audioEncoder_[MAX_XCODING_INSTANCES] = new AudioMp3Encoder( &aOutputSetting, aBitrate_ );
+    switch( aCodecId ) {
+    case kSpeex:{
+        audioEncoder_[MAX_XCODING_INSTANCES] = new AudioSpeexEncoder( &aOutputSetting, aBitrate_ );
+        break;
+    }
+    case kMP3:{
+        audioEncoder_[MAX_XCODING_INSTANCES] = new AudioMp3Encoder( &aOutputSetting, aBitrate_ );
+        break;
+    }
+    case kAAC:
+    default:{
+        //Don't use faac since it introduces longer delay
+        //audioEncoder_[i] = new AudioFaacEncoder( &aOutputSetting, aBitrate_ );
+        //use fdkaac low latency mode
+        audioEncoder_[MAX_XCODING_INSTANCES] = new AudioFdkaacEncoder( &aOutputSetting, aBitrate_ );
+    }
+    }
 #endif //FORCE_AAC_ALL_IN_ONE
 }
 

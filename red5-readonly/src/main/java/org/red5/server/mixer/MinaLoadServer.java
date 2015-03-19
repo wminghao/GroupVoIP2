@@ -15,22 +15,21 @@ import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 
 public class MinaLoadServer {
-	public static final int PORT = 1080;
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
     private IoAcceptor acceptor = null;
 	
     public MinaLoadServer(){
 	}
-	public void start() {
+	public void start(int port) {
         try {
-    		log.info("MinaLoadServer Transport bind");
+    		log.info("MinaLoadServer Transport bind to port: {}", port);
         	acceptor = new NioSocketAcceptor();
             //acceptor.getFilterChain().addLast( "logger", new LoggingFilter() );
             acceptor.getFilterChain().addLast( "codec", new ProtocolCodecFilter( new TextLineCodecFactory( Charset.forName( "UTF-8" ))));
             acceptor.setHandler(  new MinaLoadServerHandler() );
             acceptor.getSessionConfig().setReadBufferSize( 2048 );
             acceptor.getSessionConfig().setIdleTime( IdleStatus.BOTH_IDLE, 10 );
-			acceptor.bind( new InetSocketAddress(PORT) );
+			acceptor.bind( new InetSocketAddress(port) );
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
