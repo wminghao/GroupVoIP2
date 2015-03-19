@@ -1,6 +1,8 @@
 package org.red5.core;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -24,8 +26,7 @@ public class VisparApp extends ApplicationAdapter implements
 		IPendingServiceCallback, IStreamAwareScopeHandler {
 
     protected static Logger log = LoggerFactory.getLogger(VisparApp.class);
-    
-    private Set<String> publisherList = new HashSet<String>();
+    private Map<IScope, Set<String>> publisherListMap = new HashMap<IScope, Set<String>>();
 
 	/** {@inheritDoc} */
     @Override
@@ -66,42 +67,45 @@ public class VisparApp extends ApplicationAdapter implements
 	 *  */
     @Override
 	public boolean roomConnect(IConnection conn, Object[] params) {
-		//notify clients of all stream published, in comma deliminated form
-		String publisherListNames = "";
-		int totalPublishers = publisherList.size();
-		int i = 0;
-		for (String publisherName : publisherList) {
-			publisherListNames += publisherName;
-			if( (++i) < totalPublishers) {
-				publisherListNames += ",";
-			}
-		}
-		boolean bIsAllInOneConn = false;
-		if(conn instanceof RTMPConnection) {
-			bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
-		}
-		if( !bIsAllInOneConn ) {
-			sendToClient(conn, "initStreams", new Object[] {publisherListNames});
-		}
-        
-        //send the list of talker only mode to the client as well
     	IScope roomScope = conn.getScope(); //RoomScope 
-    	String audioOnlyListNames = "";
-        for(Set<IConnection> connections : roomScope.getConnections()) {
-            for (IConnection iConnection: connections) {
-                if (iConnection instanceof RTMPConnection) {
-                	if( iConnection != null && 
-                		((RTMPConnection)iConnection).getUser() != null && 
-                		((RTMPConnection)iConnection).isAudioOnly() ){
-                		audioOnlyListNames+= ((RTMPConnection)iConnection).getUser();
-                		audioOnlyListNames+=",";
-                	}
-                }
-            }
-        }
-		if( !bIsAllInOneConn ) {
-			sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
-		}
+    	Set<String> publisherList = publisherListMap.get(roomScope);
+    	if( publisherList != null ) {
+			//notify clients of all stream published, in comma deliminated form
+			String publisherListNames = "";
+			int totalPublishers = publisherList.size();
+			int i = 0;
+			for (String publisherName : publisherList) {
+				publisherListNames += publisherName;
+				if( (++i) < totalPublishers) {
+					publisherListNames += ",";
+				}
+			}
+			boolean bIsAllInOneConn = false;
+			if(conn instanceof RTMPConnection) {
+				bIsAllInOneConn = ((RTMPConnection)conn).isAllInOneConn();
+			}
+			if( !bIsAllInOneConn ) {
+				sendToClient(conn, "initStreams", new Object[] {publisherListNames});
+			}
+        
+	        //send the list of talker only mode to the client as well
+	    	String audioOnlyListNames = "";
+	        for(Set<IConnection> connections : roomScope.getConnections()) {
+	            for (IConnection iConnection: connections) {
+	                if (iConnection instanceof RTMPConnection) {
+	                	if( iConnection != null && 
+	                		((RTMPConnection)iConnection).getUser() != null && 
+	                		((RTMPConnection)iConnection).isAudioOnly() ){
+	                		audioOnlyListNames+= ((RTMPConnection)iConnection).getUser();
+	                		audioOnlyListNames+=",";
+	                	}
+	                }
+	            }
+	        }
+			if( !bIsAllInOneConn ) {
+				sendToClient(conn, "initAudioOnlyStreams", new Object[] {audioOnlyListNames});
+			}
+    	}
         
         if (conn instanceof RTMPConnection) {
         	if( ((RTMPConnection)conn).isExternalVideoGenerated() ) {
@@ -139,7 +143,14 @@ public class VisparApp extends ApplicationAdapter implements
         		}
             }
         }
-        publisherList.add(stream.getPublishedName());
+    	Set<String> publisherList = publisherListMap.get(roomScope);
+        if( publisherList == null) {
+        	publisherList = new HashSet<String>();
+        	publisherListMap.put(roomScope, publisherList);
+        }
+        if( publisherList != null) {
+        	publisherList.add(stream.getPublishedName());
+        }
     }
 
 	/** {@inheritDoc} */
@@ -172,7 +183,13 @@ public class VisparApp extends ApplicationAdapter implements
             }
 		}
 
-        publisherList.remove(stream.getPublishedName());
+    	Set<String> publisherList = publisherListMap.get(roomScope);
+        if( publisherList != null) {
+        	publisherList.remove(stream.getPublishedName());
+        	if( publisherList.isEmpty() ) {
+        		publisherListMap.remove(roomScope);
+        	}
+        }
     	super.streamBroadcastClose(stream);
 	}
 
