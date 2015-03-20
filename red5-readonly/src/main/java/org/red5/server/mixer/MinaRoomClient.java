@@ -32,6 +32,7 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
 	private static final long CONNECT_TIMEOUT = 30;
 
 	private String roomLookupServerIp;
+	private String roomLookupServerPathPrefix;
 	private int roomLookupServerPort;
 	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
 
@@ -43,8 +44,9 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
     public MinaRoomClient() {
     }
     
-    public void setServerInfo(String roomLookupServerIp, int roomLookupServerPort) {
+    public void setServerInfo(String roomLookupServerIp, String pathPrefix, int roomLookupServerPort) {
     	this.roomLookupServerIp = roomLookupServerIp;
+    	this.roomLookupServerPathPrefix = pathPrefix;
     	this.roomLookupServerPort = roomLookupServerPort;    
 		log.info("MinaRoomClient connect to ip:{} port: {}", roomLookupServerIp, roomLookupServerPort);
     }
@@ -73,12 +75,12 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
     }
     
 	public void onRoomCreated(String roomName) {
-		String createMessage = "GET /createroom/"+roomName+" HTTP/1.0\r\n\r\n";
+		String createMessage = "GET "+this.roomLookupServerPathPrefix+"createroom/"+roomName+" HTTP/1.0\r\n\r\n";
 		sendToLoadBalancer(createMessage);
 	}
 
 	public void onRoomClosed(String roomName) {
-		String deleteMessage = "GET /deleteroom/"+roomName+" HTTP/1.0\r\n\r\n";
+		String deleteMessage = "GET "+this.roomLookupServerPathPrefix+"deleteroom/"+roomName+" HTTP/1.0\r\n\r\n";
 		sendToLoadBalancer(deleteMessage);
 	}
 	

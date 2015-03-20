@@ -66,8 +66,10 @@
                 <property name="outputFlvPath" value="${groupMixer.outputFlvPath}" />
                 <property name="karaokeFilePath" value="${groupMixer.karaokeFilePath}" />
                 <property name="roomLookupServerIp" value="${groupMixer.roomLookupServerIp}" />
+                <property name="roomLookupServerPathPrefix" value="${groupMixer.roomLookupServerPathPrefix}" />
                 <property name="roomLookupServerPort" value="${groupMixer.roomLookupServerPort}" />
-                <property name="minaLoadServerPort" value="${groupMixer.minaLoadServerPort}" />
+                <property name="minaAgentCheckServerPort" value="${groupMixer.minaAgentCheckServerPort}" />
+                <property name="minaAgentAdminServerPort" value="${groupMixer.minaAgentAdminServerPort}" />
 	</bean>
 	
 	<!-- RTMP Mina Transport -->

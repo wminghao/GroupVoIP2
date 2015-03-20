@@ -44,7 +44,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     
     private IRTMPHandler handler_ = null; //global handler used in creating RTMPConnections
     
-    private MinaLoadServer loadServer = new MinaLoadServer();
+    private MinaAgentServerStatus agentServerStatus = new MinaAgentServerStatus();
+    private MinaAgentCheckServer agentCheckServer = new MinaAgentCheckServer();
+    private MinaAgentAdminServer agentAdminServer = new MinaAgentAdminServer();
     
     private MinaRoomClient roomNotificationClient = new MinaRoomClient();
     
@@ -61,8 +63,10 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private String karaokeFilePath;
 	//load balancing parameters
 	private String roomLookupServerIp = "54.201.108.66";
+	private String roomLookupServerPathPrefix = "/";
 	private int roomLookupServerPort = 8000;
-	private int minaLoadServerPort = 1080; 
+	private int minaAgentCheckServerPort = 1080; 
+	private int minaAgentAdminServerPort = 1081; 
 	
 	//map to different rooms
 	private Map<IScope,MixerRoom> mixerRooms_ = new HashMap<IScope, MixerRoom>();
@@ -76,14 +80,16 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	
     private GroupMixer() {
     	//launch a stats service for listening input from load balancer.
-    	loadServer.start(minaLoadServerPort);
-    	roomNotificationClient.setServerInfo(roomLookupServerIp, roomLookupServerPort);
+    	agentCheckServer.start(agentServerStatus, minaAgentCheckServerPort);
+    	agentAdminServer.start(agentServerStatus, minaAgentAdminServerPort);
+    	roomNotificationClient.setServerInfo(roomLookupServerIp, roomLookupServerPathPrefix, roomLookupServerPort);
     }
     
 	@Override
 	public void destroy() throws Exception {
 		//never called.
-    	loadServer.stop();
+    	agentCheckServer.stop();
+    	agentAdminServer.stop();
 	}
 	
     public static synchronized GroupMixer getInstance() {
@@ -729,6 +735,14 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 		this.roomLookupServerIp = roomLookupServerIp;
 	}
 	/**
+	 * Setter for roomLookupServerPathPrefix.
+	 *
+	 * @param tells GroupMixer's where is roomLookupServerPathPrefix
+	 */
+	public void setroomLookupServerPathPrefix(String roomLookupServerPathPrefix) {
+		this.roomLookupServerPathPrefix = roomLookupServerPathPrefix;
+	}
+	/**
 	 * Setter for roomLookupServerPort.
 	 *
 	 * @param tells GroupMixer's where is roomLookupServerPort
@@ -737,13 +751,22 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 		this.roomLookupServerPort = Integer.parseInt(roomLookupServerPort);
 	}
 	/**
-	 * Setter for minaLoadServerPort.
+	 * Setter for minaAgentCheckServerPort.
 	 *
-	 * @param tells GroupMixer's where is minaLoadServerPort
+	 * @param tells GroupMixer's where is minaAgentCheckServerPort
 	 */
-	public void setminaLoadServerPort(String minaLoadServerPort) {
-		this.minaLoadServerPort = Integer.parseInt(minaLoadServerPort);
+	public void setminaAgentCheckServerPort(String minaAgentCheckServerPort) {
+		this.minaAgentCheckServerPort = Integer.parseInt(minaAgentCheckServerPort);
 	}
+	/**
+	 * Setter for minaAgentAdminServerPort.
+	 *
+	 * @param tells GroupMixer's where is minaAgentAdminServerPort
+	 */
+	public void setminaAgentAdminServerPort(String minaAgentAdminServerPort) {
+		this.minaAgentAdminServerPort = Integer.parseInt(minaAgentAdminServerPort);
+	}
+	
 	/*
 	 * Default spring applicationcontext
 	 */
