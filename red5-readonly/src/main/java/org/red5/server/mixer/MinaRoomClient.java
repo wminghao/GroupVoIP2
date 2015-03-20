@@ -75,11 +75,13 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
     }
     
 	public void onRoomCreated(String roomName) {
+		//POST
 		String createMessage = "GET "+this.roomLookupServerPathPrefix+"createroom/"+roomName+" HTTP/1.0\r\n\r\n";
 		sendToLoadBalancer(createMessage);
 	}
 
 	public void onRoomClosed(String roomName) {
+		//DELETE
 		String deleteMessage = "GET "+this.roomLookupServerPathPrefix+"deleteroom/"+roomName+" HTTP/1.0\r\n\r\n";
 		sendToLoadBalancer(deleteMessage);
 	}

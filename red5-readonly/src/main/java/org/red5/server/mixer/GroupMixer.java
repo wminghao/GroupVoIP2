@@ -79,10 +79,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     private static int CURRENT_SUPPORTED_THRESHOLD = IdLookup.MAX_STREAM_COUNT-1; //for now, only 9 streams are supported
 	
     private GroupMixer() {
-    	//launch a stats service for listening input from load balancer.
-    	agentCheckServer.start(agentServerStatus, minaAgentCheckServerPort);
-    	agentAdminServer.start(agentServerStatus, minaAgentAdminServerPort);
-    	roomNotificationClient.setServerInfo(roomLookupServerIp, roomLookupServerPathPrefix, roomLookupServerPort);
     }
     
 	@Override
@@ -99,6 +95,13 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         return instance_;
     }
 
+    private void startStatsServers() {
+    	//launch a stats service for listening input from load balancer.
+    	agentCheckServer.start(agentServerStatus, minaAgentCheckServerPort);
+    	agentAdminServer.start(agentServerStatus, minaAgentAdminServerPort);
+    	roomNotificationClient.setServerInfo(roomLookupServerIp, roomLookupServerPathPrefix, roomLookupServerPort);
+    }
+    
     public void prepare(IRTMPHandler handler)
 	{ 	
     	if( handler_ == null ) {
@@ -765,6 +768,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	 */
 	public void setminaAgentAdminServerPort(String minaAgentAdminServerPort) {
 		this.minaAgentAdminServerPort = Integer.parseInt(minaAgentAdminServerPort);
+		//TODO cannot figure out.
+		//starts the stats servers after all parameters are read.
+		startStatsServers();
 	}
 	
 	/*
