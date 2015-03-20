@@ -16,7 +16,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.Process;
 import java.lang.Runtime;
-
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
@@ -40,6 +39,22 @@ public class MinaLoadServerHandler extends IoHandlerAdapter {
     {
         cause.printStackTrace();
     }
+    
+    //HAProxy asks it to send results immediately after connection open.
+    public void sessionOpened(IoSession session) throws Exception {
+    	int cpuUsageAvg = (((int)(cpuUsage() * 100.00)) / noOfCores());
+    	int percentageIdle = cpuUsageAvg>100?0:(100-cpuUsageAvg);
+    	String currentState = UP_STATE;
+    	if( percentageIdle == 0 ) {
+    		currentState = DRAIN_STATE;
+    	} 
+    	String ret = String.valueOf(percentageIdle)+"%,"+currentState+"\n";	
+    	log.info("======load balancer query, ret={}", ret);
+    	session.write( ret );
+        session.close();
+    }
+    
+    //TODO the following is NOT used at all.
     @SuppressWarnings("deprecation")
 	@Override
     public void messageReceived( IoSession session, Object message ) throws Exception

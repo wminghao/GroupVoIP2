@@ -31,7 +31,7 @@ public class MinaLoadServer {
             acceptor.getSessionConfig().setIdleTime( IdleStatus.BOTH_IDLE, 10 );
 			acceptor.bind( new InetSocketAddress(port) );
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			log.info("MinaLoadServer Transport bind failed.");
 			e.printStackTrace();
 		}
 	}
