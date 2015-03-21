@@ -33,7 +33,7 @@ public class MinaAgentCheckServerHandler extends IoHandlerAdapter {
     public void sessionOpened(IoSession session) throws Exception {
     	int cpuUsageAvg = (((int)(MinaAgentServerStatus.cpuUsage() * 100.00)) / MinaAgentServerStatus.noOfCores());
     	int percentageIdle = cpuUsageAvg>100?0:(100-cpuUsageAvg);
-    	String ret = String.valueOf(percentageIdle)+"%,"+status_.getStatus()+"\n";	
+    	String ret = String.valueOf(percentageIdle)+"%,"+status_.getStatus();	
     	log.info("======load balancer query, ret={}", ret);
     	session.write( ret );
         session.close();
