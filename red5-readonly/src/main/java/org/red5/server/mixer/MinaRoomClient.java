@@ -2,8 +2,8 @@ package org.red5.server.mixer;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
@@ -25,7 +25,6 @@ import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
-import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
@@ -37,8 +36,7 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
 	private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
 
 	//map to different connections, accessed from different threads
-	private Map<IoSession,NioSocketConnector> connPool_ = new HashMap<IoSession, NioSocketConnector>();
-	private Object syncObj = new Object();
+	private Map<IoSession,NioSocketConnector> connPool_ = new ConcurrentHashMap<IoSession, NioSocketConnector>();
 	
 	//TODO persistent connection	
     public MinaRoomClient() {
@@ -63,10 +61,8 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
             ConnectFuture future = connector.connect(new InetSocketAddress(roomLookupServerIp, roomLookupServerPort));
             future.awaitUninterruptibly();
             session = future.getSession();
-            synchronized (syncObj) {
-            	connPool_.put(session, connector);
-            }
-            log.info("====Mina client connection established!");
+            connPool_.put(session, connector);
+            //log.info("====Mina client connection established!");
         } catch (RuntimeIoException e) {
         	e.printStackTrace();
             log.info("====Mina client connection failed!. roomLookupServerIp={}, roomLookupServerPort={}", roomLookupServerIp, roomLookupServerPort);
@@ -97,16 +93,14 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
 		// wait until the message is sent
 		if ( session != null ) {
 			NioSocketConnector connector = null;
-            synchronized (syncObj) {
-    			if( connPool_.containsKey(session)) {
-    				connector = connPool_.get(session);
-    				connPool_.remove(session);
-    			}
-            }
+			if( connPool_.containsKey(session)) {
+				connector = connPool_.get(session);
+				connPool_.remove(session);
+			}
             session.getCloseFuture().awaitUninterruptibly();
             if( connector != null ) {
             	connector.dispose();
-    			log.info("====Mina CLient connection closed!");
+    			//log.info("====Mina CLient connection closed!");
             }
 		}
 	}

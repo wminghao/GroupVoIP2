@@ -3,13 +3,14 @@ package org.red5.server.mixer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.BitSet;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 
 public class MixCoderBridge {
-    private Map<Integer, DelegateObject> procIdDelegateMap = new HashMap<Integer, DelegateObject>();
-    private Object syncObj = new Object();
+    private Map<Integer, DelegateObject> procIdDelegateMap = new ConcurrentHashMap<Integer, DelegateObject>();
     private volatile BitSet reservedProcIds = new BitSet();
     private static Logger log = Red5LoggerFactory.getLogger(Red5.class);
 
@@ -33,56 +34,48 @@ public class MixCoderBridge {
     
     //callback from native c code to Java
     public void newOutput(byte[] bytesRead, int len, int procId) {
-    	synchronized(syncObj) {
-    		DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
-    		if ( obj != null ) {     
-    			MixCoderBridge.Delegate del = obj.delegate;
-    			del.newOutput(bytesRead, len);
-    			//log.info("=====>Reading from process pipe={}, procId={}", len, procId);
-    		}
-    	}
+		DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+		if ( obj != null ) {     
+			MixCoderBridge.Delegate del = obj.delegate;
+			del.newOutput(bytesRead, len);
+			//log.info("=====>Reading from process pipe={}, procId={}", len, procId);
+		}
     }
     
     //a new proc
     public int newProc(MixCoderBridge.Delegate del) {
     	int procId = -1;
-    	synchronized(syncObj) {
-    		procId = reserveProcId();
-    		if( procId != -1 ) {
-    			DelegateObject obj = new DelegateObject(del);
-    			procIdDelegateMap.put( new Integer(procId), obj );
-    			if( !startProc( procId )) {
-    				log.info("newProc failed:  {}", procId);
-        	    	unreserveProcId( procId );
-        	    	procIdDelegateMap.remove(new Integer(procId));
-    				procId = -1;
-    			}
-    		}
-    	}	
+		procId = reserveProcId();
+		if( procId != -1 ) {
+			DelegateObject obj = new DelegateObject(del);
+			procIdDelegateMap.put( new Integer(procId), obj );
+			if( !startProc( procId )) {
+				log.info("newProc failed:  {}", procId);
+    	    	unreserveProcId( procId );
+    	    	procIdDelegateMap.remove(new Integer(procId));
+				procId = -1;
+			}
+		}
 
     	return procId;
     }
     public void delProc(int procId) {
-    	synchronized(syncObj) {
-    		Integer id = new Integer(procId);
-    	    DelegateObject obj = procIdDelegateMap.get(id);
-    	    if ( obj != null ) {     
-				log.info("delProc successful:  {}", procId);
-    	    	stopProc( procId );
-    	    	unreserveProcId( procId );
-    	    	procIdDelegateMap.remove(id);
-    	    }
-    	}
+		Integer id = new Integer(procId);
+	    DelegateObject obj = procIdDelegateMap.get(id);
+	    if ( obj != null ) {     
+			log.info("delProc successful:  {}", procId);
+	    	stopProc( procId );
+	    	unreserveProcId( procId );
+	    	procIdDelegateMap.remove(id);
+	    }
     }
 
     //callback from java code to native c code
     public void sendInput( byte[] inputBuf, int len, int procId ) {
-    	synchronized(syncObj) {
-    	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
-    	    if ( obj != null ) {     
-    	    	newInput( inputBuf, len, procId );
-    	    }
-    	}
+	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
+	    if ( obj != null ) {     
+	    	newInput( inputBuf, len, procId );
+	    }
     }
 
     /////////////////////////

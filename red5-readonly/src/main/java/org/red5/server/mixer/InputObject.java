@@ -91,13 +91,13 @@ public class InputObject {
     		    
     		    //the rest of segments
     		    for (int i = 0; i < IdLookup.MAX_STREAM_COUNT; i++) {
-    			int iMaskedVal = 1<<i;
-    			if (i != mixerId && ( (result[0] & iMaskedVal) == iMaskedVal )) {
-    			    idtype = (byte)((i<<3) | kMobileStreamSource); // DOES NOT MATTER WHAT TYPE IT IS, ignored from the mixer
-    			    flvSegment.put(idtype);
-    			    flvSegment.put((byte)0); //ignore for now
-    			    flvSegment.putInt(0); //no data for this stream
-    			}
+        			int iMaskedVal = 1<<i;
+        			if (i != mixerId && ( (result[0] & iMaskedVal) == iMaskedVal )) {
+        			    idtype = (byte)((i<<3) | kMobileStreamSource); // DOES NOT MATTER WHAT TYPE IT IS, ignored from the mixer
+        			    flvSegment.put(idtype);
+        			    flvSegment.put((byte)0); //ignore for now
+        			    flvSegment.putInt(0); //no data for this stream
+        			}
     		    }
     		    flvSegment.flip();
     		    //log.info("=====>in message from {} mixerid {} type {} ts {} len {} totalLen {} on thread: {}", streamName, mixerId, (msgType==0x09)?"video":"audio", eventTime, dataLen, totalLen, Thread.currentThread().getName());

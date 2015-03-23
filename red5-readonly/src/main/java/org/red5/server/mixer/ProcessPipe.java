@@ -89,49 +89,49 @@ public class ProcessPipe implements SegmentParser.Delegate{
     
     public void handleSegInput(IdLookup idLookupTable, String streamName, int msgType, IoBuffer buf, int eventTime)
     {
-	int dataLen = buf.limit();
-	if( dataLen > 0 ) {
-	    InputObject inputObject = new InputObject(idLookupTable, streamName, msgType, buf, eventTime, dataLen);
-	    if(bSaveToDisc) {
-		try {
-		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
-		    if( outputFile_ == null ) {
-			outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
-		    }
-		    if( outputFile_ != null ) {
-			ByteBuffer seg = inputObject.toByteBuffer();
-			if( seg != null ) {
-			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
-			    outputFile_.write(seg.array(), 0, seg.array().length);
-			}
-		    }
+    	int dataLen = buf.limit();
+    	if( dataLen > 0 ) {
+    	    InputObject inputObject = new InputObject(idLookupTable, streamName, msgType, buf, eventTime, dataLen);
+    	    if(bSaveToDisc) {
+        		try {
+        		    //log.info("=====>Writing binary file... outputFile={}", this.outputFilePath);
+        		    if( outputFile_ == null ) {
+        			outputFile_ = new BufferedOutputStream(new FileOutputStream(this.outputFilePath));
+        		    }
+        		    if( outputFile_ != null ) {
+        			ByteBuffer seg = inputObject.toByteBuffer();
+        			if( seg != null ) {
+        			    //log.info("=====>array totalLen={} size={}", totalLen, seg.array().length);
+        			    outputFile_.write(seg.array(), 0, seg.array().length);
+        			}
+        		    }
+        		}
+        		catch(FileNotFoundException ex){
+        		    log.info("======>Output File not found.");
+        		}
+        		catch(IOException ex){
+        		    log.info("======>IO exception.");
+        		}
+    	    } 
+    	    if ( bLoadFromDisc ) {
+        		try {
+        		    if ( discReaderThread_ == null ) {
+        			//start the thread here
+        			discReaderThread_ = new DiscReaderThread();
+        			Thread thread = new Thread(discReaderThread_, "DiscReader");
+        			thread.start();
+        		    }
+        		} catch (Exception ex) {
+        		    log.info("=====>Disc IO other exception:  {}", ex);
+        		}			
+    	    } else {
+    	    	outBuffers_.add(inputObject);
+    	    	synchronized(writerThreadSyncObject_) {
+    	    		writerThreadSyncObject_.notify();
+    	    	}
+    	    	//log.info("====>outBuffers_ queue size {}", outBuffers_.size());
+    	    }
 		}
-		catch(FileNotFoundException ex){
-		    log.info("======>Output File not found.");
-		}
-		catch(IOException ex){
-		    log.info("======>IO exception.");
-		}
-	    } 
-	    if ( bLoadFromDisc ) {
-		try {
-		    if ( discReaderThread_ == null ) {
-			//start the thread here
-			discReaderThread_ = new DiscReaderThread();
-			Thread thread = new Thread(discReaderThread_, "DiscReader");
-			thread.start();
-		    }
-		} catch (Exception ex) {
-		    log.info("=====>Disc IO other exception:  {}", ex);
-		}			
-	    } else {
-		outBuffers_.add(inputObject);
-		synchronized(writerThreadSyncObject_) {
-		    writerThreadSyncObject_.notify();
-		}
-		//log.info("====>outBuffers_ queue size {}", outBuffers_.size());
-	    }
-	}
     }
     
     private void tryToWrite() {
@@ -151,11 +151,11 @@ public class ProcessPipe implements SegmentParser.Delegate{
 		}
 	    }
 	    try {
-		while (outBuffers_.isEmpty() && bShouldContWriterThread_) {
-		    synchronized(writerThreadSyncObject_) {
-			writerThreadSyncObject_.wait(); //wait until something is added to the outBuffers_
-		    }
-		}
+    		while (outBuffers_.isEmpty() && bShouldContWriterThread_) {
+    		    synchronized(writerThreadSyncObject_) {
+    			writerThreadSyncObject_.wait(); //wait until something is added to the outBuffers_
+    		    }
+    		}
 	    } catch(Exception err) {
 		bShouldContWriterThread_ = false;
 		log.info("===============Process Writer wait failed {}=======", err);
@@ -239,52 +239,52 @@ public class ProcessPipe implements SegmentParser.Delegate{
     }
     
     class ProcessReaderThread implements Runnable {
-	public void run(){
-	    log.info("Reading in binary from process: {}", MIXCODER_PROCESS_NAME);
-	    tryToRead();
-	}
+    	public void run(){
+    	    log.info("Reading in binary from process: {}", MIXCODER_PROCESS_NAME);
+    	    tryToRead();
+    	}
     }
     class ProcessWriterThread implements Runnable {
-	public void run(){
-	    log.info("Reading in binary from process: {}", MIXCODER_PROCESS_NAME);
-	    tryToWrite();
-	}
+    	public void run(){
+    	    log.info("Reading in binary from process: {}", MIXCODER_PROCESS_NAME);
+    	    tryToWrite();
+    	}
     }
 
     @Override
     public void onFrameParsed(IScope scope, int mixerId, ByteBuffer frame, int len) {
-	this.delegate.onFrameParsed(scope, mixerId, frame, len);		
+    	this.delegate.onFrameParsed(scope, mixerId, frame, len);		
     }	
     
     public void close()
     {
-	if( bSaveToDisc ) {
+    	if( bSaveToDisc ) {
     	    try {
     	    	outputFile_.close();
     	    }catch (IOException ex) {
-		log.info("close exception:  {}", ex);
+    	    	log.info("close exception:  {}", ex);
     	    }
-	}
+    	}
 	
-	if ( !bLoadFromDisc ) {
-	    bShouldContWriterThread_ = false;
-	    synchronized(writerThreadSyncObject_) {
-		writerThreadSyncObject_.notify();
-	    }
-    	    try {
+    	if ( !bLoadFromDisc ) {
+    		bShouldContWriterThread_ = false;
+    		synchronized(writerThreadSyncObject_) {
+    			writerThreadSyncObject_.notify();
+    	    }
+        	try {
     	    	if( in_ != null ) {
-		    in_.close();
+    	    		in_.close();
     	    	}
     	    	if( out_ != null ) {
-		    out_.close();
+    	    		out_.close();
     	    	}
     	    	if( process_ != null ) {
-		    process_.destroy();
+    	    		process_.destroy();
     	    	}
     	    }    
     	    catch (Exception err) {
     	        err.printStackTrace();
     	    }
-	}
+    	}
     }
 }
