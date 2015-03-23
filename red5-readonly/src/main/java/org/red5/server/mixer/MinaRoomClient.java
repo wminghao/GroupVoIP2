@@ -29,7 +29,7 @@ import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 
 public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
-	private static final long CONNECT_TIMEOUT = 30;
+	private static final long CONNECT_TIMEOUT_MS = 3000;
 
 	private String roomLookupServerIp;
 	private String roomLookupServerPathPrefix;
@@ -54,7 +54,7 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
     private IoSession connect() {
     	IoSession session = null;
     	NioSocketConnector connector = new NioSocketConnector();
-    	connector.setConnectTimeoutMillis(CONNECT_TIMEOUT);
+    	connector.setConnectTimeoutMillis(CONNECT_TIMEOUT_MS);
 
     	connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new TextLineCodecFactory( Charset.forName( "UTF-8" ))));
     	//connector_.getFilterChain().addLast("logger", new LoggingFilter());
@@ -66,10 +66,10 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
             synchronized (syncObj) {
             	connPool_.put(session, connector);
             }
-            log.info("====Mina CLient connection established!");
+            log.info("====Mina client connection established!");
         } catch (RuntimeIoException e) {
         	e.printStackTrace();
-            log.info("====Mina CLient connection failed!");
+            log.info("====Mina client connection failed!. roomLookupServerIp={}, roomLookupServerPort={}", roomLookupServerIp, roomLookupServerPort);
         }
         return session;
     }

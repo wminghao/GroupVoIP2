@@ -55,8 +55,8 @@
 	</bean>
 
         <!-- GroupMixer Singleton-->
-        <bean id="groupMixer" class="org.red5.server.mixer.GroupMixer">
-                <property name="bShouldMix" value="${groupMixer.bShouldMix}" />
+        <bean id="groupMixer" class="org.red5.server.mixer.GroupMixer" init-method="init">
+	        <property name="bShouldMix" value="${groupMixer.bShouldMix}" />
 		<property name="bLoadSegFromDisc" value="${groupMixer.bLoadSegFromDisc}" />
                 <property name="bSaveSegToDisc" value="${groupMixer.bSaveSegToDisc}" />
                 <property name="bSaveFlvToDisc" value="${groupMixer.bSaveFlvToDisc}" />

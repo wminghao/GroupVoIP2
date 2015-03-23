@@ -31,7 +31,7 @@ public class MixCoderBridge {
     	open();//open the connection to process pipe
     }
     
-    //callback from native c code
+    //callback from native c code to Java
     public void newOutput(byte[] bytesRead, int len, int procId) {
     	synchronized(syncObj) {
     		DelegateObject obj = procIdDelegateMap.get(new Integer(procId));
@@ -75,6 +75,7 @@ public class MixCoderBridge {
     	}
     }
 
+    //callback from java code to native c code
     public void sendInput( byte[] inputBuf, int len, int procId ) {
     	synchronized(syncObj) {
     	    DelegateObject obj = procIdDelegateMap.get(new Integer(procId));

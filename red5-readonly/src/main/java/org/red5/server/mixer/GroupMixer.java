@@ -80,7 +80,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	
     private GroupMixer() {
     }
-    
+
+	public void init() throws Exception {
+		//starts the stats servers after all parameters are read.
+		startStatsServers();
+	}
+	
 	@Override
 	public void destroy() throws Exception {
 		//never called.
@@ -768,9 +773,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	 */
 	public void setminaAgentAdminServerPort(String minaAgentAdminServerPort) {
 		this.minaAgentAdminServerPort = Integer.parseInt(minaAgentAdminServerPort);
-		//TODO cannot figure out.
-		//starts the stats servers after all parameters are read.
-		startStatsServers();
 	}
 	
 	/*
