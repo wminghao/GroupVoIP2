@@ -287,6 +287,7 @@ SmartPtr<SmartBuffer> MixCoder::getOutput()
 
                 //LOG("------totalAudioStreams = %d, totalMobileStreams=%d\n", totalStreams, totalMobileStreams );
 
+                //TODO, combine all mix functions into one function.
                 //for all in stream
                 SmartPtr<SmartBuffer> rawFrameMixed = audioMixer_->mixStreams(rawAudioData_, flvSegInput_->getSamplesPerFrame(), totalStreams, MAX_U32);
 
