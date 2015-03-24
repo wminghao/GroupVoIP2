@@ -24,7 +24,7 @@ AudioMp3Encoder::AudioMp3Encoder(AudioStreamSetting* outputSetting, int aBitrate
         lame_set_brate(lgf_, aBitrate);
         lame_set_VBR(lgf_, vbr_off);
         lame_set_mode(lgf_, (outputSetting->at==kSndMono) ? MONO:STEREO);
-        lame_set_quality(lgf_, 2);   /* 2=high  5 = medium  7=low 9=worst */
+        lame_set_quality(lgf_, 7);   /* 2=high  5 = medium  7=low 9=worst */
         lame_set_no_short_blocks(lgf_, 0); //no short block
         //lame_set_preset( m_gfp, 56); //voice quality
         //lame_set_lowpassfreq(m_gfp, -1);

@@ -51,8 +51,11 @@ void sigkill_sigaction(int signal __attribute__ ((unused)), siginfo_t *si, void 
     LOG("Caught sigkill at address %p, sent by pid: %d\n", si->si_addr, si->si_pid);
 }
 
-//big enough buffer
-const int MAX_BUF_SIZE = 512;//4096;
+//IMPORTANT THRESHOLD
+//big enough buffer, this threshold decides how OFTEN the IO is read, and there needs to be a balance between
+//the frequency a read function is called and the buffer size. If it's read too often, will cause higher CPU usage.
+//However, if the buffer size is too big, it will cause extra delay. Therefore a moderate value is chosen, 1024.
+const int MAX_BUF_SIZE = 1024; //4096
 
 int main( int argc, char** argv ) {
     atexit(fnExit);
@@ -113,7 +116,7 @@ int main( int argc, char** argv ) {
     
     int videoBitrate = 100; //increase from 40 to 100, with base tier 100kbps
     if( videoCodecOutputId != kVP8VideoPacket ) {
-        videoBitrate = 300; //300kbps
+        videoBitrate = 200; //200kbps
     }
     int videoWidth = 640;
     int videoHeight = 480;

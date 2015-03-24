@@ -444,20 +444,24 @@ SmartPtr<VideoRawData> FLVSegmentInput::getNextVideoFrame(u32 index)
         v = videoQueue_[index].front();
         if ( v && v->pts <= timestamp ) {
             videoQueue_[index].pop_front();
+            /*
             if( videoQueue_[index].size() > 0 ) {
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, videoQueue_[index].back()->pts, videoQueue_[index].size()+1);
             } else {
                 LOG("------pop next video frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, v->pts, 0, videoQueue_[index].size()+1);
             }
+            */
         } else {
+            /*
             if( v ) {
                 //LOG("------nopop Next video frame, index=%d queue=%d v->pts=%d timestamp=%d\r\n", index, videoQueue_[index].size(), v->pts, timestamp);
             } else {
                 //LOG("------nopop Next video frame, index=%d queue=%d\r\n", index, videoQueue_[index].size());
             }
+            */
             //don't pop anything that has a bigger timestamp
             v = NULL;
-        }
+        } 
     }
     return v;
 }
@@ -469,12 +473,13 @@ SmartPtr<AudioRawData> FLVSegmentInput::getNextAudioFrame(u32 index)
         a = audioQueue_[index].front();
         if ( a ) {
             audioQueue_[index].pop_front();
-            
+            /*
             if( audioQueue_[index].size() > 0 ) {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, audioQueue_[index].back()->pts, audioQueue_[index].size()+1);
             } else {
                 LOG("------pop next audio frame, index=%d cur_pts=%d last_pts=%d queue=%d\r\n", index, a->pts, 0, audioQueue_[index].size()+1);
             }
+            */
             lastAudioPopoutTime_ = getEpocTime();
         }
     }

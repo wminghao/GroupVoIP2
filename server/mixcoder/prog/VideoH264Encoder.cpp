@@ -7,7 +7,7 @@ VideoH264Encoder::VideoH264Encoder( VideoStreamSetting* setting, int vBaseLayerB
     int outBitrate = vBaseLayerBitrate;
 
     x264_param_default(&x264Param_);
-    x264_param_default_preset(&x264Param_, "medium", "zerolatency");
+    x264_param_default_preset(&x264Param_, "veryfast", "zerolatency");
     x264_param_apply_profile(&x264Param_, "baseline");
     x264Param_.b_cabac = 0;
     x264Param_.rc.i_rc_method = X264_RC_ABR;
