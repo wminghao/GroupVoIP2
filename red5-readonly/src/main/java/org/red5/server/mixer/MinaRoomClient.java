@@ -46,7 +46,6 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
     	this.roomLookupServerIp = roomLookupServerIp;
     	this.roomLookupServerPathPrefix = pathPrefix;
     	this.roomLookupServerPort = roomLookupServerPort;    
-		log.info("MinaRoomClient connect to ip:{} port: {}", roomLookupServerIp, roomLookupServerPort);
     }
     
     private IoSession connect() {
@@ -62,23 +61,37 @@ public class MinaRoomClient implements MinaRoomClientSessionHandler.Delegate{
             future.awaitUninterruptibly();
             session = future.getSession();
             connPool_.put(session, connector);
-            //log.info("====Mina client connection established!");
+    		//log.info("MinaRoomClient connect to ip:{} pathPrefix: {} port: {}", roomLookupServerIp, roomLookupServerPathPrefix, roomLookupServerPort);
         } catch (RuntimeIoException e) {
         	e.printStackTrace();
-            log.info("====Mina client connection failed!. roomLookupServerIp={}, roomLookupServerPort={}", roomLookupServerIp, roomLookupServerPort);
+            log.info("====Mina client connection failed!. roomLookupServerIp={}, pathPrefix: {} roomLookupServerPort={}", roomLookupServerIp, roomLookupServerPathPrefix, roomLookupServerPort);
         }
         return session;
     }
     
 	public void onRoomCreated(String roomName) {
+		String roomInfo = "roomId="+roomName;
+		int contentLength = roomInfo.length();
 		//POST
-		String createMessage = "GET "+this.roomLookupServerPathPrefix+"createroom/"+roomName+" HTTP/1.0\r\n\r\n";
+		String createMessage = "POST "+this.roomLookupServerPathPrefix+" HTTP/1.1\r\n"
+							  +"Accept: */*\r\n"	
+							  +"Host: www.vispar.com\r\n"
+							  +"Content-Length:"+Integer.toString(contentLength)+"\r\n"
+							  +"Content-Type: application/x-www-form-urlencoded\r\n"
+							  +"\r\n"
+							  +roomInfo
+							  +"\r\n";
+		//log.info(createMessage);
 		sendToLoadBalancer(createMessage);
 	}
 
 	public void onRoomClosed(String roomName) {
 		//DELETE
-		String deleteMessage = "GET "+this.roomLookupServerPathPrefix+"deleteroom/"+roomName+" HTTP/1.0\r\n\r\n";
+		String deleteMessage = "DELETE "+this.roomLookupServerPathPrefix+roomName+" HTTP/1.1\r\n"
+            				  +"Accept: */*\r\n"	
+            				  +"Host: www.vispar.com\r\n"
+            				  +"\r\n";
+		//log.info(deleteMessage);
 		sendToLoadBalancer(deleteMessage);
 	}
 	
