@@ -39,7 +39,10 @@ void modifyEpollContext(int epollfd, int operation, int fd, uint32_t events, voi
     epoll_event.data.ptr = data;
 
     if(-1 == epoll_ctl(epollfd, operation, fd, &epoll_event)) {
-        OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
+        if( EEXIST != errno ) {
+            //if exist, do nothing
+            OUTPUT( "Failed to trigger an event for fd=%d events=%d, operation=%d, Error:%s", fd, events, operation, strerror(errno));
+        }
     } else {
         //OUTPUT( "Success in triggering an event for fd=%d, operation=%d, events=%d", fd, operation, events);
     }
@@ -139,10 +142,6 @@ void EpollLooper::freeProc(EpollEvent* epollEvent)
 void EpollLooper::closeFd(EpollEvent* epollEvent)
 {
     closeFd(epollEvent->outputFromProcess);
-#ifdef EFFICIENT_EPOLL
-    Guard g(&mutex_[epollEvent->procId]);
-    bIsWriterFdEnabled_[epollEvent->procId] = false;
-#endif
     closeFd(epollEvent->inputToProcess);
 }
 void EpollLooper::closeFd(int fd) {
@@ -261,12 +260,8 @@ void EpollLooper::notifyWrite(int procId, unsigned char* data, int len)
                 closeDueToError(epollEvent);
             } else {
 #ifdef EFFICIENT_EPOLL
-                Guard g(&mutex_[procId]);
-                if( !bIsWriterFdEnabled_[procId] ) {
-                    //notify epollfd input is ready, use edge based epoll
-                    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
-                    bIsWriterFdEnabled_[procId] = true;
-                }
+                //notify epollfd input is ready, use edge based epoll
+                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
 #endif
             }
         }
@@ -283,12 +278,8 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
 
     int procId = epollEvent->procId;
 #ifdef EFFICIENT_EPOLL
-    {
-        Guard g(&mutex_[procId]); 
-        bIsWriterFdEnabled_[procId] = false;
-        //notify epollfd input is done
-        modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, 0, 0);
-    }
+    //notify epollfd input is done
+    modifyEpollContext(epollfd_, EPOLL_CTL_DEL, epollEvent->inputToProcess, 0, 0);
 #endif
 
     while (!outgoingBuffers->isEmpty() && !doneWriting) {
@@ -304,12 +295,8 @@ bool EpollLooper::tryToWrite(EpollEvent* epollEvent) {
             if ( netErrorNumber == EAGAIN) {
                 OUTPUT("-----write again later----\r\n");
 #ifdef EFFICIENT_EPOLL
-                Guard g(&mutex_[procId]);
-                if( !bIsWriterFdEnabled_[procId] ) {
-                    //notify epollfd input is ready, use edge based epoll
-                    modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
-                    bIsWriterFdEnabled_[procId] = true;
-                }
+                //notify epollfd input is ready, use edge based epoll
+                modifyEpollContext(epollfd_, EPOLL_CTL_ADD, epollEvent->inputToProcess, EPOLLOUT|EPOLLET, epollEvent);
 #endif    
             } else {
                 OUTPUT("-----error, netErrorNumber=%d----\r\n", netErrorNumber);

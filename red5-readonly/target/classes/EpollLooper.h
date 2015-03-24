@@ -34,6 +34,9 @@ typedef struct {
     bool closedDue2Error;
 }EpollEvent;
 
+//EpollFunctions are kernal functions, thread safe.
+//See details, http://stackoverflow.com/questions/7058737/is-epoll-thread-safe
+//Therefore, whenever we call functions, such as epoll_ctl(), or epoll_wait(), no need to use mutex to protect them
 class EpollLooper
 {
  public:
@@ -77,12 +80,6 @@ class EpollLooper
 
     //mapping table of epollEvent and procId
     std::tr1::unordered_map<int, EpollEvent*> procMapping_;
-
-#ifdef EFFICIENT_EPOLL
-    //mutex, per pipe, index starts from 1
-    GMutex mutex_[MAXEVENTS+1];
-    bool bIsWriterFdEnabled_[MAXEVENTS+1];
-#endif
 };
 
 

@@ -29,6 +29,9 @@ class EpollManager
 
  private:
     EpollLooper looper_;
+
+    //theoretically, it should be protected from mutex, however, outside C, in Java, everytime, pipeMap_ is changed, 
+    //it's protected by synchronized keyword from RTMPConnection::setPublisherStreamInfo() and RTMPConnection::deleteStreamById()
     std::tr1::unordered_map< int, ProcessObject*> pipeMap_;
 };
 #endif
