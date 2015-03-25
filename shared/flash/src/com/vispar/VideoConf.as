@@ -703,7 +703,9 @@ package com.vispar
 				if( !isAudioOnly_ ) {
 					detachCamera();
 					isAudioOnly_ = true;
-					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
+					if( streamPub != null ) {
+						netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
+					}
 				} else{
 					//do nothing
 				}
@@ -711,7 +713,9 @@ package com.vispar
 				if( isAudioOnly_ ) {
 					attachCamera();
 					isAudioOnly_ = false;
-					netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
+					if( streamPub != null ) {
+						netConn.call("clientRequest.switchAVFlag", null, isAudioOnly_?AUDIO_ON_FLAG:(AUDIO_ON_FLAG | VIDEO_ON_FLAG));
+					}
 				} else {
 					//do nothing
 				}

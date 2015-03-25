@@ -55,8 +55,7 @@
 						vidInstance_ = new VideoPlayer(container, container, serverIp, room, user, mode, forceAudioOnly_, false);
 					} else {				
 						if( forceAudioOnly_ ) {
-							this.switchAudioOnly.label = "Audio Only";	
-							this.switchAudioOnly.enabled = false;
+							CheckBox(this.switchAudioOnly).selected = true;
 						}
 						vidInstance_ = new VideoConf(container, container, serverIp, room, user, mode, forceAudioOnly_, false);
 					}
@@ -208,33 +207,28 @@
 			public function onVideoStarted(isViewOnly:Boolean):void{
 				//check whether it's the talker mode or other mode.
 				if( isViewOnly ) {
-					this.switchAudioOnly.enabled = false;
 					this.switchViewOnly.label = "Go To Talker Mode";
 				} else {
-					if( !forceAudioOnly_ ) {
-						this.switchAudioOnly.enabled = true;
-					}
 					this.switchViewOnly.label = "Go To Viewer Mode";					
 				}
 			}
 			protected function switchAudioOnly_clickHandler(event:MouseEvent):void {
-				var isAudioOnly:Boolean = vidInstance_.isAudioOnly();
-				vidInstance_.switchToAudioOnly( !isAudioOnly );
-				this.onAudioOnly( !isAudioOnly );
-			}
-			public function onAudioOnly(onAudioOnly:Boolean):void{
-				//check whether it's the talker mode or other mode.
-				if( onAudioOnly ) {
-					this.switchAudioOnly.label = "Show Video";
+				var isOrigAudioOnly:Boolean = vidInstance_.isAudioOnly();
+				if(CheckBox(switchAudioOnly).selected) {
+					if( !isOrigAudioOnly) {
+						vidInstance_.switchToAudioOnly( true );						
+					}
 				} else {
-					this.switchAudioOnly.label = "Audio Only";					
+					if( isOrigAudioOnly ) {
+						vidInstance_.switchToAudioOnly( false );	
+					}	
 				}
 			}
 			
 			public function onFatalNetworkTooSlowError(isAudioOnlyMode:Boolean):void{
 				if( isAudioOnlyMode ) {
 					if( !vidInstance_.isAudioOnly() ) {
-						this.switchAudioOnly.label = "Show Video";
+						CheckBox(switchAudioOnly).selected = true;
 					}
 				} else {
 					this.switchAudioOnly.enabled = false;
@@ -280,10 +274,10 @@
 	<local:UIContainer id="container" x="0" y="0" width="640" height="540"/>
 	<s:Button id="switchViewOnly" x="181" y="1" width="149" height="25" label="Go To Viewer Mode"
 			  click="switchViewOnly_clickHandler(event)" color="#610877" fontSize="14"/>
-	<s:Button id="switchAudioOnly" x="326" y="1" width="99" height="25" label="Audio Only"
-			  click="switchAudioOnly_clickHandler(event)" color="#085C77" fontSize="14"/>
+	<s:CheckBox  id="switchAudioOnly" x="334" y="1" width="93" height="26" label="Audio Only"
+				click="switchAudioOnly_clickHandler(event);" fontSize="14" selected="false"/>
 	<s:TextArea id="debugText" x="650" y="34" width="305" height="506" text=""/>
-	<s:DropDownList id="videoList" x="433" y="1" width="143" height="25"
+	<s:DropDownList id="videoList" x="422" y="1" width="163" height="25"
 					change="videoList_changeHandler(event)" color="#000000"
 					dataProvider="{videoSet}" labelField="value" selectedIndex="0"/>
 	<s:Button id="stopVideo" x="584" y="1" width="56" height="25" label="Stop"
