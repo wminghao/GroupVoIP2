@@ -72,6 +72,12 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	//map to different rooms, concurrency for multiple threads access
 	private ConcurrentHashMap<IScope,MixerRoom> mixerRooms_ = new ConcurrentHashMap<IScope, MixerRoom>();
 	
+	//map a scope to number of viewers, concurrency for multiple threads access
+	private ConcurrentHashMap<IScope, ViewerCounter> roomViewersLookupTable_ = new ConcurrentHashMap<IScope, ViewerCounter>();
+	public class ViewerCounter{
+		public int viewerCount = 0;
+	}
+	
 	//mixcoder bridge is shared among all rooms, singleton, created only once
     private MixCoderBridge mixCoderBridge_ = new MixCoderBridge();
     
@@ -144,8 +150,6 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	    //start all other services
 	    mixerRoom.startService();
 	    
-	    //notify load balancer
-	    roomNotificationClient.onRoomCreated(mixerRoom.scopeName_);
 	    log.info("Created all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
     }
 
@@ -241,15 +245,42 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	    //remove connection
         	    RTMPConnManager.getInstance().removeConnection(mixerRoom.allInOneSessionId_);
         	    mixerRoom.allInOneSessionId_ = null;
-        	    //notify load balancer
-        	    roomNotificationClient.onRoomClosed(roomScope.getName());
         	    mixerRooms_.remove(roomScope);
             	
         		log.info("Deleted all In One connection with bMixerOpenedSuccess_={} sessionId {} on thread: {}", mixerRoom.bMixerOpenedSuccess_, mixerRoom.allInOneSessionId_, Thread.currentThread().getName());
         	}
     	}
+    }    
+    public void onViewerJoined(IScope scope) {
+    	ViewerCounter counter = null;
+    	if( scope != null ) {
+    		counter = roomViewersLookupTable_.get(scope);
+    	}
+    	if( counter == null ) {
+    		counter = new ViewerCounter();
+    	    //notify load balancer
+    	    roomNotificationClient.onRoomCreated(scope.getName());
+    	    roomViewersLookupTable_.put(scope, counter);
+    	}
+    	counter.viewerCount++;
+    	log.info("total viewer after enter for scope:{} is {}", scope.getName(), counter.viewerCount);
     }
-    
+    public void onViewerLeft(IScope scope) {
+    	ViewerCounter counter = null;
+    	if( scope != null ) {
+    		counter = roomViewersLookupTable_.get(scope);
+        	if ( counter!= null ) {
+            	log.info("total viewer before leave for scope:{} is {}", scope.getName(), counter.viewerCount);
+        		if( counter.viewerCount == 1 ) {
+        			//notify load balancer
+        			roomNotificationClient.onRoomClosed(scope.getName());
+        			roomViewersLookupTable_.remove(scope);
+        		} else {
+        			counter.viewerCount--;
+        		}
+        	}
+    	}    	
+    }
     private void createMixedStreamInternal(MixerRoom mixerRoom, String streamName) {
     	if( mixerRoom.idLookupTable_.lookupMixerId(streamName) == -1 ) {
         	int newStreamId = mixerRoom.idLookupTable_.createNewEntry(streamName);
@@ -258,7 +289,7 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
         	if( conn != null ) {
         		handleCreatePublishEvents(conn, MIXED_STREAM_PREFIX+streamName, newStreamId);
         	} else {
-            	log.info("----------------fatal error allInone stream not found sessionId = {}", mixerRoom.allInOneSessionId_);
+            	log.info("-----fatal error allInone stream not found sessionId = {}", mixerRoom.allInOneSessionId_);
         	}
     	}
     }

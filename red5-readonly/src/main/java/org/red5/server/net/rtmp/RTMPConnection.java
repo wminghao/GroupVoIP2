@@ -920,11 +920,21 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	//therefore, dangling streams of "__mixed__allinone,__mixed__karaoke,testliveA,__mixed__testliveA" still exits after "testliveA" disappears.
 	public synchronized void deleteStreamById(int streamId) {
 		if (streamId > 0) {
-			if (streams.get(streamId - 1) != null) {
+			IClientStream curStream = streams.get(streamId - 1);
+			if ( curStream != null) {
+				//notify groupmixer if a viewer stream has stopped.
+				String curViewerStreamName = curStream.getBroadcastStreamPublishName();
+				if( curViewerStreamName!= null && curViewerStreamName.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
+					log.info("A viewer stream: {}  has left on scope: {}", curViewerStreamName, scope.getName());
+					GroupMixer.getInstance().onViewerLeft(scope);
+				}
+				
 				pendingVideos.remove(streamId);
 				usedStreams.decrementAndGet();
 				streams.remove(streamId - 1);
 				streamBuffers.remove(streamId - 1);
+				
+				//notify groupmixer if a publisher stream has stopped
 				if ( streamId == this.publisherStreamId ) {
 					GroupMixer.getInstance().deleteMixedStream(scope, this.publisherStreamName);
 				}

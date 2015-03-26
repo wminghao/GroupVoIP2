@@ -46,6 +46,7 @@ import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.support.DynamicPlayItem;
 import org.red5.server.api.stream.support.SimplePlayItem;
+import org.red5.server.mixer.GroupMixer;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.status.Status;
@@ -333,6 +334,12 @@ public class StreamService implements IStreamService {
 				}
 				try {
 					subscriberStream.play();
+					log.info("A viewer stream: {}  has joined on scope: {}", name, scope.getName());
+        			//any playback of __mixed__ stream
+        			if ( name.contains(GroupMixer.MIXED_STREAM_PREFIX) ) {
+        				//notify groupmixer a viewer has joined
+        				GroupMixer.getInstance().onViewerJoined(scope);
+        			}
 				} catch (IOException err) {
 					if (created) {
 						stream.close();
