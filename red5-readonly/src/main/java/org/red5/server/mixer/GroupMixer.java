@@ -73,8 +73,9 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
 	private ConcurrentHashMap<IScope,MixerRoom> mixerRooms_ = new ConcurrentHashMap<IScope, MixerRoom>();
 	
 	//map a scope to number of viewers, concurrency for multiple threads access
-	private ConcurrentHashMap<IScope, ViewerCounter> roomViewersLookupTable_ = new ConcurrentHashMap<IScope, ViewerCounter>();
-	public class ViewerCounter{
+	private HashMap<IScope, ViewerCounter> roomViewersLookupTable_ = new HashMap<IScope, ViewerCounter>();
+	private Object roomViewersLookupTableSyncObj = new Object();
+	private class ViewerCounter{
 		public int viewerCount = 0;
 	}
 	
@@ -252,34 +253,38 @@ public class GroupMixer implements SegmentParser.Delegate, KaraokeGenerator.Dele
     	}
     }    
     public void onViewerJoined(IScope scope) {
-    	ViewerCounter counter = null;
-    	if( scope != null ) {
-    		counter = roomViewersLookupTable_.get(scope);
+    	synchronized (roomViewersLookupTableSyncObj) {
+        	ViewerCounter counter = null;
+        	if( scope != null ) {
+        		counter = roomViewersLookupTable_.get(scope);
+        	}
+        	if( counter == null ) {
+        		counter = new ViewerCounter();
+        	    //notify load balancer
+        	    roomNotificationClient.onRoomCreated(scope.getName());
+        	    roomViewersLookupTable_.put(scope, counter);
+        	}
+        	counter.viewerCount++;
+        	log.info("total viewer after enter for scope:{} is {}", scope.getName(), counter.viewerCount);
     	}
-    	if( counter == null ) {
-    		counter = new ViewerCounter();
-    	    //notify load balancer
-    	    roomNotificationClient.onRoomCreated(scope.getName());
-    	    roomViewersLookupTable_.put(scope, counter);
-    	}
-    	counter.viewerCount++;
-    	log.info("total viewer after enter for scope:{} is {}", scope.getName(), counter.viewerCount);
     }
     public void onViewerLeft(IScope scope) {
-    	ViewerCounter counter = null;
-    	if( scope != null ) {
-    		counter = roomViewersLookupTable_.get(scope);
-        	if ( counter!= null ) {
-            	log.info("total viewer before leave for scope:{} is {}", scope.getName(), counter.viewerCount);
-        		if( counter.viewerCount == 1 ) {
-        			//notify load balancer
-        			roomNotificationClient.onRoomClosed(scope.getName());
-        			roomViewersLookupTable_.remove(scope);
-        		} else {
-        			counter.viewerCount--;
-        		}
-        	}
-    	}    	
+    	synchronized (roomViewersLookupTableSyncObj) {
+        	ViewerCounter counter = null;
+        	if( scope != null ) {
+        		counter = roomViewersLookupTable_.get(scope);
+            	if ( counter!= null ) {
+                	log.info("total viewer before leave for scope:{} is {}", scope.getName(), counter.viewerCount);
+            		if( counter.viewerCount == 1 ) {
+            			//notify load balancer
+            			roomNotificationClient.onRoomClosed(scope.getName());
+            			roomViewersLookupTable_.remove(scope);
+            		} else {
+            			counter.viewerCount--;
+            		}
+            	}
+        	}    	
+    	}
     }
     private void createMixedStreamInternal(MixerRoom mixerRoom, String streamName) {
     	if( mixerRoom.idLookupTable_.lookupMixerId(streamName) == -1 ) {

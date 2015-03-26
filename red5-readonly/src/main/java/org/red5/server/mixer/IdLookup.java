@@ -180,10 +180,14 @@ public class IdLookup {
 
     public int setClearVideoFrameFlag(String streamName) {
     	int mixerId = -1;
-	    GroupMappingTableEntry entry = groupMappingTable.get(streamName);
-	    if ( entry != null ) {     
-	    	entry.shouldClearVideoFrame = 1;
-	    }
+    	if( streamName != null ) {
+    	    GroupMappingTableEntry entry = groupMappingTable.get(streamName);
+    	    if ( entry != null ) {     
+    	    	entry.shouldClearVideoFrame = 1;
+    	    }
+    	} else {
+    		log.info("-----setClearVideoFrameFlag failed b/c streamName is null!");
+    	}
     	return mixerId;
     }
 
