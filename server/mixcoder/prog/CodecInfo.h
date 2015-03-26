@@ -1,8 +1,6 @@
 #ifndef __CODECINFOCOMMON_H__
 #define __CODECINFOCOMMON_H__
 
-const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 10; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
-const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 5; //78ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
 
 const u32 TIMESTAMP_JUMP_THRESHOLD = 100;
 const u32 OUTPUT_VIDEO_FRAME_RATE = 30;
@@ -16,13 +14,11 @@ const double videoFrameIntervalInMs = (double)1000 /(double)OUTPUT_VIDEO_FRAME_R
 #define MP3_FRAME_SAMPLE_SIZE 1152
 #define MP3_SAMPLE_PER_SEC 44100
 const double MP3_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)MP3_FRAME_SAMPLE_SIZE)/(double)MP3_SAMPLE_PER_SEC;
-const u64 MP3_FRAME_MAX_GAP_IN_MS = ((u64)MP3_FRAME_INTERVAL_IN_MS * 3)/2;
 
 //each aac frame, contains 1024 samples
 #define AAC_FRAME_SAMPLE_SIZE 1024
 #define AAC_SAMPLE_PER_SEC 44100
 const double AAC_FRAME_INTERVAL_IN_MS = ((double)1000 * (double)AAC_FRAME_SAMPLE_SIZE)/(double)AAC_SAMPLE_PER_SEC;
-const u64 AAC_FRAME_MAX_GAP_IN_MS = ((u64)AAC_FRAME_INTERVAL_IN_MS * 3)/2;
 
 //max samples per frame
 const int MAX_SAMPLES_PER_FRAME = MP3_FRAME_SAMPLE_SIZE;

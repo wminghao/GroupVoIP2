@@ -6,6 +6,14 @@
 #include "AudioDecoderFactory.h"
 #include "AudioMixer.h"
 
+//The following threshold indcates when to drop frames
+const u32 MAX_LATE_AUDIO_FRAME_THRESHOLD = 10; //150ms max delay to drop/speed up playback //for iOS_air, at least 10 = 260+ms max delay to drop frames
+const u32 MIN_LATE_AUDIO_FRAME_THRESHOLD = 5; //78ms max delay to pad with prev frame.   //for iOS_AIr, at least 5 = 130ms max delay
+
+//AUDIO_FRAME_MAX_GAP_IN_MS tells us when to insert empty frames if the queue size is too big.
+const u64 AUDIO_FRAME_MAX_GAP_IN_MS = 60; //60 ms, roughly 3 speex frames
+
+//to avoid queue being too big.
 const u32 MAX_VIDEO_QUEUE_SIZE = 15; //max of 15 frames per queue size
 
 ////////////////////////////////////////////////////////////////
@@ -215,65 +223,6 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
 
     //first calculate maxAudioQueueSize
     calcQueueSize(maxAudioQueueSize, minAudioQueueSize);
-    
-    //all audio frame rate is the same
-    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
-        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
-            if( audioQueue_[i].size() > 0) {
-                nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
-            } else {
-                bool bCannotPopout = true;
-                if (  maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
-                    //move forward only if enough time has elapsed since last popout, otherwise, give it a pause
-                    bool enoughTimeElapsed = true;
-                    u64 elpasedTimeInMs = (getEpocTime() - lastAudioPopoutTime_ );
-                    if( lastAudioPopoutTime_ && elpasedTimeInMs < framesMaxGapInMs_) {
-                        enoughTimeElapsed = false;
-                    }
-                    //Needs to push more than 1 frames b/c gap coudl be too wide.
-                    if( enoughTimeElapsed ) {
-                        //More aggressive in inserting lost frames, so that bad stream won't affect good stream's performance
-                        int numOfFramesInserted = ceil(((double)elpasedTimeInMs)/framesMaxGapInMs_)*2;
-                        for( int j = 0; j < numOfFramesInserted; j++ ) {
-                            //case 1, a frame arrives too late and will come in batch mode afterwards
-                            //case 2, a timestamp jump, meaning there are missing frames.
-                            SmartPtr<AudioRawData> a = new AudioRawData();
-                            bool bIsStereo = false;
-                            u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
-                            //Don't duplicate the previous frame, but use a blank frame instead
-                            //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
-                            SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
-                            a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
-                            a->bIsStereo = bIsStereo;
-                            a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
-                            audioQueue_[i].push_back( a );
-                            
-                            LOG("---------->Stream:%d push an empty audio frame, max queue size=%d exceeded, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, maxAudioQueueSize, a->pts, a->bIsStereo, elpasedTimeInMs);
-                            if( !j ) {
-                                nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
-                                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
-                            }
-                        }
-                        //printQueueSize();
-                        bCannotPopout = false;
-                    } else {
-                        //LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, elpasedTimeInMs, framesMaxGapInMs_);
-                    }
-                }
-
-                if( bCannotPopout ) {
-                    nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
-                    isReady = false;
-                    break;
-                    //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
-                }
-
-                break;
-            }   
-            totalStreams++;
-        }
-    }
 
     //For case 1), we handle it by trimming its queue when a stream has frames comes in batch mode.
     if ( maxAudioQueueSize >= MAX_LATE_AUDIO_FRAME_THRESHOLD ) {
@@ -324,6 +273,65 @@ bool FLVSegmentInput::isNextAudioStreamReady(u32& maxAudioTimestamp) {
                 }
             }
         }    
+    }
+    
+    //all audio frame rate is the same
+    for(u32 i = 0; i < MAX_XCODING_INSTANCES; i++ ) {
+        if ( audioStreamStatus_[i] == kStreamOnlineStarted ) { 
+            if( audioQueue_[i].size() > 0) {
+                nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
+                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
+            } else {
+                bool bCannotPopout = true;
+                if (  maxAudioQueueSize >= MIN_LATE_AUDIO_FRAME_THRESHOLD ) {  
+                    //move forward only if enough time has elapsed since last popout, otherwise, give it a pause
+                    bool enoughTimeElapsed = true;
+                    u64 elpasedTimeInMs = (getEpocTime() - lastAudioPopoutTime_ );
+                    if( lastAudioPopoutTime_ && elpasedTimeInMs < AUDIO_FRAME_MAX_GAP_IN_MS) {
+                        enoughTimeElapsed = false;
+                    }
+                    //Needs to push more than 1 frames b/c gap coudl be too wide.
+                    if( enoughTimeElapsed ) {
+                        //More aggressive in inserting lost frames, so that bad stream won't affect good stream's performance
+                        int numOfFramesInserted = ceil(((double)elpasedTimeInMs)/AUDIO_FRAME_MAX_GAP_IN_MS)*2;
+                        for( int j = 0; j < numOfFramesInserted; j++ ) {
+                            //case 1, a frame arrives too late and will come in batch mode afterwards
+                            //case 2, a timestamp jump, meaning there are missing frames.
+                            SmartPtr<AudioRawData> a = new AudioRawData();
+                            bool bIsStereo = false;
+                            u32 origPts = audioTsMapper_[i].getLastOrigTimestamp() + 1; //does NOT matter
+                            //Don't duplicate the previous frame, but use a blank frame instead
+                            //a->rawAudioFrame_ = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
+                            SmartPtr<SmartBuffer> prevFrame = audioDecoder_[i]->getPrevRawFrame(bIsStereo);
+                            a->rawAudioFrame_ = SmartBuffer::genBlankBuffer( prevFrame );
+                            a->bIsStereo = bIsStereo;
+                            a->pts = audioTsMapper_[i].getNextTimestamp( origPts );
+                            audioQueue_[i].push_back( a );
+                            
+                            LOG("---------->Stream:%d push an empty audio frame, max queue size=%d exceeded, pts=%d, isStereo=%d, elapsedTime=%dms\r\n", i, maxAudioQueueSize, a->pts, a->bIsStereo, elpasedTimeInMs);
+                            if( !j ) {
+                                nextAudioTimestamp_[i] = audioQueue_[i].front()->pts;
+                                maxAudioTimestamp = MAX( audioQueue_[i].front()->pts, maxAudioTimestamp );
+                            }
+                        }
+                        //printQueueSize();
+                        bCannotPopout = false;
+                    } else {
+                        //LOG("-------->Stream:%d queue emtpy. Max queue size=%d exceeded, elapsedTime=%dms < %dms\r\n", i, maxAudioQueueSize, elpasedTimeInMs, AUDIO_FRAME_MAX_GAP_IN_MS);
+                    }
+                }
+
+                if( bCannotPopout ) {
+                    nextAudioTimestamp_[i] = 0; //reset the timestamp to indicate it's missing
+                    isReady = false;
+                    break;
+                    //LOG( "---streamMask online unavailable index=%d, numStreams=%d\r\n", i, numStreams_);
+                }
+
+                break;
+            }   
+            totalStreams++;
+        }
     }
 
     return totalStreams?isReady:false;
