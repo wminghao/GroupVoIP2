@@ -1,0 +1,10 @@
+{
+  "name": "vispar-web-server",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.3.4",
+    "node-mysql": "0.4.1"
+    "mongogoose": "3.8.25"
+  }
+}
