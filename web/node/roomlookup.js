@@ -1,3 +1,15 @@
+/*
+This is a room lookup service for redirector.
+========================================================================================================
+We need to expose both HAProxy external port as well as all video server external port to the outside world.
+
+GeoIP server query to find where client’s geo location is. (China/US)
+Room location server query to find if a room exists, and where the room host server is now. (China/US)
+If a room does not exist, connect to the HAProxy of the client’s region. (China/US) HAProxy will pick a server with minimum load.
+Otherwise, connect to the room host server's IP address directly.
+If a room is in different geolocation than the client, only allow viewing only for the client, b/c the network latency is OUT OF CONTROL.
+*/
+
 var http = require('http');
 
 var mongoose = require('mongoose');
@@ -52,7 +64,7 @@ app.get('/deleteroom/:roomname', function (req,res) {
 var lookupFunc = function(req, res, remoteaddr) {
     var options = {
 	host: 'localhost',
-	port: 9090,
+	port: 8080,
 	path: '/json/'+remoteaddr,
 	method: 'GET'
     };
@@ -78,7 +90,7 @@ var lookupFunc = function(req, res, remoteaddr) {
 		    if( isClientFromCN ) {
 			res.end('121.40.163.69') //return the aliyun ip address
 		    } else {
-			res.end('54.201.108.66:9000') //return the HA proxy address
+			res.end('54.201.108.66:9000') //return the HA proxy address for US server
 		    }
 		} else {
 		    res.end(room.ipaddr); //return the actual ip of the hosting machine
