@@ -1,3 +1,6 @@
+/*
+ Vispar demo code for mobile returning a list of events.
+ */
 var http = require('http');
 var mysql = require('mysql');
 // Create the connection. 
